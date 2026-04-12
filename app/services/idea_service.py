@@ -52,6 +52,8 @@ def list_ideas(
     idea_status: IdeaStatus | None = None,
     prioridade: IdeaPrioridade | None = None,
     formato_sugerido: IdeaFormatoSugerido | None = None,
+    limit: int = 50,
+    offset: int = 0,
 ) -> list[Idea]:
     _assert_brand_ownership(db, brand_id, user_id)
     query = db.query(Idea).filter(Idea.brand_id == brand_id)
@@ -61,7 +63,7 @@ def list_ideas(
         query = query.filter(Idea.prioridade == prioridade)
     if formato_sugerido is not None:
         query = query.filter(Idea.formato_sugerido == formato_sugerido)
-    return query.order_by(Idea.created_at.desc()).all()
+    return query.order_by(Idea.created_at.desc()).offset(offset).limit(limit).all()
 
 
 def get_idea(db: Session, idea_id: int, user_id: int) -> Idea:

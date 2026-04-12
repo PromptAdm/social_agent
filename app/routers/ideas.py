@@ -17,7 +17,7 @@ Filtros disponíveis em GET /ideas/brand/{brand_id}:
     ?formato_sugerido=carrossel|reels|…
 """
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_active_user, get_db
@@ -66,6 +66,8 @@ def list_ideas(
     idea_status: IdeaStatus | None = None,
     prioridade: IdeaPrioridade | None = None,
     formato_sugerido: IdeaFormatoSugerido | None = None,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -76,6 +78,8 @@ def list_ideas(
         idea_status=idea_status,
         prioridade=prioridade,
         formato_sugerido=formato_sugerido,
+        limit=limit,
+        offset=offset,
     )
 
 

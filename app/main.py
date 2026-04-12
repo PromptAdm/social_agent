@@ -27,15 +27,11 @@ from app.routers import (
 settings = get_settings()
 
 app = FastAPI(
-    title=settings.APP_NAME,
-    version=settings.APP_VERSION,
-    description=(
-        "Backend do Social Agent — automação de conteúdo e gestão de redes sociais.\n\n"
-        "Módulos: Estratégia da Marca · Ideias · Posts · Aprovação · "
-        "Publicação · Engajamento · Leads · Analytics · **IA** (geração, análise e relatórios)"
-    ),
+    title="Social Agent",
+    description="Backend do Social Agent — automação de conteúdo e gestão de redes sociais.\n\nMódulos: Estratégia da Marca · Ideias · Posts · Aprovação · Publicação · Engajamento · Leads · Analytics · IA",
+    version="0.1.0",
     docs_url="/docs",
-    redoc_url="/redoc",
+    redoc_url="/redoc"
 )
 
 # --- CORS ---

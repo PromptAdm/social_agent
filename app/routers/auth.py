@@ -28,7 +28,7 @@ from app.schemas.token import LoginRequest, RefreshRequest, Token, TokenResponse
 from app.schemas.user import UserChangePassword, UserCreate, UserOut, UserUpdate
 from app.services import auth_service, user_service
 
-router = APIRouter(prefix="/auth", tags=["Auth"])
+router = APIRouter(prefix="/auth", tags=["Autenticação"])
 
 
 # ── Registro ───────────────────────────────────────────────────────────────────

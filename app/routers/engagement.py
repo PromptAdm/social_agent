@@ -21,7 +21,7 @@ Filtros disponíveis em GET /engagement/posts/{post_id}/comments:
     ?is_replied=true|false
 """
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_active_user, get_db
@@ -65,6 +65,8 @@ def list_comments(
     classificacao: CommentClassificacao | None = None,
     sentiment: CommentSentiment | None = None,
     is_replied: bool | None = None,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -74,6 +76,8 @@ def list_comments(
         classificacao=classificacao,
         sentiment=sentiment,
         is_replied=is_replied,
+        limit=limit,
+        offset=offset,
     )
 
 

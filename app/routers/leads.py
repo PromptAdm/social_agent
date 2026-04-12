@@ -18,7 +18,7 @@ Filtros disponíveis em GET /leads/brand/{brand_id}:
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_active_user, get_db
@@ -59,6 +59,8 @@ def list_leads(
     source: LeadSource | None = None,
     created_from: datetime | None = None,
     created_to: datetime | None = None,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -70,6 +72,8 @@ def list_leads(
         source=source,
         created_from=created_from,
         created_to=created_to,
+        limit=limit,
+        offset=offset,
     )
 
 

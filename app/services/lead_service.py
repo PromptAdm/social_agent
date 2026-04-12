@@ -47,6 +47,8 @@ def list_leads(
     source: LeadSource | None = None,
     created_from: datetime | None = None,
     created_to: datetime | None = None,
+    limit: int = 50,
+    offset: int = 0,
 ) -> list[Lead]:
     _assert_brand_ownership(db, brand_id, user_id)
     query = db.query(Lead).filter(Lead.brand_id == brand_id)
@@ -58,7 +60,7 @@ def list_leads(
         query = query.filter(Lead.created_at >= created_from)
     if created_to is not None:
         query = query.filter(Lead.created_at <= created_to)
-    return query.order_by(Lead.created_at.desc()).all()
+    return query.order_by(Lead.created_at.desc()).offset(offset).limit(limit).all()
 
 
 def get_lead(db: Session, lead_id: int, user_id: int) -> Lead:

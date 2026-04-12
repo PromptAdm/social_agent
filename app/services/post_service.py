@@ -49,6 +49,8 @@ def list_posts(
     prioridade: PostPrioridade | None = None,
     scheduled_from: datetime | None = None,
     scheduled_to: datetime | None = None,
+    limit: int = 50,
+    offset: int = 0,
 ) -> list[Post]:
     _assert_brand_ownership(db, brand_id, user_id)
     query = db.query(Post).filter(Post.brand_id == brand_id)
@@ -64,7 +66,7 @@ def list_posts(
         query = query.filter(Post.scheduled_at >= scheduled_from)
     if scheduled_to is not None:
         query = query.filter(Post.scheduled_at <= scheduled_to)
-    return query.order_by(Post.created_at.desc()).all()
+    return query.order_by(Post.created_at.desc()).offset(offset).limit(limit).all()
 
 
 def get_post(db: Session, post_id: int, user_id: int) -> Post:

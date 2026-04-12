@@ -30,7 +30,7 @@ Filtros disponíveis em GET /posts/brand/{brand_id}:
 
 from datetime import datetime
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_active_user, get_db
@@ -75,6 +75,8 @@ def list_posts(
     prioridade: PostPrioridade | None = None,
     scheduled_from: datetime | None = None,
     scheduled_to: datetime | None = None,
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
@@ -88,6 +90,8 @@ def list_posts(
         prioridade=prioridade,
         scheduled_from=scheduled_from,
         scheduled_to=scheduled_to,
+        limit=limit,
+        offset=offset,
     )
 
 

@@ -42,6 +42,8 @@ def list_comments(
     classificacao: CommentClassificacao | None = None,
     sentiment: CommentSentiment | None = None,
     is_replied: bool | None = None,
+    limit: int = 50,
+    offset: int = 0,
 ) -> list[Comment]:
     query = db.query(Comment).filter(Comment.post_id == post_id)
     if classificacao is not None:
@@ -50,7 +52,7 @@ def list_comments(
         query = query.filter(Comment.sentiment == sentiment)
     if is_replied is not None:
         query = query.filter(Comment.is_replied == is_replied)
-    return query.order_by(Comment.created_at.desc()).all()
+    return query.order_by(Comment.created_at.desc()).offset(offset).limit(limit).all()
 
 
 def get_comment(db: Session, comment_id: int) -> Comment:
