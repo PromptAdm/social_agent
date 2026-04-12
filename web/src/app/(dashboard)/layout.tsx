@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/layout/Sidebar'
-import { Topbar } from '@/components/layout/Topbar'
+import { Topbar }   from '@/components/layout/Topbar'
+import { Toaster }  from '@/components/shared/Toaster'
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardLayout({
         <Topbar />
         <main className="flex-1 overflow-y-auto">{children}</main>
       </div>
+      <Toaster />
     </div>
   )
 }

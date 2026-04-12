@@ -1,7 +1,9 @@
+'use client'
+
 import Link from 'next/link'
 import { Plus, FileText, Lightbulb, MoreHorizontal } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
-import { mockBrands } from '@/lib/mock/data'
+import { useBrands }  from '@/hooks/useBrands'
 
 function BrandInitial({ name }: { name: string }) {
   return (
@@ -11,7 +13,13 @@ function BrandInitial({ name }: { name: string }) {
   )
 }
 
+function Skeleton({ className }: { className?: string }) {
+  return <div className={`animate-pulse bg-[#1E1E2A] rounded-lg ${className}`} />
+}
+
 export default function BrandsPage() {
+  const { data: brands = [], isLoading } = useBrands()
+
   return (
     <div className="p-8 max-w-[1200px]">
       <PageHeader
@@ -26,53 +34,57 @@ export default function BrandsPage() {
       </PageHeader>
 
       <div className="grid grid-cols-3 gap-4">
-        {mockBrands.map((brand) => (
-          <div
-            key={brand.id}
-            className="card p-6 flex flex-col gap-4 hover:border-[#3F3F56] transition-colors"
-          >
-            {/* Header */}
-            <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
-                <BrandInitial name={brand.name} />
-                <div>
-                  <h3 className="text-[15px] font-semibold text-slate-100">{brand.name}</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">{brand.niche}</p>
+        {isLoading
+          ? Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-[220px]" />
+            ))
+          : brands.map((brand) => (
+              <div
+                key={brand.id}
+                className="card p-6 flex flex-col gap-4 hover:border-[#3F3F56] transition-colors"
+              >
+                {/* Header */}
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <BrandInitial name={brand.name} />
+                    <div>
+                      <h3 className="text-[15px] font-semibold text-slate-100">{brand.name}</h3>
+                      <p className="text-xs text-slate-500 mt-0.5">{brand.niche}</p>
+                    </div>
+                  </div>
+                  <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[#17171F] text-slate-500 hover:text-slate-400 transition-colors">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </button>
                 </div>
-              </div>
-              <button className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[#17171F] text-slate-500 hover:text-slate-400 transition-colors">
-                <MoreHorizontal className="w-4 h-4" />
-              </button>
-            </div>
 
-            {/* Description */}
-            {brand.description && (
-              <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
-                {brand.description}
-              </p>
-            )}
+                {/* Description */}
+                {brand.description && (
+                  <p className="text-sm text-slate-500 leading-relaxed line-clamp-2">
+                    {brand.description}
+                  </p>
+                )}
 
-            {/* Stats */}
-            <div className="flex items-center gap-4 pt-1 border-t border-[#1E1E2A]">
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <FileText className="w-3.5 h-3.5" />
-                <span>{brand.post_count ?? 0} posts</span>
-              </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-500">
-                <Lightbulb className="w-3.5 h-3.5" />
-                <span>{brand.idea_count ?? 0} ideias</span>
-              </div>
-            </div>
+                {/* Stats */}
+                <div className="flex items-center gap-4 pt-1 border-t border-[#1E1E2A]">
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>{brand.post_count ?? 0} posts</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <Lightbulb className="w-3.5 h-3.5" />
+                    <span>{brand.idea_count ?? 0} ideias</span>
+                  </div>
+                </div>
 
-            {/* Action */}
-            <Link
-              href={`/brands/${brand.id}/strategy`}
-              className="btn-secondary text-center text-sm"
-            >
-              Abrir
-            </Link>
-          </div>
-        ))}
+                {/* Action */}
+                <Link
+                  href={`/brands/${brand.id}/strategy`}
+                  className="btn-secondary text-center text-sm"
+                >
+                  Abrir
+                </Link>
+              </div>
+            ))}
 
         {/* Add new brand card */}
         <button className="border border-dashed border-[#27273A] rounded-lg p-6 flex flex-col items-center justify-center gap-3 hover:border-indigo-500/40 hover:bg-indigo-600/5 transition-colors group cursor-pointer min-h-[220px]">

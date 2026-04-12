@@ -96,7 +96,9 @@ export interface Idea {
   source: string | null
   prioridade: IdeaPrioridade
   formato_sugerido: IdeaFormatoSugerido
+  plataforma: SocialPlatform | null
   status: IdeaStatus
+  tags: string[] | null
   created_at: string
   updated_at: string
 }

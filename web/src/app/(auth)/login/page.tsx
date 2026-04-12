@@ -1,16 +1,21 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Hexagon, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import { useAuthStore } from '@/store/authStore'
+import { parseApiError } from '@/lib/api/errors'
 
-export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+function LoginForm() {
+  const router       = useRouter()
+  const searchParams = useSearchParams()
+  const setAuth      = useAuthStore((s) => s.setAuth)
+
+  const [email,        setEmail]        = useState('')
+  const [password,     setPassword]     = useState('')
   const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [loading,      setLoading]      = useState(false)
+  const [error,        setError]        = useState('')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -22,12 +27,30 @@ export default function LoginPage() {
     }
 
     setLoading(true)
-    // Simula request ao backend
-    await new Promise((r) => setTimeout(r, 800))
-    setLoading(false)
+    try {
+      const res = await fetch('/api/auth/login', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ email, password }),
+      })
 
-    // Mock: qualquer credencial funciona
-    router.push('/overview')
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.message ?? 'Credenciais inválidas.')
+        return
+      }
+
+      const { access_token, user } = data
+      if (user) setAuth(user, access_token)
+
+      const from = searchParams.get('from') ?? '/overview'
+      router.replace(from)
+    } catch (err) {
+      setError(parseApiError(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -131,5 +154,13 @@ export default function LoginPage() {
         © 2026 Social Agent · Todos os direitos reservados
       </p>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   )
 }

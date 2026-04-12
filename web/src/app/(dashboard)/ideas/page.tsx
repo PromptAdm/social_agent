@@ -5,9 +5,11 @@ import { Plus, Zap, ChevronRight, X, ArrowRight } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { mockIdeas, mockContentPillars } from '@/lib/mock/data'
 import type { Idea, IdeaPrioridade, IdeaStatus } from '@/types'
 import { Lightbulb } from 'lucide-react'
+import { useBrandStore } from '@/store/brandStore'
+import { useIdeas }      from '@/hooks/useIdeas'
+import { usePillars }    from '@/hooks/useBrands'
 
 const FORMAT_LABEL: Record<string, string> = {
   carrossel: 'Carrossel',
@@ -37,17 +39,23 @@ function formatDate(iso: string) {
   return d.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
 
-function getPillarName(pillarId: number | null) {
-  if (!pillarId) return null
-  return mockContentPillars.find((p) => p.id === pillarId)?.name ?? null
-}
-
 export default function IdeasPage() {
-  const [statusFilter, setStatusFilter] = useState<IdeaStatus | 'all'>('all')
-  const [priorityFilter, setPriorityFilter] = useState<IdeaPrioridade | 'all'>('all')
-  const [selectedIdea, setSelectedIdea] = useState<Idea | null>(null)
+  const activeBrand = useBrandStore((s) => s.activeBrand)
+  const brandId     = activeBrand?.id ?? 0
 
-  const filtered = mockIdeas.filter((i) => {
+  const { data: ideas   = [], isLoading } = useIdeas(brandId)
+  const { data: pillars = []           }  = usePillars(brandId)
+
+  const [statusFilter,   setStatusFilter]   = useState<IdeaStatus | 'all'>('all')
+  const [priorityFilter, setPriorityFilter] = useState<IdeaPrioridade | 'all'>('all')
+  const [selectedIdea,   setSelectedIdea]   = useState<Idea | null>(null)
+
+  function getPillarName(pillarId: number | null) {
+    if (!pillarId) return null
+    return pillars.find((p) => p.id === pillarId)?.name ?? null
+  }
+
+  const filtered = ideas.filter((i) => {
     if (statusFilter !== 'all' && i.status !== statusFilter) return false
     if (priorityFilter !== 'all' && i.prioridade !== priorityFilter) return false
     return true
@@ -59,7 +67,7 @@ export default function IdeasPage() {
       <div className="flex-1 p-8 min-w-0">
         <PageHeader
           title="Ideias"
-          subtitle={`${mockIdeas.length} ideias no banco de conteúdo`}
+          subtitle={`${ideas.length} ideias no banco de conteúdo`}
           className="mb-6"
         >
           <button className="btn-secondary flex items-center gap-2">

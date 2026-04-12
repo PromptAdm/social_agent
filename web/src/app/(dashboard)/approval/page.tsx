@@ -3,8 +3,9 @@
 import { useState, useEffect, useCallback } from 'react'
 import { CheckCircle2, XCircle, ChevronLeft, ChevronRight, CheckCheck } from 'lucide-react'
 import { StatusBadge } from '@/components/shared/StatusBadge'
-import { mockPosts } from '@/lib/mock/data'
 import type { Post, SocialPlatform } from '@/types'
+import { useBrandStore }             from '@/store/brandStore'
+import { usePosts, useApprovePost, useRejectPost } from '@/hooks/usePosts'
 
 const PLATFORM_LABEL: Record<SocialPlatform, string> = {
   instagram: 'Instagram',
@@ -32,14 +33,28 @@ const FORMAT_LABEL: Record<string, string> = {
   live: 'Live',
 }
 
-const initialQueue = mockPosts.filter((p) => p.status === 'rascunho')
-
 export default function ApprovalPage() {
-  const [decisions, setDecisions] = useState<Record<number, 'approved' | 'rejected'>>({})
-  const [selectedId, setSelectedId] = useState<number | null>(initialQueue[0]?.id ?? null)
+  const activeBrand = useBrandStore((s) => s.activeBrand)
+  const brandId     = activeBrand?.id ?? 0
 
-  const queue = initialQueue.filter((p) => !decisions[p.id])
-  const selectedPost = initialQueue.find((p) => p.id === selectedId) ?? null
+  const { data: posts = [] } = usePosts(brandId)
+  const approvePost = useApprovePost()
+  const rejectPost  = useRejectPost()
+
+  // Queue = posts pending review (rascunho)
+  const initialQueue = posts.filter((p) => p.status === 'rascunho')
+
+  const [selectedId, setSelectedId] = useState<number | null>(null)
+
+  // Auto-select first when queue loads
+  useEffect(() => {
+    if (selectedId === null && initialQueue.length > 0) {
+      setSelectedId(initialQueue[0].id)
+    }
+  }, [initialQueue.length])
+
+  const queue         = initialQueue
+  const selectedPost  = queue.find((p) => p.id === selectedId) ?? null
   const selectedIndex = queue.findIndex((p) => p.id === selectedId)
 
   function navigate(dir: 'prev' | 'next') {
@@ -50,20 +65,24 @@ export default function ApprovalPage() {
     setSelectedId(queue[newIdx]?.id ?? null)
   }
 
+  function advanceQueue() {
+    const nextIdx = queue.findIndex((p) => p.id === selectedId) + 1
+    const next    = queue.filter((p) => p.id !== selectedId)[nextIdx - 1]
+    setSelectedId(next?.id ?? queue.find((p) => p.id !== selectedId)?.id ?? null)
+  }
+
   const handleApprove = useCallback(() => {
     if (!selectedId) return
-    setDecisions((prev) => ({ ...prev, [selectedId]: 'approved' }))
-    const nextIdx = queue.findIndex((p) => p.id === selectedId) + 1
-    const next = queue.filter((p) => p.id !== selectedId)[nextIdx - 1]
-    setSelectedId(next?.id ?? queue.find((p) => p.id !== selectedId)?.id ?? null)
+    approvePost.mutate(selectedId)
+    advanceQueue()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, queue])
 
   const handleReject = useCallback(() => {
     if (!selectedId) return
-    setDecisions((prev) => ({ ...prev, [selectedId]: 'rejected' }))
-    const nextIdx = queue.findIndex((p) => p.id === selectedId) + 1
-    const next = queue.filter((p) => p.id !== selectedId)[nextIdx - 1]
-    setSelectedId(next?.id ?? queue.find((p) => p.id !== selectedId)?.id ?? null)
+    rejectPost.mutate({ id: selectedId, payload: { reason: 'Rejeitado pelo revisor.' } })
+    advanceQueue()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, queue])
 
   // Keyboard shortcuts
@@ -122,26 +141,20 @@ export default function ApprovalPage() {
           {allDone ? (
             <div className="flex flex-col items-center justify-center h-full gap-3 p-6 text-center">
               <CheckCheck className="w-10 h-10 text-emerald-500" />
-              <p className="text-sm font-medium text-slate-300">Tudo aprovado!</p>
+              <p className="text-sm font-medium text-slate-300">Tudo em dia!</p>
               <p className="text-xs text-slate-600">
                 Todos os posts foram revisados.
               </p>
             </div>
           ) : (
-            initialQueue.map((post) => {
-              const decision = decisions[post.id]
+            queue.map((post) => {
               const isSelected = selectedId === post.id
-              const isPending = !decision
-
               return (
                 <button
                   key={post.id}
-                  onClick={() => isPending && setSelectedId(post.id)}
-                  disabled={!isPending}
+                  onClick={() => setSelectedId(post.id)}
                   className={`w-full text-left px-4 py-3.5 border-b border-[#1E1E2A] transition-colors ${
-                    !isPending
-                      ? 'opacity-40 cursor-default'
-                      : isSelected
+                    isSelected
                       ? 'bg-indigo-600/10'
                       : 'hover:bg-[#17171F] cursor-pointer'
                   }`}
@@ -161,12 +174,6 @@ export default function ApprovalPage() {
                         </span>
                       </div>
                     </div>
-                    {decision === 'approved' && (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                    )}
-                    {decision === 'rejected' && (
-                      <XCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
-                    )}
                   </div>
                 </button>
               )
@@ -177,7 +184,7 @@ export default function ApprovalPage() {
 
       {/* Right: preview */}
       <div className="flex-1 flex flex-col min-w-0">
-        {selectedPost && !decisions[selectedPost.id] ? (
+        {selectedPost ? (
           <>
             {/* Preview header */}
             <div className="px-8 py-4 border-b border-[#1E1E2A] flex items-center justify-between">

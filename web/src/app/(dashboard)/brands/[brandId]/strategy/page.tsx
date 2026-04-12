@@ -2,24 +2,44 @@
 
 import { useState } from 'react'
 import { Pencil, Plus, FileText, Lightbulb, MoreHorizontal } from 'lucide-react'
-import { PageHeader } from '@/components/shared/PageHeader'
-import { mockBrands, mockContentPillars } from '@/lib/mock/data'
+import { PageHeader }  from '@/components/shared/PageHeader'
+import { useBrand, usePillars } from '@/hooks/useBrands'
 
 const TABS = ['Visão Geral', 'Pilares', 'Tom de Voz', 'Configurações'] as const
 type Tab = (typeof TABS)[number]
 
 const PILLAR_ICONS = ['bg-indigo-500', 'bg-emerald-500', 'bg-amber-500', 'bg-pink-500']
 
-export default function StrategyPage() {
+export default function StrategyPage({ params }: { params: { brandId: string } }) {
+  const brandId = Number(params.brandId)
   const [activeTab, setActiveTab] = useState<Tab>('Visão Geral')
-  const brand = mockBrands[0]
-  const pillars = mockContentPillars.filter((p) => p.brand_id === brand.id)
+  const { data: brand,   isLoading: brandLoading   } = useBrand(brandId)
+  const { data: pillars = [], isLoading: pillarsLoading } = usePillars(brandId)
+
+  if (brandLoading) {
+    return (
+      <div className="p-8">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-[#1E1E2A] rounded w-48" />
+          <div className="h-4 bg-[#1E1E2A] rounded w-72" />
+        </div>
+      </div>
+    )
+  }
+
+  if (!brand) {
+    return (
+      <div className="p-8 text-slate-500 text-sm">
+        Marca não encontrada.
+      </div>
+    )
+  }
 
   return (
     <div className="p-8 max-w-[1000px]">
       <PageHeader
         title={brand.name}
-        subtitle={`${brand.niche} · Estratégia de Conteúdo`}
+        subtitle={`${brand.niche ?? ''} · Estratégia de Conteúdo`}
         className="mb-6"
       >
         <button className="btn-secondary flex items-center gap-2">

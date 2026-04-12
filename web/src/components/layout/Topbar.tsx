@@ -10,16 +10,17 @@ interface PageMeta {
 }
 
 const PAGE_MAP: Record<string, PageMeta> = {
-  '/overview': { title: 'Dashboard' },
-  '/brands': { title: 'Marcas' },
-  '/ideas': { title: 'Ideias' },
-  '/posts': { title: 'Posts' },
-  '/approval': { title: 'Aprovação' },
-  '/calendar': { title: 'Calendário' },
-  '/publishing': { title: 'Publicações' },
-  '/analytics': { title: 'Analytics' },
-  '/integrations': { title: 'Integrações' },
-  '/settings': { title: 'Configurações' },
+  '/overview':    { title: 'Dashboard' },
+  '/generate':    { title: 'Gerar Conteúdo' },
+  '/brands':      { title: 'Marcas' },
+  '/ideas':       { title: 'Ideias' },
+  '/posts':       { title: 'Posts' },
+  '/approval':    { title: 'Aprovação' },
+  '/calendar':    { title: 'Calendário' },
+  '/publishing':  { title: 'Publicações' },
+  '/analytics':   { title: 'Analytics' },
+  '/integrations':{ title: 'Integrações' },
+  '/settings':    { title: 'Configurações' },
 }
 
 function getPageMeta(pathname: string): PageMeta {

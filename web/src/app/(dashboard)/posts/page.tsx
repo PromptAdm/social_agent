@@ -5,9 +5,10 @@ import { Plus, CheckCircle2, Clock, Send, X, Copy, Trash2 } from 'lucide-react'
 import { PageHeader } from '@/components/shared/PageHeader'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { EmptyState } from '@/components/shared/EmptyState'
-import { mockPosts } from '@/lib/mock/data'
 import type { Post, PostStatus, SocialPlatform } from '@/types'
 import { FileText } from 'lucide-react'
+import { useBrandStore } from '@/store/brandStore'
+import { usePosts, useApprovePost, useDuplicatePost } from '@/hooks/usePosts'
 
 const STATUS_TABS: { key: PostStatus | 'all'; label: string }[] = [
   { key: 'all', label: 'Todos' },
@@ -60,13 +61,19 @@ function formatDate(iso: string) {
   })
 }
 
-function PostRowActions({ post }: { post: Post }) {
+interface PostRowActionsProps {
+  post:        Post
+  onApprove:   (id: number) => void
+  onDuplicate: (id: number) => void
+}
+
+function PostRowActions({ post, onApprove, onDuplicate }: PostRowActionsProps) {
   if (post.status === 'rascunho') {
     return (
       <div className="flex items-center gap-1">
         <button
           className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-emerald-400 bg-emerald-950/50 hover:bg-emerald-950/80 border border-emerald-900/40 rounded transition-colors"
-          onClick={(e) => e.stopPropagation()}
+          onClick={(e) => { e.stopPropagation(); onApprove(post.id) }}
         >
           <CheckCircle2 className="w-3 h-3" />
           Aprovar
@@ -98,7 +105,7 @@ function PostRowActions({ post }: { post: Post }) {
     return (
       <button
         className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-slate-400 bg-[#17171F] hover:bg-[#1E1E2A] border border-[#27273A] rounded transition-colors"
-        onClick={(e) => e.stopPropagation()}
+        onClick={(e) => { e.stopPropagation(); onDuplicate(post.id) }}
       >
         <Copy className="w-3 h-3" />
         Duplicar
@@ -109,19 +116,26 @@ function PostRowActions({ post }: { post: Post }) {
 }
 
 export default function PostsPage() {
-  const [activeStatus, setActiveStatus] = useState<PostStatus | 'all'>('all')
+  const activeBrand = useBrandStore((s) => s.activeBrand)
+  const brandId     = activeBrand?.id ?? 0
+
+  const { data: posts = [], isLoading } = usePosts(brandId)
+  const approvePost  = useApprovePost()
+  const duplicatePost = useDuplicatePost()
+
+  const [activeStatus,   setActiveStatus]   = useState<PostStatus | 'all'>('all')
   const [platformFilter, setPlatformFilter] = useState<SocialPlatform | 'all'>('all')
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null)
+  const [selectedPost,   setSelectedPost]   = useState<Post | null>(null)
 
   const counts: Record<string, number> = {
-    all: mockPosts.length,
-    rascunho: mockPosts.filter((p) => p.status === 'rascunho').length,
-    aprovado: mockPosts.filter((p) => p.status === 'aprovado').length,
-    agendado: mockPosts.filter((p) => p.status === 'agendado').length,
-    publicado: mockPosts.filter((p) => p.status === 'publicado').length,
+    all:       posts.length,
+    rascunho:  posts.filter((p) => p.status === 'rascunho').length,
+    aprovado:  posts.filter((p) => p.status === 'aprovado').length,
+    agendado:  posts.filter((p) => p.status === 'agendado').length,
+    publicado: posts.filter((p) => p.status === 'publicado').length,
   }
 
-  const filtered = mockPosts.filter((p) => {
+  const filtered = posts.filter((p) => {
     if (activeStatus !== 'all' && p.status !== activeStatus) return false
     if (platformFilter !== 'all' && p.platform !== platformFilter) return false
     return true
@@ -248,7 +262,11 @@ export default function PostsPage() {
                       {post.scheduled_at ? formatDate(post.scheduled_at) : '—'}
                     </td>
                     <td className="table-td">
-                      <PostRowActions post={post} />
+                      <PostRowActions
+                        post={post}
+                        onApprove={(id) => approvePost.mutate(id)}
+                        onDuplicate={(id) => duplicatePost.mutate(id)}
+                      />
                     </td>
                   </tr>
                 ))}

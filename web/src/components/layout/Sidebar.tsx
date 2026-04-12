@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import {
   LayoutDashboard,
@@ -18,9 +18,13 @@ import {
   ChevronUp,
   Hexagon,
   LogOut,
+  Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
-import { mockBrands } from '@/lib/mock/data'
+import { useAuthStore } from '@/store/authStore'
+import { useBrandStore } from '@/store/brandStore'
+import { useUIStore } from '@/store/uiStore'
+import { useBrands } from '@/hooks/useBrands'
 
 const navigation = [
   {
@@ -32,10 +36,11 @@ const navigation = [
   {
     section: 'CONTEÚDO',
     items: [
-      { label: 'Ideias', href: '/ideas', icon: Lightbulb },
-      { label: 'Posts', href: '/posts', icon: FileText },
-      { label: 'Aprovação', href: '/approval', icon: CheckSquare, badge: 3 },
-      { label: 'Calendário', href: '/calendar', icon: CalendarDays },
+      { label: 'Gerar Conteúdo', href: '/generate', icon: Zap, highlight: true },
+      { label: 'Ideias',         href: '/ideas',    icon: Lightbulb },
+      { label: 'Posts',          href: '/posts',    icon: FileText },
+      { label: 'Aprovação',      href: '/approval', icon: CheckSquare, badge: true },
+      { label: 'Calendário',     href: '/calendar', icon: CalendarDays },
     ],
   },
   {
@@ -56,9 +61,31 @@ const navigation = [
 ]
 
 export function Sidebar() {
-  const pathname = usePathname()
+  const pathname        = usePathname()
+  const router          = useRouter()
   const [brandOpen, setBrandOpen] = useState(false)
-  const [activeBrand, setActiveBrand] = useState(mockBrands[0])
+
+  // Auth & stores
+  const user            = useAuthStore((s) => s.user)
+  const logout          = useAuthStore((s) => s.logout)
+  const activeBrand     = useBrandStore((s) => s.activeBrand)
+  const setActiveBrand  = useBrandStore((s) => s.setActiveBrand)
+  const pendingApprovals = useUIStore((s) => s.pendingApprovals)
+
+  // Real brands from API
+  const { data: brands = [] } = useBrands()
+
+  // Resolve display brand (store may have stale data — prefer live)
+  const displayBrand = activeBrand ?? brands[0] ?? null
+
+  async function handleLogout() {
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' })
+    } finally {
+      logout()
+      router.replace('/login')
+    }
+  }
 
   return (
     <aside className="w-[240px] h-screen bg-[#0C0C11] border-r border-[#1E1E2A] flex flex-col overflow-hidden flex-shrink-0">
@@ -82,11 +109,11 @@ export function Sidebar() {
         >
           <div className="w-6 h-6 rounded bg-indigo-600/20 border border-indigo-500/30 flex items-center justify-center flex-shrink-0">
             <span className="text-[10px] font-bold text-indigo-400">
-              {activeBrand.name.charAt(0)}
+              {displayBrand?.name.charAt(0) ?? '?'}
             </span>
           </div>
           <span className="text-sm text-slate-200 font-medium truncate flex-1 text-left">
-            {activeBrand.name}
+            {displayBrand?.name ?? 'Selecionar marca'}
           </span>
           {brandOpen ? (
             <ChevronUp className="w-3.5 h-3.5 text-slate-500 flex-shrink-0" />
@@ -97,7 +124,7 @@ export function Sidebar() {
 
         {brandOpen && (
           <div className="mt-1 bg-[#17171F] border border-[#27273A] rounded-md overflow-hidden shadow-lg">
-            {mockBrands.map((brand) => (
+            {brands.map((brand) => (
               <button
                 key={brand.id}
                 onClick={() => {
@@ -106,7 +133,7 @@ export function Sidebar() {
                 }}
                 className={cn(
                   'w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors',
-                  brand.id === activeBrand.id
+                  brand.id === displayBrand?.id
                     ? 'bg-indigo-600/10 text-indigo-400'
                     : 'text-slate-300 hover:bg-[#1E1E2A]'
                 )}
@@ -117,7 +144,7 @@ export function Sidebar() {
                   </span>
                 </div>
                 <span className="flex-1 text-left truncate">{brand.name}</span>
-                {brand.id === activeBrand.id && (
+                {brand.id === displayBrand?.id && (
                   <div className="w-1.5 h-1.5 rounded-full bg-indigo-400 flex-shrink-0" />
                 )}
               </button>
@@ -140,15 +167,18 @@ export function Sidebar() {
                 const isActive =
                   pathname === item.href ||
                   (item.href !== '/overview' && pathname.startsWith(item.href))
+                const isHighlight = 'highlight' in item && item.highlight
 
                 return (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      'flex items-center gap-2.5 px-2.5 py-[7px] rounded-md text-sm transition-colors group relative',
+                      'flex items-center gap-2.5 px-2.5 py-[7px] rounded-md text-sm transition-all group relative',
                       isActive
                         ? 'bg-indigo-600/10 text-indigo-300'
+                        : isHighlight
+                        ? 'text-indigo-400 bg-indigo-600/8 hover:bg-indigo-600/15 border border-indigo-500/20 hover:border-indigo-500/40'
                         : 'text-slate-400 hover:text-slate-200 hover:bg-[#17171F]'
                     )}
                   >
@@ -160,13 +190,20 @@ export function Sidebar() {
                         'w-4 h-4 flex-shrink-0',
                         isActive
                           ? 'text-indigo-400'
+                          : isHighlight
+                          ? 'text-indigo-500'
                           : 'text-slate-600 group-hover:text-slate-400'
                       )}
                     />
                     <span className="flex-1">{item.label}</span>
-                    {'badge' in item && item.badge ? (
+                    {isHighlight && !isActive && (
+                      <span className="flex-shrink-0 text-[9px] font-bold text-indigo-400 bg-indigo-600/15 border border-indigo-500/30 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                        IA
+                      </span>
+                    )}
+                    {'badge' in item && item.badge && pendingApprovals > 0 ? (
                       <span className="flex-shrink-0 min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold bg-indigo-600 text-white rounded-full px-1">
-                        {item.badge}
+                        {pendingApprovals}
                       </span>
                     ) : null}
                   </Link>
@@ -179,15 +216,22 @@ export function Sidebar() {
 
       {/* User */}
       <div className="px-3 py-3 border-t border-[#1E1E2A] flex-shrink-0">
-        <button className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-[#17171F] transition-colors group">
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-2.5 px-2 py-2 rounded-md hover:bg-[#17171F] transition-colors group"
+        >
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-[11px] font-bold text-white">A</span>
+            <span className="text-[11px] font-bold text-white">
+              {user?.name?.charAt(0)?.toUpperCase() ?? 'U'}
+            </span>
           </div>
           <div className="flex-1 text-left min-w-0">
             <p className="text-sm font-medium text-slate-200 truncate leading-tight">
-              Angel M.
+              {user?.name ?? 'Usuário'}
             </p>
-            <p className="text-[11px] text-slate-500 truncate leading-tight">Admin</p>
+            <p className="text-[11px] text-slate-500 truncate leading-tight">
+              {user?.email ?? ''}
+            </p>
           </div>
           <LogOut className="w-3.5 h-3.5 text-slate-600 group-hover:text-slate-400 flex-shrink-0 transition-colors" />
         </button>
