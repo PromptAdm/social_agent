@@ -35,7 +35,7 @@ def list_snapshots(
     return analytics_service.list_snapshots(db, brand_id=brand_id, platform=platform, user_id=current_user.id)
 
 
-@router.get("/brand/{brand_id}/summary")
+@router.get("/brand/{brand_id}/summary", response_model=dict)
 def get_summary(
     brand_id: int,
     db: Session = Depends(get_db),

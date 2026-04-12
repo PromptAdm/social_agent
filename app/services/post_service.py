@@ -98,3 +98,33 @@ def delete_post(db: Session, post_id: int, user_id: int) -> None:
         )
     db.delete(post)
     db.commit()
+
+
+def duplicate_post(db: Session, post_id: int, user_id: int) -> Post:
+    """
+    Cria uma cópia exata do post como novo rascunho.
+
+    Campos copiados: caption, hashtags, cta, platform, formato, prioridade,
+                     pillar_id, idea_id, brand_id.
+    Campos resetados: status=DRAFT, scheduled_at=None, published_at=None,
+                      approved_by_id=None, approved_at=None.
+    """
+    original = get_post(db, post_id, user_id)
+
+    copy = Post(
+        brand_id=original.brand_id,
+        pillar_id=original.pillar_id,
+        idea_id=original.idea_id,
+        caption=original.caption,
+        hashtags=original.hashtags,
+        cta=original.cta,
+        platform=original.platform,
+        formato=original.formato,
+        prioridade=original.prioridade,
+        status=PostStatus.DRAFT,
+        # scheduled_at, published_at, approved_* ficam None
+    )
+    db.add(copy)
+    db.commit()
+    db.refresh(copy)
+    return copy

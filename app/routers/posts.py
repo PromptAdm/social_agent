@@ -199,3 +199,22 @@ def publish_post(
 ):
     post_service.get_post(db, post_id, user_id=current_user.id)
     return publishing_service.publish_post(db, post_id, user_id=current_user.id)
+
+
+@router.post(
+    "/{post_id}/duplicate",
+    response_model=PostOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Duplicar post",
+    description=(
+        "Cria uma cópia do post como novo rascunho, preservando caption, "
+        "hashtags, CTA, plataforma, formato e prioridade. "
+        "Funciona para posts em qualquer status."
+    ),
+)
+def duplicate_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    return post_service.duplicate_post(db, post_id, user_id=current_user.id)

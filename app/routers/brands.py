@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_active_user, get_db
 from app.models.user import User
-from app.schemas.brand import BrandCreate, BrandOut, BrandUpdate
+from app.schemas.brand import BrandConfigOut, BrandConfigUpdate, BrandCreate, BrandOut, BrandUpdate
 from app.services import brand_service
 
 router = APIRouter(prefix="/brands", tags=["Brands"])
@@ -57,3 +57,32 @@ def delete_brand(
     current_user: User = Depends(get_current_active_user),
 ):
     brand_service.delete_brand(db, brand_id, owner_id=current_user.id)
+
+
+@router.patch(
+    "/{brand_id}/config",
+    response_model=BrandConfigOut,
+    summary="Atualizar configuração editorial da brand",
+    description=(
+        "Atualiza somente os campos de configuração: nicho, tom de voz, público-alvo, "
+        "frequência de publicação e CTA padrão. Não altera name nem logo. "
+        "Todos os campos são opcionais."
+    ),
+)
+def update_brand_config(
+    brand_id: int,
+    payload: BrandConfigUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+):
+    brand = brand_service.update_config(db, brand_id, payload, owner_id=current_user.id)
+    return BrandConfigOut(
+        brand_id=brand.id,
+        brand_name=brand.name,
+        niche=brand.niche,
+        tone_of_voice=brand.tone_of_voice,
+        target_audience=brand.target_audience,
+        posting_frequency=brand.posting_frequency,
+        cta_default=brand.cta_default,
+        updated_at=brand.updated_at,
+    )

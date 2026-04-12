@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import get_settings
 from app.routers import (
+    ai,
     analytics,
     approval,
     auth,
@@ -15,7 +16,9 @@ from app.routers import (
     content_pillars,
     engagement,
     ideas,
+    integrations,
     leads,
+    panel,
     posts,
     publishing,
     users,
@@ -29,7 +32,7 @@ app = FastAPI(
     description=(
         "Backend do Social Agent — automação de conteúdo e gestão de redes sociais.\n\n"
         "Módulos: Estratégia da Marca · Ideias · Posts · Aprovação · "
-        "Publicação · Engajamento · Leads · Analytics"
+        "Publicação · Engajamento · Leads · Analytics · **IA** (geração, análise e relatórios)"
     ),
     docs_url="/docs",
     redoc_url="/redoc",
@@ -58,6 +61,9 @@ app.include_router(publishing.router, prefix=API_PREFIX)
 app.include_router(engagement.router, prefix=API_PREFIX)
 app.include_router(leads.router, prefix=API_PREFIX)
 app.include_router(analytics.router, prefix=API_PREFIX)
+app.include_router(ai.router, prefix=API_PREFIX)
+app.include_router(panel.router, prefix=API_PREFIX)
+app.include_router(integrations.router, prefix=API_PREFIX)
 
 
 # --- Health check ---

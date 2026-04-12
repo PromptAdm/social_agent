@@ -24,6 +24,8 @@ class Brand(Base):
     tone_of_voice: Mapped[str] = mapped_column(Text, nullable=True)   # ex: "informal, direto, inspiracional"
     target_audience: Mapped[str] = mapped_column(Text, nullable=True)
     logo_url: Mapped[str] = mapped_column(String(500), nullable=True)
+    posting_frequency: Mapped[str | None] = mapped_column(String(100), nullable=True)  # ex: "diaria", "3x por semana"
+    cta_default: Mapped[str | None] = mapped_column(Text, nullable=True)               # ex: "Link na bio!"
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc)

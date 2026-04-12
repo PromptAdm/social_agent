@@ -7,7 +7,7 @@ from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.models.brand import Brand
-from app.schemas.brand import BrandCreate, BrandUpdate
+from app.schemas.brand import BrandConfigUpdate, BrandCreate, BrandUpdate
 
 
 def _get_or_404(db: Session, brand_id: int, owner_id: int) -> Brand:
@@ -46,3 +46,17 @@ def delete_brand(db: Session, brand_id: int, owner_id: int) -> None:
     brand = _get_or_404(db, brand_id, owner_id)
     db.delete(brand)
     db.commit()
+
+
+def update_config(db: Session, brand_id: int, payload: BrandConfigUpdate, owner_id: int) -> Brand:
+    """
+    Atualiza somente os campos de configuração editorial da brand
+    (nicho, tom de voz, público, frequência, CTA padrão).
+    Usado pelo painel web — não altera name nem logo.
+    """
+    brand = _get_or_404(db, brand_id, owner_id)
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(brand, field, value)
+    db.commit()
+    db.refresh(brand)
+    return brand
