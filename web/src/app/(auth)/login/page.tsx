@@ -37,7 +37,13 @@ function LoginForm() {
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.message ?? 'Credenciais inválidas.')
+        if (Array.isArray(data?.detail)) {
+        setError(data.detail.map((item: any) => item.msg).join(" | "));
+      } else if (typeof data?.detail === "string") {
+        setError(data.detail);
+      } else {
+        setError("Credenciais inválidas.");
+}
         return
       }
 
@@ -46,8 +52,18 @@ function LoginForm() {
 
       const from = searchParams.get('from') ?? '/overview'
       router.replace(from)
-    } catch (err) {
-      setError(parseApiError(err))
+    } catch (err: any) {
+      const apiError = err?.response?.data || err;
+
+if (Array.isArray(apiError?.detail)) {
+  setError(apiError.detail.map((item: any) => item.msg).join(" | "));
+} else if (typeof apiError?.detail === "string") {
+  setError(apiError.detail);
+} else if (typeof apiError?.message === "string") {
+  setError(apiError.message);
+} else {
+  setError("Erro ao fazer login.");
+}
     } finally {
       setLoading(false)
     }
