@@ -1,0 +1,624 @@
+### Social Agent — Exemplos dos Módulos Principais
+### Compatível com REST Client (VS Code) e IntelliJ HTTP Client
+### Faça login em /auth/login e cole o access_token abaixo.
+
+@base_url = http://localhost:8000/api/v1
+@content_type = application/json
+@access_token = COLE_SEU_ACCESS_TOKEN_AQUI
+
+# ==============================================================================
+# MODULE 1 — BRANDS
+# ==============================================================================
+
+# 1a. Criar brand
+POST {{base_url}}/brands
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "name": "VitaForma",
+  "niche": "Saúde e Bem-Estar",
+  "description": "Conteúdo motivacional de fitness, nutrição e lifestyle saudável.",
+  "tone_of_voice": "Inspirador, acessível, positivo",
+  "target_audience": "Mulheres de 25-40 anos interessadas em qualidade de vida"
+}
+
+###
+
+# 1b. Listar brands do usuário
+GET {{base_url}}/brands
+Authorization: Bearer {{access_token}}
+
+###
+
+# 1c. Detalhar brand
+@brand_id = 1
+
+GET {{base_url}}/brands/{{brand_id}}
+Authorization: Bearer {{access_token}}
+
+###
+
+# 1d. Editar brand (PATCH parcial)
+PATCH {{base_url}}/brands/{{brand_id}}
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "tone_of_voice": "Informal, motivador e cientificamente embasado"
+}
+
+###
+
+# 1e. Remover brand
+DELETE {{base_url}}/brands/{{brand_id}}
+Authorization: Bearer {{access_token}}
+
+###
+
+
+# ==============================================================================
+# MODULE 2 — IDEAS
+# ==============================================================================
+
+# 2a. Criar ideia manual
+POST {{base_url}}/ideas/
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "brand_id": 1,
+  "title": "5 alimentos que aceleram o metabolismo",
+  "description": "Listar alimentos com base científica que aumentam a taxa metabólica.",
+  "source": "manual",
+  "prioridade": "alta",
+  "formato_sugerido": "carrossel"
+}
+
+###
+
+# 2b. Listar ideias da brand (sem filtros)
+GET {{base_url}}/ideas/brand/1
+Authorization: Bearer {{access_token}}
+
+###
+
+# 2c. Listar ideias — filtrar por status e prioridade
+GET {{base_url}}/ideas/brand/1?idea_status=ideia&prioridade=alta
+Authorization: Bearer {{access_token}}
+
+###
+
+# 2d. Listar ideias — filtrar por formato sugerido
+GET {{base_url}}/ideas/brand/1?formato_sugerido=reels
+Authorization: Bearer {{access_token}}
+
+###
+
+# 2e. Detalhar ideia
+@idea_id = 1
+
+GET {{base_url}}/ideas/{{idea_id}}
+Authorization: Bearer {{access_token}}
+
+###
+
+# 2f. Editar ideia
+PATCH {{base_url}}/ideas/{{idea_id}}
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "prioridade": "urgente",
+  "status": "rascunho"
+}
+
+###
+
+# 2g. GERAR IDEIAS AUTOMATICAMENTE (mock)
+# Retorna sugestões baseadas no nicho da brand — não salva, apenas sugere.
+POST {{base_url}}/ideas/generate
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "brand_id": 1,
+  "count": 5,
+  "tema": "emagrecimento saudável"
+}
+
+###
+
+# 2h. Gerar ideias filtrando por formato
+POST {{base_url}}/ideas/generate
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "brand_id": 1,
+  "count": 3,
+  "formato_sugerido": "reels"
+}
+
+###
+
+# 2i. CONVERTER IDEIA EM POST RASCUNHO
+# Herda título como caption e formato_sugerido como formato
+POST {{base_url}}/ideas/{{idea_id}}/to-post
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "platform": "instagram",
+  "hashtags": "#fitness #saude #metabolismo #emagrecer #vidasaudavel",
+  "cta": "Salva esse carrossel para não esquecer 🔖",
+  "prioridade": "alta"
+}
+
+###
+
+# 2j. Converter ideia em post sobrescrevendo campos
+POST {{base_url}}/ideas/{{idea_id}}/to-post
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "platform": "linkedin",
+  "caption": "Quer acelerar seu metabolismo? Confira os 5 alimentos que a ciência recomenda:",
+  "formato": "carrossel",
+  "prioridade": "media"
+}
+
+###
+
+# 2k. Remover ideia
+DELETE {{base_url}}/ideas/{{idea_id}}
+Authorization: Bearer {{access_token}}
+
+###
+
+
+# ==============================================================================
+# MODULE 3 — POSTS
+# ==============================================================================
+
+# 3a. Criar post manual
+POST {{base_url}}/posts/
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "brand_id": 1,
+  "platform": "instagram",
+  "caption": "5 alimentos que aceleram o metabolismo 🔥\n\n1. Gengibre\n2. Pimenta Cayenne\n3. Chá Verde\n4. Canela\n5. Proteína magra\n\nAdicione esses alimentos à sua rotina e sinta a diferença! 💪",
+  "hashtags": "#fitness #saude #metabolismo #emagrecer #vidasaudavel #nutricao",
+  "cta": "Salva esse carrossel para não esquecer 🔖",
+  "formato": "carrossel",
+  "prioridade": "alta"
+}
+
+###
+
+# 3b. Listar posts da brand (sem filtros)
+GET {{base_url}}/posts/brand/1
+Authorization: Bearer {{access_token}}
+
+###
+
+# 3c. Filtrar posts por status
+GET {{base_url}}/posts/brand/1?post_status=rascunho
+Authorization: Bearer {{access_token}}
+
+###
+
+# 3d. Filtrar posts por plataforma
+GET {{base_url}}/posts/brand/1?platform=instagram
+Authorization: Bearer {{access_token}}
+
+###
+
+# 3e. Filtrar posts combinando vários parâmetros
+GET {{base_url}}/posts/brand/1?post_status=agendado&platform=instagram&formato=carrossel
+Authorization: Bearer {{access_token}}
+
+###
+
+# 3f. Filtrar posts por intervalo de agendamento
+GET {{base_url}}/posts/brand/1?scheduled_from=2026-04-01T00:00:00Z&scheduled_to=2026-04-30T23:59:59Z
+Authorization: Bearer {{access_token}}
+
+###
+
+# 3g. Detalhar post
+@post_id = 1
+
+GET {{base_url}}/posts/{{post_id}}
+Authorization: Bearer {{access_token}}
+
+###
+
+# 3h. Editar rascunho
+PATCH {{base_url}}/posts/{{post_id}}
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "caption": "5 alimentos que ACELERAM o metabolismo 🔥 (versão atualizada)",
+  "prioridade": "urgente"
+}
+
+###
+
+# 3i. APROVAR POST (rascunho → aprovado)
+POST {{base_url}}/posts/{{post_id}}/approve
+Authorization: Bearer {{access_token}}
+
+###
+
+# 3j. REJEITAR POST (volta para rascunho)
+POST {{base_url}}/posts/{{post_id}}/reject
+Authorization: Bearer {{access_token}}
+
+###
+
+# 3k. AGENDAR POST (aprovado → agendado)
+POST {{base_url}}/posts/{{post_id}}/schedule
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "scheduled_at": "2026-04-15T18:00:00Z"
+}
+
+###
+
+# 3l. PUBLICAR POST IMEDIATAMENTE (aprovado ou agendado → publicado)
+POST {{base_url}}/posts/{{post_id}}/publish
+Authorization: Bearer {{access_token}}
+
+###
+
+# 3m. Remover post (não publicados)
+DELETE {{base_url}}/posts/{{post_id}}
+Authorization: Bearer {{access_token}}
+
+###
+
+
+# ==============================================================================
+# MODULE 4 — COMMENTS (Engajamento)
+# ==============================================================================
+
+# 4a. Registrar comentário
+POST {{base_url}}/engagement/comments
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "post_id": 1,
+  "body": "Amei esse conteúdo! Já apliquei o gengibre e senti diferença 😍",
+  "author_username": "maria_fitness",
+  "commented_at": "2026-04-11T14:30:00Z"
+}
+
+###
+
+# 4b. Registrar comentário com lead potencial
+POST {{base_url}}/engagement/comments
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "post_id": 1,
+  "body": "Quanto custa o acompanhamento nutricional de vocês? Tenho interesse!",
+  "author_username": "joao_silva99",
+  "commented_at": "2026-04-11T15:00:00Z"
+}
+
+###
+
+# 4c. Listar comentários do post (sem filtros)
+GET {{base_url}}/engagement/posts/1/comments
+Authorization: Bearer {{access_token}}
+
+###
+
+# 4d. Filtrar comentários por classificação
+GET {{base_url}}/engagement/posts/1/comments?classificacao=lead_potencial
+Authorization: Bearer {{access_token}}
+
+###
+
+# 4e. Filtrar comentários não respondidos
+GET {{base_url}}/engagement/posts/1/comments?is_replied=false
+Authorization: Bearer {{access_token}}
+
+###
+
+# 4f. Filtrar por sentiment negativo
+GET {{base_url}}/engagement/posts/1/comments?sentiment=negativo
+Authorization: Bearer {{access_token}}
+
+###
+
+@comment_id = 1
+
+# 4g. Detalhar comentário
+GET {{base_url}}/engagement/comments/{{comment_id}}
+Authorization: Bearer {{access_token}}
+
+###
+
+# 4h. CLASSIFICAR MANUALMENTE
+POST {{base_url}}/engagement/comments/{{comment_id}}/classify
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "classificacao": "lead_potencial",
+  "sentiment": "positivo"
+}
+
+###
+
+# 4i. Classificar só o sentiment
+POST {{base_url}}/engagement/comments/{{comment_id}}/classify
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "sentiment": "positivo"
+}
+
+###
+
+# 4j. AUTO-CLASSIFICAR POR PALAVRAS-CHAVE (mock)
+POST {{base_url}}/engagement/comments/{{comment_id}}/auto-classify
+Authorization: Bearer {{access_token}}
+
+###
+
+# 4k. GERAR RESPOSTA SUGERIDA (mock)
+# Cria uma ReplySuggestion com status "pendente" baseada na classificação
+POST {{base_url}}/engagement/comments/{{comment_id}}/generate-reply
+Authorization: Bearer {{access_token}}
+
+###
+
+# 4l. Criar sugestão de resposta manual
+POST {{base_url}}/engagement/replies
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "comment_id": 1,
+  "body": "Que ótimo, Maria! Fico muito feliz que tenha funcionado 😊 Continue assim!",
+  "generated_by": "manual",
+  "is_ai_generated": false
+}
+
+###
+
+# 4m. Listar sugestões de resposta de um comentário
+GET {{base_url}}/engagement/comments/{{comment_id}}/replies
+Authorization: Bearer {{access_token}}
+
+###
+
+
+# ==============================================================================
+# MODULE 5 — LEADS
+# ==============================================================================
+
+# 5a. Criar lead manualmente
+POST {{base_url}}/leads/
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "brand_id": 1,
+  "username": "joao_silva99",
+  "full_name": "João Silva",
+  "platform": "instagram",
+  "source": "comentario",
+  "notes": "Perguntou sobre preço no carrossel de metabolismo. Alto interesse."
+}
+
+###
+
+# 5b. Criar lead com dados de contato
+POST {{base_url}}/leads/
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "brand_id": 1,
+  "full_name": "Ana Paula Ramos",
+  "email": "anapaula@email.com",
+  "phone": "11999887766",
+  "platform": "whatsapp",
+  "source": "mensagem_direta",
+  "notes": "Veio pelo link da bio. Quer plano de emagrecimento."
+}
+
+###
+
+# 5c. Listar leads da brand (sem filtros)
+GET {{base_url}}/leads/brand/1
+Authorization: Bearer {{access_token}}
+
+###
+
+# 5d. Filtrar leads por status
+GET {{base_url}}/leads/brand/1?lead_status=novo
+Authorization: Bearer {{access_token}}
+
+###
+
+# 5e. Filtrar leads por origem
+GET {{base_url}}/leads/brand/1?source=comentario
+Authorization: Bearer {{access_token}}
+
+###
+
+# 5f. Filtrar leads por período
+GET {{base_url}}/leads/brand/1?created_from=2026-04-01T00:00:00Z&created_to=2026-04-30T23:59:59Z
+Authorization: Bearer {{access_token}}
+
+###
+
+# 5g. Detalhar lead
+@lead_id = 1
+
+GET {{base_url}}/leads/{{lead_id}}
+Authorization: Bearer {{access_token}}
+
+###
+
+# 5h. Avançar status do lead
+PATCH {{base_url}}/leads/{{lead_id}}
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "status": "contatado",
+  "notes": "Enviado DM com proposta de acompanhamento. Aguardando resposta."
+}
+
+###
+
+# 5i. Marcar lead como convertido
+PATCH {{base_url}}/leads/{{lead_id}}
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "status": "convertido",
+  "email": "joao.silva@email.com",
+  "notes": "Fechou plano mensal em 11/04/2026."
+}
+
+###
+
+# 5j. Remover lead
+DELETE {{base_url}}/leads/{{lead_id}}
+Authorization: Bearer {{access_token}}
+
+###
+
+
+# ==============================================================================
+# MODULE 6 — ANALYTICS
+# ==============================================================================
+
+# 6a. Registrar snapshot de métricas
+POST {{base_url}}/analytics/snapshots
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "brand_id": 1,
+  "platform": "instagram",
+  "snapshot_date": "2026-04-11T00:00:00Z",
+  "followers_count": 12450,
+  "following_count": 850,
+  "posts_count": 143,
+  "impressions": 48200,
+  "reach": 31500,
+  "profile_views": 1820,
+  "likes_total": 3240,
+  "comments_total": 287,
+  "shares_total": 512,
+  "saves_total": 943,
+  "engagement_rate": 4.83
+}
+
+###
+
+# 6b. Registrar snapshot do LinkedIn
+POST {{base_url}}/analytics/snapshots
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "brand_id": 1,
+  "platform": "linkedin",
+  "snapshot_date": "2026-04-11T00:00:00Z",
+  "followers_count": 3200,
+  "impressions": 15400,
+  "reach": 9800,
+  "likes_total": 620,
+  "comments_total": 84,
+  "engagement_rate": 2.21
+}
+
+###
+
+# 6c. Listar snapshots da brand
+GET {{base_url}}/analytics/brand/1
+Authorization: Bearer {{access_token}}
+
+###
+
+# 6d. Filtrar snapshots por plataforma
+GET {{base_url}}/analytics/brand/1?platform=instagram
+Authorization: Bearer {{access_token}}
+
+###
+
+# 6e. RESUMO CONSOLIDADO DA BRAND
+# Retorna: posts por status, leads por status, último snapshot por plataforma
+GET {{base_url}}/analytics/brand/1/summary
+Authorization: Bearer {{access_token}}
+
+###
+
+
+# ==============================================================================
+# ERROS ESPERADOS
+# ==============================================================================
+
+# E1. Brand não encontrada → 404
+GET {{base_url}}/brands/99999
+Authorization: Bearer {{access_token}}
+
+###
+
+# E2. Aprovar post que não está em rascunho → 422
+POST {{base_url}}/posts/1/approve
+Authorization: Bearer {{access_token}}
+
+###
+
+# E3. Agendar post não aprovado → 422
+POST {{base_url}}/posts/1/schedule
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "scheduled_at": "2026-04-20T10:00:00Z"
+}
+
+###
+
+# E4. Editar post publicado → 422
+PATCH {{base_url}}/posts/1
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "caption": "Tentando editar post publicado"
+}
+
+###
+
+# E5. Gerar ideias sem autenticação → 401
+POST {{base_url}}/ideas/generate
+Content-Type: {{content_type}}
+
+{
+  "brand_id": 1,
+  "count": 3
+}
+
+###

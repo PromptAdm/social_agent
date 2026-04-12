@@ -1,0 +1,204 @@
+### Social Agent — Exemplos de Autenticação
+### Compatível com a extensão REST Client (VS Code) e IntelliJ HTTP Client
+### Substitua as variáveis antes de usar.
+
+@base_url = http://localhost:8000/api/v1
+@content_type = application/json
+
+
+# ==============================================================================
+# 1. REGISTRAR NOVA CONTA
+# ==============================================================================
+# POST /auth/register
+# Body: JSON com email, password e full_name (opcional)
+# Retorna: dados públicos do usuário (sem senha)
+# Senha deve ter: ≥8 chars, 1 maiúscula, 1 minúscula, 1 número
+
+POST {{base_url}}/auth/register
+Content-Type: {{content_type}}
+
+{
+  "email": "joana@vitaforma.com.br",
+  "password": "Vitaforma1",
+  "full_name": "Joana Almeida"
+}
+
+###
+
+# ==============================================================================
+# 2. LOGIN (JSON — para frontends e apps mobile)
+# ==============================================================================
+# POST /auth/login
+# Body: JSON com email e password
+# Retorna: access_token, refresh_token, expires_in, user
+# ► Salve access_token e refresh_token no cliente
+
+POST {{base_url}}/auth/login
+Content-Type: {{content_type}}
+
+{
+  "email": "admin@vitaforma.com.br",
+  "password": "admin123"
+}
+
+###
+
+# ==============================================================================
+# 3. LOGIN (OAuth2 form — compatível com Swagger UI)
+# ==============================================================================
+# POST /auth/token
+# Body: form-encoded com username e password
+# Retorna: { access_token, token_type }
+
+POST {{base_url}}/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username=admin@vitaforma.com.br&password=admin123
+
+###
+
+# ==============================================================================
+# 4. MEU PERFIL
+# ==============================================================================
+# GET /auth/me
+# Header: Authorization: Bearer <access_token>
+# Retorna: dados públicos do usuário autenticado
+
+# ► Substitua <SEU_ACCESS_TOKEN> pelo token retornado no login
+@access_token = COLE_SEU_ACCESS_TOKEN_AQUI
+
+GET {{base_url}}/auth/me
+Authorization: Bearer {{access_token}}
+
+###
+
+# ==============================================================================
+# 5. ATUALIZAR PERFIL
+# ==============================================================================
+# PATCH /auth/me
+# Header: Authorization: Bearer <access_token>
+# Body: JSON com full_name e/ou password (campos omitidos são preservados)
+
+PATCH {{base_url}}/auth/me
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "full_name": "Joana Silva Almeida"
+}
+
+###
+
+# ==============================================================================
+# 6. RENOVAR TOKENS (quando access_token expirar)
+# ==============================================================================
+# POST /auth/refresh
+# Body: JSON com refresh_token
+# Retorna: novo par access_token + refresh_token + dados do usuário
+# ► Atualize ambos os tokens armazenados no cliente
+
+@refresh_token = COLE_SEU_REFRESH_TOKEN_AQUI
+
+POST {{base_url}}/auth/refresh
+Content-Type: {{content_type}}
+
+{
+  "refresh_token": "{{refresh_token}}"
+}
+
+###
+
+# ==============================================================================
+# 7. TROCAR SENHA
+# ==============================================================================
+# POST /auth/change-password
+# Header: Authorization: Bearer <access_token>
+# Body: JSON com current_password e new_password
+# Retorna: 204 No Content (sem body)
+
+POST {{base_url}}/auth/change-password
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "current_password": "Vitaforma1",
+  "new_password": "NovaSenha2024!"
+}
+
+###
+
+# ==============================================================================
+# 8. USANDO O TOKEN EM OUTROS ENDPOINTS
+# ==============================================================================
+# Todos os endpoints protegidos seguem o mesmo padrão:
+# Header: Authorization: Bearer <access_token>
+
+# Exemplo: listar brands do usuário autenticado
+GET {{base_url}}/brands
+Authorization: Bearer {{access_token}}
+
+###
+
+# Exemplo: criar uma brand
+POST {{base_url}}/brands
+Content-Type: {{content_type}}
+Authorization: Bearer {{access_token}}
+
+{
+  "name": "Minha Marca",
+  "niche": "Fitness",
+  "description": "Descrição da marca",
+  "tone_of_voice": "Informal e motivador"
+}
+
+###
+
+# ==============================================================================
+# 9. ERROS ESPERADOS
+# ==============================================================================
+
+# 9a. Senha fraca no registro → 422 Unprocessable Entity
+POST {{base_url}}/auth/register
+Content-Type: {{content_type}}
+
+{
+  "email": "teste@email.com",
+  "password": "fraca"
+}
+
+###
+
+# 9b. E-mail duplicado → 409 Conflict
+POST {{base_url}}/auth/register
+Content-Type: {{content_type}}
+
+{
+  "email": "admin@vitaforma.com.br",
+  "password": "Vitaforma1"
+}
+
+###
+
+# 9c. Credenciais inválidas → 401 Unauthorized
+POST {{base_url}}/auth/login
+Content-Type: {{content_type}}
+
+{
+  "email": "admin@vitaforma.com.br",
+  "password": "senhaerrada"
+}
+
+###
+
+# 9d. Token ausente → 401 Unauthorized
+GET {{base_url}}/auth/me
+
+###
+
+# 9e. Refresh token expirado/inválido → 401 Unauthorized
+POST {{base_url}}/auth/refresh
+Content-Type: {{content_type}}
+
+{
+  "refresh_token": "token.invalido.aqui"
+}
