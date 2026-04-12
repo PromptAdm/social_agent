@@ -77,13 +77,15 @@ def upgrade() -> None:
         "comentario", "mensagem_direta", "mencao", "resposta_story", "manual",
     )
 
-    for e in (
-        ideastatus_enum, ideaprioridade_enum, ideaformato_enum,
-        poststatus_enum, socialplatform_enum, postformato_enum, postprioridade_enum,
-        assettype_enum, commentsentiment_enum, commentclassificacao_enum,
-        suggestionstatus_enum, leadstatus_enum, leadsource_enum,
-    ):
-        e.create(op.get_bind(), checkfirst=True)
+    # ENUM types são nativos apenas no PostgreSQL; SQLite usa VARCHAR
+    if op.get_bind().dialect.name == "postgresql":
+        for e in (
+            ideastatus_enum, ideaprioridade_enum, ideaformato_enum,
+            poststatus_enum, socialplatform_enum, postformato_enum, postprioridade_enum,
+            assettype_enum, commentsentiment_enum, commentclassificacao_enum,
+            suggestionstatus_enum, leadstatus_enum, leadsource_enum,
+        ):
+            e.create(op.get_bind(), checkfirst=True)
 
     # ── 1. users ───────────────────────────────────────────────────────────────
     op.create_table(
@@ -462,13 +464,14 @@ def downgrade() -> None:
     op.drop_table("brands")
     op.drop_table("users")
 
-    # Drop tipos ENUM
-    for name in (
-        "leadsource", "leadstatus",
-        "suggestionstatus",
-        "commentclassificacao", "commentsentiment",
-        "assettype",
-        "postprioridade", "postformato", "socialplatform", "poststatus",
-        "ideaformatosugerido", "ideaprioridade", "ideastatus",
-    ):
-        sa.Enum(name=name).drop(op.get_bind(), checkfirst=True)
+    # Drop tipos ENUM (somente PostgreSQL)
+    if op.get_bind().dialect.name == "postgresql":
+        for name in (
+            "leadsource", "leadstatus",
+            "suggestionstatus",
+            "commentclassificacao", "commentsentiment",
+            "assettype",
+            "postprioridade", "postformato", "socialplatform", "poststatus",
+            "ideaformatosugerido", "ideaprioridade", "ideastatus",
+        ):
+            sa.Enum(name=name).drop(op.get_bind(), checkfirst=True)

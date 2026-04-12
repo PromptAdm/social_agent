@@ -21,12 +21,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Cria o tipo ENUM userrole no PostgreSQL
+    # Cria o tipo ENUM userrole (somente PostgreSQL; SQLite usa VARCHAR)
     userrole_enum = sa.Enum(
         "admin", "editor", "aprovador", "viewer",
         name="userrole",
     )
-    userrole_enum.create(op.get_bind(), checkfirst=True)
+    if op.get_bind().dialect.name == "postgresql":
+        userrole_enum.create(op.get_bind(), checkfirst=True)
 
     # Adiciona coluna role com default 'editor'
     op.add_column(
@@ -53,4 +54,5 @@ def upgrade() -> None:
 def downgrade() -> None:
     op.drop_column("users", "last_login_at")
     op.drop_column("users", "role")
-    sa.Enum(name="userrole").drop(op.get_bind(), checkfirst=True)
+    if op.get_bind().dialect.name == "postgresql":
+        sa.Enum(name="userrole").drop(op.get_bind(), checkfirst=True)

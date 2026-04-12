@@ -24,7 +24,8 @@ def upgrade() -> None:
         "pendente", "sucesso", "erro", "retry",
         name="integrationstatus",
     )
-    integrationstatus_enum.create(op.get_bind(), checkfirst=True)
+    if op.get_bind().dialect.name == "postgresql":
+        integrationstatus_enum.create(op.get_bind(), checkfirst=True)
 
     op.create_table(
         "integration_logs",
@@ -67,4 +68,5 @@ def downgrade() -> None:
     op.drop_index("ix_integration_logs_post_id",     table_name="integration_logs")
     op.drop_index("ix_integration_logs_brand_id",    table_name="integration_logs")
     op.drop_table("integration_logs")
-    sa.Enum(name="integrationstatus").drop(op.get_bind(), checkfirst=True)
+    if op.get_bind().dialect.name == "postgresql":
+        sa.Enum(name="integrationstatus").drop(op.get_bind(), checkfirst=True)

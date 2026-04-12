@@ -48,8 +48,8 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
-        # Inclui comentários de tipo nas colunas geradas
-        render_as_batch=False,
+        # batch mode necessário para SQLite (não suporta ALTER TABLE nativo)
+        render_as_batch=True,
     )
     with context.begin_transaction():
         context.run_migrations()
@@ -74,6 +74,8 @@ def run_migrations_online() -> None:
             compare_type=True,
             # Compara valores default ao detectar diferenças
             compare_server_default=True,
+            # batch mode necessário para SQLite (não suporta ALTER TABLE nativo)
+            render_as_batch=True,
         )
         with context.begin_transaction():
             context.run_migrations()

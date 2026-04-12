@@ -10,11 +10,16 @@ from app.core.config import get_settings
 
 settings = get_settings()
 
-engine = create_engine(
-    settings.DATABASE_URL,
-    pool_pre_ping=True,   # verifica conexão antes de usar do pool
-    echo=settings.DEBUG,  # loga queries SQL em modo debug
-)
+_engine_kwargs: dict = {
+    "pool_pre_ping": True,   # verifica conexão antes de usar do pool
+    "echo": settings.DEBUG,  # loga queries SQL em modo debug
+}
+
+# SQLite não suporta acesso multi-thread sem este flag
+if settings.DATABASE_URL.startswith("sqlite"):
+    _engine_kwargs["connect_args"] = {"check_same_thread": False}
+
+engine = create_engine(settings.DATABASE_URL, **_engine_kwargs)
 
 SessionLocal = sessionmaker(
     autocommit=False,
