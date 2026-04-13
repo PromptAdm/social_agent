@@ -3,73 +3,150 @@
 @tailwind utilities;
 
 @layer base {
-  * {
+  *, *::before, *::after {
     box-sizing: border-box;
   }
 
   html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 
   body {
     background-color: #09090E;
-    color: #f1f5f9;
+    color: #cbd5e1;           /* slate-300 default body text */
+    font-size: 14px;
+    line-height: 1.5;
+    letter-spacing: -0.011em;
   }
 
-  /* Custom scrollbar */
-  ::-webkit-scrollbar {
-    width: 5px;
-    height: 5px;
+  /* Headings inherit a tighter tracking */
+  h1, h2, h3, h4, h5, h6 {
+    color: #f1f5f9;
+    letter-spacing: -0.022em;
   }
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  ::-webkit-scrollbar-thumb {
-    background: #27273a;
-    border-radius: 3px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: #3f3f56;
+
+  /* System focus ring — consistent across all interactive elements */
+  *:focus-visible {
+    outline: 2px solid rgba(99, 102, 241, 0.55);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 
   /* Selection */
   ::selection {
-    background: rgba(99, 102, 241, 0.25);
+    background: rgba(99, 102, 241, 0.2);
     color: #f1f5f9;
+  }
+
+  /* Thin, unobtrusive scrollbar */
+  ::-webkit-scrollbar        { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track  { background: transparent; }
+  ::-webkit-scrollbar-thumb  { background: #1E1E2A; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #27273A; }
+
+  /* Dark native date / time inputs */
+  input[type='date'],
+  input[type='time'],
+  input[type='datetime-local'] {
+    color-scheme: dark;
   }
 }
 
 @layer components {
+
+  /* ── Buttons ──────────────────────────────────────────────────────── */
+
+  /* Base button — compose on top of this */
+  .btn {
+    @apply inline-flex items-center justify-center gap-1.5 h-8 px-3.5
+           text-sm font-medium rounded-lg
+           transition-all duration-150
+           focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/40
+           disabled:opacity-40 disabled:cursor-not-allowed
+           select-none whitespace-nowrap;
+  }
+
   .btn-primary {
-    @apply px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-medium rounded-md transition-colors;
+    @apply btn bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700
+           text-white shadow-sm;
   }
 
   .btn-secondary {
-    @apply px-4 py-2 bg-transparent border border-[#27273A] hover:bg-[#17171F] text-slate-300 text-sm font-medium rounded-md transition-colors;
+    @apply btn bg-transparent border border-[#27273A]
+           hover:bg-[#17171F] hover:border-[#3F3F56]
+           text-slate-300 hover:text-slate-100;
   }
 
   .btn-ghost {
-    @apply px-3 py-1.5 bg-transparent hover:bg-[#17171F] text-slate-400 hover:text-slate-200 text-sm font-medium rounded-md transition-colors;
+    @apply btn text-slate-400 hover:text-slate-200 hover:bg-[#17171F];
   }
+
+  .btn-danger {
+    @apply btn bg-red-950/30 border border-red-900/40
+           hover:bg-red-950/60 hover:border-red-800/50
+           text-red-400;
+  }
+
+  /* ── Inputs ───────────────────────────────────────────────────────── */
 
   .input {
-    @apply w-full bg-[#09090E] border border-[#27273A] rounded-md px-3 py-2 text-sm text-slate-100 placeholder:text-slate-600 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/10 transition-colors;
+    @apply w-full h-9 px-3
+           bg-[#0C0C11] border border-[#27273A] rounded-lg
+           text-sm text-slate-100 placeholder:text-slate-600
+           focus:outline-none focus:border-[#3F3F56] focus:ring-2 focus:ring-indigo-500/10
+           transition-colors;
   }
+
+  /* ── Cards ────────────────────────────────────────────────────────── */
 
   .card {
-    @apply bg-[#111118] border border-[#27273A] rounded-lg;
+    @apply bg-[#111118] border border-[#1E1E2A] rounded-xl;
   }
 
+  /* Inset card — slightly darker, used for nested data blocks */
+  .card-inset {
+    @apply bg-[#0E0E16] border border-[#1A1A24] rounded-lg;
+  }
+
+  /* ── Tables ───────────────────────────────────────────────────────── */
+
   .table-th {
-    @apply px-4 py-3 text-left text-[11px] font-semibold uppercase tracking-widest text-slate-500 border-b border-[#27273A] bg-[#111118];
+    @apply px-4 py-2.5
+           text-left text-[10px] font-semibold uppercase tracking-wider
+           text-slate-600 bg-[#0E0E16]
+           border-b border-[#1E1E2A]
+           whitespace-nowrap;
   }
 
   .table-td {
-    @apply px-4 py-3 text-sm text-slate-300 border-b border-[#1E1E2A];
+    @apply px-4 py-3 text-sm text-slate-300
+           border-b border-[#191925]
+           align-middle;
   }
 
   .table-tr {
-    @apply hover:bg-[#17171F] transition-colors cursor-pointer;
+    @apply transition-colors cursor-pointer
+           hover:bg-[#111118]/60;
+  }
+
+  /* ── Utility classes ──────────────────────────────────────────────── */
+
+  /* Tiny label used above fields/sections */
+  .field-label {
+    @apply text-[10px] font-semibold uppercase tracking-wider text-slate-600;
+  }
+
+  /* Divider */
+  .divider {
+    @apply border-t border-[#1E1E2A];
+  }
+
+  /* kbd chip */
+  .kbd {
+    @apply inline-flex items-center justify-center
+           px-1.5 py-0.5 rounded text-[10px] font-mono leading-tight
+           bg-[#17171F] border border-[#27273A] text-slate-500;
   }
 }

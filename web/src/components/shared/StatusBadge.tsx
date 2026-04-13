@@ -15,93 +15,107 @@ type Status =
   | 'ideia'
 
 interface StatusConfig {
-  label: string
-  className: string
-  dotClass: string
+  label:     string
+  badge:     string   // pill bg + border
+  text:      string
+  dot:       string
 }
 
 const CONFIG: Record<Status, StatusConfig> = {
   rascunho: {
     label: 'Rascunho',
-    className: 'bg-slate-800/50 text-slate-400 border-slate-700/40',
-    dotClass: 'bg-slate-500',
+    badge: 'bg-slate-800/40 border-slate-700/30',
+    text:  'text-slate-400',
+    dot:   'bg-slate-500',
   },
   aprovado: {
     label: 'Aprovado',
-    className: 'bg-emerald-950/70 text-emerald-400 border-emerald-900/40',
-    dotClass: 'bg-emerald-400',
+    badge: 'bg-emerald-950/50 border-emerald-900/25',
+    text:  'text-emerald-400',
+    dot:   'bg-emerald-500',
   },
   agendado: {
     label: 'Agendado',
-    className: 'bg-blue-950/70 text-blue-400 border-blue-900/40',
-    dotClass: 'bg-blue-400',
+    badge: 'bg-indigo-950/50 border-indigo-900/25',
+    text:  'text-indigo-400',
+    dot:   'bg-indigo-500',
   },
   publicado: {
     label: 'Publicado',
-    className: 'bg-teal-950/60 text-teal-400 border-teal-900/40',
-    dotClass: 'bg-teal-400',
+    badge: 'bg-teal-950/40 border-teal-900/20',
+    text:  'text-teal-400',
+    dot:   'bg-teal-500',
   },
   arquivado: {
     label: 'Arquivado',
-    className: 'bg-zinc-900/60 text-slate-600 border-zinc-800/40',
-    dotClass: 'bg-slate-700',
+    badge: 'bg-transparent border-slate-800/40',
+    text:  'text-slate-600',
+    dot:   'bg-slate-700',
   },
   rejeitado: {
     label: 'Rejeitado',
-    className: 'bg-red-950/70 text-red-400 border-red-900/40',
-    dotClass: 'bg-red-400',
+    badge: 'bg-red-950/40 border-red-900/25',
+    text:  'text-red-400',
+    dot:   'bg-red-500',
   },
   novo: {
     label: 'Novo',
-    className: 'bg-indigo-950/70 text-indigo-400 border-indigo-900/40',
-    dotClass: 'bg-indigo-400',
+    badge: 'bg-indigo-950/50 border-indigo-900/25',
+    text:  'text-indigo-400',
+    dot:   'bg-indigo-500',
   },
   contatado: {
     label: 'Contatado',
-    className: 'bg-amber-950/70 text-amber-400 border-amber-900/40',
-    dotClass: 'bg-amber-400',
+    badge: 'bg-amber-950/40 border-amber-900/20',
+    text:  'text-amber-400',
+    dot:   'bg-amber-500',
   },
   qualificado: {
     label: 'Qualificado',
-    className: 'bg-blue-950/70 text-blue-400 border-blue-900/40',
-    dotClass: 'bg-blue-400',
+    badge: 'bg-blue-950/40 border-blue-900/20',
+    text:  'text-blue-400',
+    dot:   'bg-blue-500',
   },
   convertido: {
     label: 'Convertido',
-    className: 'bg-emerald-950/70 text-emerald-400 border-emerald-900/40',
-    dotClass: 'bg-emerald-400',
+    badge: 'bg-emerald-950/50 border-emerald-900/25',
+    text:  'text-emerald-400',
+    dot:   'bg-emerald-500',
   },
   perdido: {
     label: 'Perdido',
-    className: 'bg-red-950/70 text-red-400 border-red-900/40',
-    dotClass: 'bg-red-400',
+    badge: 'bg-red-950/40 border-red-900/25',
+    text:  'text-red-400',
+    dot:   'bg-red-500',
   },
   ideia: {
     label: 'Ideia',
-    className: 'bg-violet-950/70 text-violet-400 border-violet-900/40',
-    dotClass: 'bg-violet-400',
+    badge: 'bg-violet-950/40 border-violet-900/20',
+    text:  'text-violet-400',
+    dot:   'bg-violet-500',
   },
 }
 
 interface Props {
-  status: Status
+  status:    Status
   className?: string
 }
 
 export function StatusBadge({ status, className }: Props) {
-  const config = CONFIG[status]
-  if (!config) return null
+  const c = CONFIG[status]
+  if (!c) return null
 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium border tracking-wide',
-        config.className,
-        className
+        'inline-flex items-center gap-1.5 px-2 py-[3px]',
+        'rounded-full border text-[10px] font-medium leading-none',
+        c.badge, c.text,
+        className,
       )}
     >
-      <span className={cn('w-1.5 h-1.5 rounded-full flex-shrink-0', config.dotClass)} />
-      {config.label}
+      <span className={cn('w-[5px] h-[5px] rounded-full flex-shrink-0', c.dot)} />
+      {c.label}
     </span>
   )
 }
