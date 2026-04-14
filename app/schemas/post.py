@@ -2,9 +2,9 @@
 Schemas Pydantic: Post
 """
 
-from datetime import datetime
+from datetime import datetime, timezone
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 from app.models.post import PostFormato, PostPrioridade, PostStatus, SocialPlatform
 
@@ -33,8 +33,9 @@ class PostUpdate(BaseModel):
     prioridade: PostPrioridade | None = None
     pillar_id: int | None = None
     idea_id: int | None = None
-    status: PostStatus | None = None
-    scheduled_at: datetime | None = None
+    # FIX [POST-01]: 'status' removido — alterações de status devem passar pelos
+    # endpoints de workflow (/approve, /reject, /schedule, /publish) para garantir
+    # que campos de auditoria (approved_by_id, approved_at, etc.) sejam preenchidos.
 
 
 class PostOut(PostBase):
@@ -47,6 +48,9 @@ class PostOut(PostBase):
     approved_at: datetime | None
     created_at: datetime
     updated_at: datetime
+    # FIX [POST-02]: expõe external_post_id após publicação para que o cliente
+    # não precise fazer GET no post e inspecionar campos extras.
+    external_post_id: str | None = None
 
     model_config = {"from_attributes": True}
 
@@ -72,3 +76,16 @@ class PostCreateFromIdea(BaseModel):
 class PostScheduleRequest(BaseModel):
     """Body para agendar um post aprovado."""
     scheduled_at: datetime
+
+    # FIX [POST-03]: valida que scheduled_at está no futuro para evitar
+    # publicação imediata não intencional de posts "agendados" no passado.
+    @field_validator("scheduled_at")
+    @classmethod
+    def must_be_future(cls, v: datetime) -> datetime:
+        now = datetime.now(timezone.utc)
+        # Normaliza para timezone-aware antes de comparar
+        if v.tzinfo is None:
+            v = v.replace(tzinfo=timezone.utc)
+        if v <= now:
+            raise ValueError("scheduled_at deve ser uma data futura.")
+        return v

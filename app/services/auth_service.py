@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from jose import JWTError
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.orm import Session
 
 from app.core.security import (
@@ -23,11 +23,17 @@ from app.core.security import (
     create_token_pair,
     decode_refresh_token,
     hash_password,
+    refresh_token_expires_in,
     verify_password,
 )
 from app.models.user import User
 from app.schemas.token import LoginRequest, Token, TokenResponse
 from app.schemas.user import UserChangePassword, UserCreate, UserOut
+
+# Hash fixo usado para manter tempo de resposta constante quando o e-mail
+# não existe. Garante que verify_password (bcrypt, ~100 ms) sempre execute,
+# impedindo enumeração de usuários por análise de timing.
+_DUMMY_HASH: str = hash_password("Dummy123!")
 
 
 # ── Helper interno ─────────────────────────────────────────────────────────────
@@ -36,14 +42,22 @@ def _authenticate(db: Session, email: str, password: str) -> User:
     """
     Valida e-mail e senha, atualiza last_login_at e retorna o User.
     Lança HTTPException 401 para credenciais inválidas e 403 para conta inativa.
-    Usa a mesma mensagem de erro para email/senha inexistentes para evitar
-    enumeração de usuários (user enumeration attack).
+
+    Proteções:
+    - Mensagem de erro unificada (anti-enumeração de e-mail)
+    - verify_password sempre executado, mesmo para e-mail inexistente
+      (anti-timing attack: bcrypt leva ~100 ms e o short-circuit do `or`
+       tornaria respostas para e-mails inexistentes mensuravelmente mais rápidas)
     """
     user: User | None = db.query(User).filter(User.email == email).first()
 
-    # Verificação deliberadamente unificada (sem distinguir "e-mail não existe"
-    # de "senha errada") — impede descoberta de e-mails cadastrados.
-    if not user or not verify_password(password, user.hashed_password):
+    # Sempre executa bcrypt, independentemente de o usuário existir.
+    # Usa _DUMMY_HASH como alvo quando o e-mail não é encontrado para garantir
+    # tempo de resposta equivalente ao de uma verificação real.
+    _hash = user.hashed_password if user else _DUMMY_HASH
+    password_valid = verify_password(password, _hash)
+
+    if not user or not password_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="E-mail ou senha incorretos.",
@@ -73,6 +87,7 @@ def _build_token_response(user: User) -> TokenResponse:
         access_token=access_token,
         refresh_token=refresh_token,
         expires_in=access_token_expires_in(),
+        refresh_token_expires_in=refresh_token_expires_in(),
         user=UserOut.model_validate(user),
     )
 
@@ -103,9 +118,10 @@ def register(db: Session, payload: UserCreate) -> User:
     )
     db.add(user)
 
-    # Catch de IntegrityError cobre a janela de corrida (TOCTOU) entre a verificação
-    # acima e o commit — dois requests concorrentes com o mesmo e-mail passariam pela
-    # verificação mas apenas um consegue commitar; o outro recebe 409, não 500.
+    # IntegrityError: cobre janela de corrida (TOCTOU) — dois requests simultâneos com
+    # o mesmo e-mail passam pela verificação, mas apenas um comita; o outro recebe 409.
+    # SQLAlchemyError: captura erros de schema/conexão (ex: coluna ausente após
+    # migration mal aplicada) e evita que propaguem como 500 sem mensagem útil.
     try:
         db.commit()
     except IntegrityError:
@@ -114,6 +130,12 @@ def register(db: Session, payload: UserCreate) -> User:
             status_code=status.HTTP_409_CONFLICT,
             detail="E-mail já cadastrado.",
         )
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Erro interno ao criar usuário. Verifique as migrações do banco.",
+        ) from exc
 
     db.refresh(user)
     return user

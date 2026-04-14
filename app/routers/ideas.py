@@ -146,7 +146,7 @@ def generate_ideas(
 )
 def idea_to_post(
     idea_id: int,
-    payload: PostCreateFromIdea = None,
+    payload: PostCreateFromIdea | None = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):

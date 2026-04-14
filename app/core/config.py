@@ -3,8 +3,10 @@ Configurações centrais do Social Agent carregadas via variáveis de ambiente.
 Utiliza pydantic-settings para validação e tipagem automática.
 """
 
-from pydantic_settings import BaseSettings
 from functools import lru_cache
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
@@ -20,6 +22,19 @@ class Settings(BaseSettings):
     SECRET_KEY: str          # chave secreta longa e aleatória
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7   # duração do refresh token (dias)
+
+    @field_validator("SECRET_KEY")
+    @classmethod
+    def secret_key_min_length(cls, v: str) -> str:
+        """Garante entropia mínima na chave JWT — chaves curtas são trivialmente forjáveis."""
+        if len(v) < 32:
+            raise ValueError(
+                "SECRET_KEY deve ter no mínimo 32 caracteres. "
+                "Gere uma chave segura com: "
+                "python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+        return v
 
     # --- IA ---
     AI_PROVIDER: str = "mock"           # mock | anthropic

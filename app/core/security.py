@@ -6,6 +6,13 @@ Responsabilidades:
     - Criação e decodificação de JWT (access_token e refresh_token)
     - Separação de tipo de token via claim "type" para evitar uso cruzado
 
+Claims incluídos em todos os tokens:
+    sub  — user_id (string) — identifica o sujeito
+    type — "access" | "refresh" — impede uso cruzado entre tipos
+    exp  — timestamp de expiração
+    iat  — timestamp de emissão (útil para auditoria)
+    jti  — ID único do token (UUID-like) — viabiliza blacklist/revogação futura
+
 Fluxo de tokens:
     1. Login  → access_token (curto: ACCESS_TOKEN_EXPIRE_MINUTES)
                 + refresh_token (longo: REFRESH_TOKEN_EXPIRE_DAYS)
@@ -13,6 +20,7 @@ Fluxo de tokens:
     3. Expirou? → POST /auth/refresh com { refresh_token } → novo par de tokens
 """
 
+import secrets as _secrets
 from datetime import datetime, timedelta, timezone
 from enum import Enum
 
@@ -34,10 +42,6 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 class TokenType(str, Enum):
     ACCESS = "access"
     REFRESH = "refresh"
-
-
-# Duração do refresh token (dias) — configurável via settings nas próximas fases
-REFRESH_TOKEN_EXPIRE_DAYS = 7
 
 
 # ── Hashing ────────────────────────────────────────────────────────────────────
@@ -64,15 +68,19 @@ def _build_token(
 ) -> str:
     """
     Constrói e assina um JWT com o subject, tipo e expiração fornecidos.
-    Claim 'type' impede que um refresh_token seja usado como access_token
-    e vice-versa.
+
+    Claims de segurança:
+        type — impede que refresh_token seja usado como access_token e vice-versa
+        jti  — ID único por token; viabiliza blacklist futura sem invalidar todos
+               os tokens do usuário (ex: logout seletivo, rotação de refresh)
     """
-    expire = datetime.now(timezone.utc) + expires_delta
+    now = datetime.now(timezone.utc)
     payload = {
         "sub": str(subject),
         "type": token_type.value,
-        "exp": expire,
-        "iat": datetime.now(timezone.utc),  # issued at — útil para auditoria
+        "exp": now + expires_delta,
+        "iat": now,
+        "jti": _secrets.token_urlsafe(16),  # 128 bits de entropia — único por emissão
     }
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
@@ -96,13 +104,13 @@ def create_refresh_token(
     expires_delta: timedelta | None = None,
 ) -> str:
     """
-    Gera um JWT de refresh (longa duração — 7 dias por padrão).
+    Gera um JWT de refresh (longa duração — REFRESH_TOKEN_EXPIRE_DAYS por padrão).
     Deve ser armazenado de forma segura no cliente (httpOnly cookie ou storage seguro).
 
     :param subject:       identificador do usuário.
-    :param expires_delta: expiração customizada; usa REFRESH_TOKEN_EXPIRE_DAYS se None.
+    :param expires_delta: expiração customizada; usa settings.REFRESH_TOKEN_EXPIRE_DAYS se None.
     """
-    delta = expires_delta or timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    delta = expires_delta or timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
     return _build_token(subject, TokenType.REFRESH, delta)
 
 
@@ -125,6 +133,7 @@ def decode_token(token: str, expected_type: TokenType) -> dict:
         - Assinatura (SECRET_KEY)
         - Expiração (exp)
         - Tipo correto (claim 'type' == expected_type)
+        - Presença do claim 'sub' (identifica o usuário)
 
     Lança JWTError se qualquer verificação falhar.
     """
@@ -135,6 +144,10 @@ def decode_token(token: str, expected_type: TokenType) -> dict:
         raise JWTError(
             f"Tipo de token incorreto: esperado '{expected_type.value}', recebido '{token_type}'"
         )
+
+    # sub é obrigatório — sem ele não há como identificar o usuário
+    if not payload.get("sub"):
+        raise JWTError("Token sem identificador de sujeito (sub).")
 
     return payload
 
@@ -152,3 +165,8 @@ def decode_refresh_token(token: str) -> dict:
 def access_token_expires_in() -> int:
     """Retorna o tempo de expiração do access_token em segundos."""
     return settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+
+
+def refresh_token_expires_in() -> int:
+    """Retorna o tempo de expiração do refresh_token em segundos."""
+    return settings.REFRESH_TOKEN_EXPIRE_DAYS * 24 * 3600

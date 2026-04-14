@@ -66,7 +66,7 @@ export const ideaService = {
     api.post(API.ideas.create, payload).then((r) => r.data),
 
   update: (id: number, payload: UpdateIdeaPayload): Promise<Idea> =>
-    api.put(API.ideas.update(id), payload).then((r) => r.data),
+    api.patch(API.ideas.update(id), payload).then((r) => r.data),
 
   delete: (id: number): Promise<void> =>
     api.delete(API.ideas.delete(id)).then(() => undefined),

@@ -30,13 +30,15 @@ def upgrade() -> None:
         userrole_enum.create(op.get_bind(), checkfirst=True)
 
     # Adiciona coluna role com default 'editor'
+    # server_default deve ser um literal SQL válido: "'editor'" (aspas internas = literal de string)
+    # "editor" sem aspas é interpretado como identificador/coluna → falha em SQLite e PostgreSQL
     op.add_column(
         "users",
         sa.Column(
             "role",
             sa.Enum("admin", "editor", "aprovador", "viewer", name="userrole"),
             nullable=False,
-            server_default="editor",
+            server_default="'editor'",
         ),
     )
 

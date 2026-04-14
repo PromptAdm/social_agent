@@ -38,8 +38,11 @@ class User(Base):
     full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # ── Controle de acesso ─────────────────────────────────────────────────────
+    # create_type=False: Alembic gerencia a criação/remoção do tipo ENUM no banco;
+    # sem isso, metadata.create_all() tentaria criar "userrole" e conflitaria com
+    # o tipo já criado pela migration 0002.
     role: Mapped[UserRole] = mapped_column(
-        Enum(UserRole, name="userrole"),
+        Enum(UserRole, name="userrole", create_type=False),
         default=UserRole.EDITOR,
         nullable=False,
     )

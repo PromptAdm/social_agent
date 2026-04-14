@@ -148,10 +148,16 @@ function LoginForm() {
           </button>
         </form>
 
-        <div className="mt-5 text-center">
-          <button className="text-sm text-slate-500 hover:text-slate-400 transition-colors">
+        <div className="mt-5 text-center space-y-2">
+          <button className="text-sm text-slate-500 hover:text-slate-400 transition-colors block mx-auto">
             Esqueci minha senha
           </button>
+          <p className="text-sm text-slate-500">
+            Novo por aqui?{' '}
+            <a href="/register" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
+              Criar conta
+            </a>
+          </p>
         </div>
       </div>
 

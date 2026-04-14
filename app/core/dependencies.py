@@ -7,6 +7,9 @@ Hierarquia de dependências de autenticação:
          └── get_current_active_user  → token válido + usuário ativo
               └── require_role(...)   → token válido + ativo + papel específico
               └── require_superuser   → token válido + ativo + is_superuser=True
+
+Cabeçalho esperado em rotas protegidas:
+    Authorization: Bearer <access_token>
 """
 
 from typing import Callable, Generator
@@ -22,6 +25,9 @@ from app.models.user import User, UserRole
 
 # URL usada pelo Swagger para o fluxo OAuth2 (POST /auth/token)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
+
+# Header padrão RFC 6750 retornado em respostas 401 — informa o esquema e o realm
+_WWW_AUTHENTICATE = {"WWW-Authenticate": 'Bearer realm="social-agent"'}
 
 
 # ── Sessão de banco ────────────────────────────────────────────────────────────
@@ -54,21 +60,19 @@ def get_current_user(
 
     Lança 401 se:
         - Token ausente, inválido ou expirado
-        - Claim 'sub' ausente ou não numérico
+        - Claim 'sub' ausente ou inválido (validado em decode_access_token)
         - Usuário não encontrado no banco
     """
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Não foi possível validar as credenciais.",
-        headers={"WWW-Authenticate": "Bearer"},
+        headers=_WWW_AUTHENTICATE,
     )
     try:
         payload = decode_access_token(token)
-        user_id_str: str | None = payload.get("sub")
-        if not user_id_str:
-            raise credentials_exception
-        user_id = int(user_id_str)
-    except (JWTError, ValueError):
+        # decode_access_token já valida 'sub'; int() pode falhar se vier valor não numérico
+        user_id = int(payload["sub"])
+    except (JWTError, ValueError, KeyError):
         raise credentials_exception
 
     # Import local para evitar circular import (models ↔ dependencies)
@@ -86,6 +90,7 @@ def get_current_active_user(
     """
     Garante que o usuário autenticado está ativo (is_active=True).
     Lança 403 se a conta estiver desativada.
+    Token válido mas conta inativa → 403 Forbidden (não 401, pois o token é legítimo).
     """
     if not current_user.is_active:
         raise HTTPException(
