@@ -441,7 +441,7 @@ export default function ApprovalPage() {
 
   const handleScheduleConfirm = useCallback((isoDate: string) => {
     if (!selectedId) return
-    schedulePost.mutate({ id: selectedId, payload: { agendado_para: isoDate } })
+    schedulePost.mutate({ id: selectedId, payload: { scheduled_at: isoDate } })
     advanceQueue(selectedId)
     setModal(null)
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -449,8 +449,7 @@ export default function ApprovalPage() {
 
   const handleEditConfirm = useCallback((caption: string, prioridade: PostPrioridade) => {
     if (!selectedId) return
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    updatePost.mutate({ content: caption, prioridade } as any)
+    updatePost.mutate({ caption, prioridade })
     setModal(null)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId])

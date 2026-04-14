@@ -36,10 +36,11 @@ export type LeadSource =
 
 export interface User {
   id: number
-  name: string
+  full_name: string | null
   email: string
   role: 'admin' | 'editor' | 'viewer'
   is_active: boolean
+  is_superuser: boolean
   created_at: string
 }
 
@@ -81,7 +82,7 @@ export interface Post {
   status: PostStatus
   scheduled_at: string | null
   published_at: string | null
-  approved_by: number | null
+  approved_by_id: number | null
   approved_at: string | null
   created_at: string
   updated_at: string

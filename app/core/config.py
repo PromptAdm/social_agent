@@ -22,13 +22,22 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
 
     # --- IA ---
-    AI_PROVIDER: str = "mock"       # mock | openai | anthropic | gemini
+    AI_PROVIDER: str = "mock"           # mock | anthropic
+    ANTHROPIC_API_KEY: str = ""         # sk-ant-api03-...
 
-    # --- Integrações ---
-    META_WEBHOOK_VERIFY_TOKEN: str = "social_agent_verify_token"  # token secreto para verificação de webhook Meta
-    META_APP_SECRET: str = ""        # App Secret para verificar assinatura X-Hub-Signature-256
-    META_ACCESS_TOKEN: str = ""      # Page/User Access Token (fase de integração real)
-    META_IG_USER_ID: str = ""        # ID do Instagram Business Account (fase real)
+    # --- Scheduler ---
+    SCHEDULER_ENABLED: bool = True           # False para desabilitar em testes/staging
+    SCHEDULER_INTERVAL_SECONDS: int = 60     # Intervalo entre ticks (padrão: 1 minuto)
+
+    # --- Integrações Meta ---
+    META_WEBHOOK_VERIFY_TOKEN: str = "social_agent_verify_token"  # token para handshake de webhook
+    META_APP_SECRET: str = ""         # App Secret para verificar X-Hub-Signature-256
+    META_ACCESS_TOKEN: str = ""       # Page/System User Access Token com instagram_content_publish
+    META_IG_USER_ID: str = ""         # ID numérico do Instagram Business Account
+    META_FACEBOOK_PAGE_ID: str = ""   # ID numérico da Facebook Page
+    META_API_VERSION: str = "v21.0"   # versão da Graph API (ex: "v21.0")
+
+    # --- n8n ---
     N8N_WEBHOOK_BASE_URL: str = "https://n8n.yourdomain.com/webhook"  # base URL dos webhooks n8n
 
     # --- CORS ---

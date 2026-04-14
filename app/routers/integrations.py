@@ -5,7 +5,7 @@ Prefixo: /api/v1
 Endpoints de gerenciamento de integrações:
     GET  /integrations/status/{brand_id}          — saúde de todas as integrações
     GET  /integrations/logs/{brand_id}             — histórico de logs auditáveis
-    POST /integrations/test/publish/{post_id}      — teste simulado de publicação
+    POST /integrations/test/publish/{post_id}      — teste de publicação (usa publisher ativo)
     GET  /integrations/n8n/events                  — documentação dos eventos n8n disponíveis
 
 Endpoints de webhook inbound (Meta → Social Agent):
@@ -14,20 +14,14 @@ Endpoints de webhook inbound (Meta → Social Agent):
     POST /webhooks/n8n                             — recebe callbacks de workflows n8n
 
 Segurança de webhooks inbound:
-    - Meta: verificação via hub.verify_token (GET) + X-Hub-Signature-256 (POST)
-    - n8n: token secreto no header Authorization ou X-N8n-Token
+    - Meta GET:  verificação via hub.verify_token
+    - Meta POST: verificação de assinatura HMAC-SHA256 via X-Hub-Signature-256
+                 (ativa quando META_APP_SECRET estiver configurado)
     - Todos os payloads inbound são logados para auditoria
-
-Fluxo de publicação com integração:
-    POST /posts/{id}/publish
-        → publishing_service.publish_post()
-            → integrations.registry.get_publisher(platform)
-                → MockMetaPublisher.publish(post_data)
-                    → Retorna external_post_id
-            → integration_log_service.write_log(status=SUCCESS, external_id=...)
-            → n8n_client.trigger("post.published", payload)
 """
 
+import hashlib
+import hmac
 import time
 from datetime import datetime, timezone
 
@@ -90,9 +84,10 @@ def get_integration_status(
     publisher_statuses = []
     for platform in registered_platforms:
         platform_stats = stats.get("meta_api", {})
+        provider_label = registry.get_provider_label("meta_api")
         publisher_statuses.append(IntegrationStatusOut(
             name=platform,
-            provider="mock_meta_api",
+            provider=provider_label,
             is_active=True,
             last_attempt_at=platform_stats.get("last_attempt_at"),
             last_status=platform_stats.get("last_status"),
@@ -342,16 +337,40 @@ async def meta_webhook_receive(
     """
     Recebe e registra eventos inbound do Meta.
 
-    Produção — verificação de assinatura (implementar quando integração real):
-        import hmac, hashlib
-        body = await request.body()
-        secret = settings.META_APP_SECRET
-        expected = "sha256=" + hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(x_hub_signature_256 or "", expected):
-            raise HTTPException(403, "Assinatura inválida")
+    Verificação HMAC-SHA256:
+        Ativa quando META_APP_SECRET estiver configurado no .env.
+        Valida a assinatura X-Hub-Signature-256 enviada pelo Meta.
+        Rejeita requisições sem assinatura válida com HTTP 403.
+
+    O Meta exige resposta 200 imediata — processamento assíncrono em produção.
     """
+    raw_body = await request.body()
+
+    # ── Verificação de assinatura HMAC ─────────────────────────────────────────
+    _settings = get_settings()
+    app_secret = getattr(_settings, "META_APP_SECRET", "")
+    if app_secret:
+        if not x_hub_signature_256:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Header X-Hub-Signature-256 ausente.",
+            )
+        expected_sig = (
+            "sha256="
+            + hmac.new(
+                app_secret.encode(),
+                raw_body,
+                hashlib.sha256,
+            ).hexdigest()
+        )
+        if not hmac.compare_digest(x_hub_signature_256, expected_sig):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Assinatura X-Hub-Signature-256 inválida.",
+            )
+
     try:
-        body = await request.json()
+        body = request._json = __import__("json").loads(raw_body)
     except Exception:
         body = {}
 

@@ -41,7 +41,7 @@ def schedule_post(db: Session, post_id: int, scheduled_at: datetime, user_id: in
     return post
 
 
-def publish_post(db: Session, post_id: int, user_id: int) -> Post:
+def publish_post(db: Session, post_id: int, user_id: int | None = None) -> Post:
     """
     Publica o post imediatamente.
 

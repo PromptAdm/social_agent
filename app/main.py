@@ -3,6 +3,10 @@ Social Agent — Ponto de entrada da aplicação FastAPI.
 Registra todos os routers e configura CORS, metadados e health-check.
 """
 
+import asyncio
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,17 +28,60 @@ from app.routers import (
     panel,
     posts,
     publishing,
+    scheduler,
     users,
 )
 
+logger = logging.getLogger("main")
 settings = get_settings()
+
+
+# ── Lifespan: startup / shutdown ───────────────────────────────────────────────
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Gerencia o ciclo de vida da aplicação.
+
+    Startup:
+        - Inicia o scheduler de publicação automática (se SCHEDULER_ENABLED=true)
+    Shutdown:
+        - Cancela a task do scheduler e aguarda encerramento limpo
+    """
+    _scheduler_task: asyncio.Task | None = None
+
+    if settings.SCHEDULER_ENABLED:
+        from app.scheduler.scheduler import scheduler_loop, get_state
+        get_state().enabled = True
+        _scheduler_task = asyncio.create_task(
+            scheduler_loop(settings.SCHEDULER_INTERVAL_SECONDS),
+            name="scheduler",
+        )
+        logger.info(
+            "Scheduler ativado (intervalo=%ds)",
+            settings.SCHEDULER_INTERVAL_SECONDS,
+        )
+    else:
+        logger.info("Scheduler desativado (SCHEDULER_ENABLED=false)")
+
+    yield  # ← aplicação em execução
+
+    if _scheduler_task and not _scheduler_task.done():
+        _scheduler_task.cancel()
+        try:
+            await _scheduler_task
+        except asyncio.CancelledError:
+            pass
+        logger.info("Scheduler encerrado com sucesso.")
+
 
 app = FastAPI(
     title="Social Agent",
     description="Backend do Social Agent — automação de conteúdo e gestão de redes sociais.\n\nMódulos: Estratégia da Marca · Ideias · Posts · Aprovação · Publicação · Engajamento · Leads · Analytics · IA",
     version="0.1.0",
     docs_url="/docs",
-    redoc_url="/redoc"
+    redoc_url="/redoc",
+    lifespan=lifespan,
 )
 
 # --- Exception handlers ---
@@ -113,6 +160,7 @@ app.include_router(analytics.router, prefix=API_PREFIX)
 app.include_router(ai.router, prefix=API_PREFIX)
 app.include_router(panel.router, prefix=API_PREFIX)
 app.include_router(integrations.router, prefix=API_PREFIX)
+app.include_router(scheduler.router, prefix=API_PREFIX)
 
 
 # --- Health check ---

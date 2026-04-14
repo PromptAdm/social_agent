@@ -2,18 +2,18 @@ import { apiClient as api } from '@/lib/api/client'
 import { API } from '@/lib/api/endpoints'
 import type { Brand, ContentPillar } from '@/types'
 
+// ── Brand payloads ─────────────────────────────────────────────────────────────
+
 export interface CreateBrandPayload {
-  name: string
-  description?: string
-  website?: string
-  instagram_handle?: string
-  linkedin_url?: string
-  tiktok_handle?: string
+  name:           string
+  niche?:         string
+  description?:   string
+  tone_of_voice?: string
 }
 
 export interface UpdateBrandPayload extends Partial<CreateBrandPayload> {}
 
-// ── Brands ────────────────────────────────────────────────────────────────────
+// ── Brand service ──────────────────────────────────────────────────────────────
 
 export const brandService = {
   list: (): Promise<Brand[]> =>
@@ -32,13 +32,17 @@ export const brandService = {
     api.delete(API.brands.delete(id)).then(() => undefined),
 }
 
-// ── Content Pillars ───────────────────────────────────────────────────────────
+// ── Pillar payloads ────────────────────────────────────────────────────────────
 
 export interface CreatePillarPayload {
-  name: string
+  name:         string
   description?: string
-  keywords?: string[]
+  color?:       string
 }
+
+export interface UpdatePillarPayload extends Partial<CreatePillarPayload> {}
+
+// ── Pillar service ─────────────────────────────────────────────────────────────
 
 export const pillarService = {
   listByBrand: (brandId: number): Promise<ContentPillar[]> =>
@@ -47,7 +51,7 @@ export const pillarService = {
   create: (brandId: number, payload: CreatePillarPayload): Promise<ContentPillar> =>
     api.post(API.pillars.create(brandId), payload).then((r) => r.data),
 
-  update: (id: number, payload: Partial<CreatePillarPayload>): Promise<ContentPillar> =>
+  update: (id: number, payload: UpdatePillarPayload): Promise<ContentPillar> =>
     api.put(API.pillars.update(id), payload).then((r) => r.data),
 
   delete: (id: number): Promise<void> =>

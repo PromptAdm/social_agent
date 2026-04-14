@@ -18,14 +18,23 @@ from app.models.post import SocialPlatform
 class AIIdeaGenerateRequest(BaseModel):
     """Parâmetros para geração de ideias enriquecidas via IA."""
     brand_id: int
-    count: int = Field(default=5, ge=1, le=20, description="Quantidade de ideias a gerar")
-    tema: str | None = Field(
+    quantidade: int = Field(default=5, ge=1, le=20, description="Quantidade de ideias a gerar")
+    tema: str | None = Field(default=None, description="Tema ou palavra-chave guia")
+    objetivo: str | None = Field(
         default=None,
-        description="Tema ou palavra-chave guia (ex: 'nutrição pós-treino')",
+        description="Objetivo do conteúdo (ex: engajamento, vendas, educacao)",
+    )
+    plataforma: str | None = Field(
+        default=None,
+        description="Plataforma de destino (instagram, linkedin, etc.)",
     )
     formato_sugerido: IdeaFormatoSugerido | None = Field(
         default=None,
         description="Restringir geração a um formato específico",
+    )
+    contexto: str | None = Field(
+        default=None,
+        description="Contexto adicional: público, restrições, exemplos",
     )
 
 

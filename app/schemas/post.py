@@ -56,13 +56,14 @@ class PostOut(PostBase):
 class PostCreateFromIdea(BaseModel):
     """
     Parâmetros para converter uma Idea existente em Post.
-    Campos omitidos herdam valores da ideia (título → caption, formato_sugerido → formato).
+    Campos omitidos herdam valores da ideia ou são gerados por IA.
+    platform é opcional — padrão instagram (frontend chama sem body).
     """
-    platform: SocialPlatform
-    caption: str | None = None       # se omitido, usa idea.title
-    hashtags: str | None = None
-    cta: str | None = None
-    formato: PostFormato | None = None  # se omitido, usa idea.formato_sugerido (ou IMAGEM_UNICA)
+    platform: SocialPlatform = SocialPlatform.INSTAGRAM
+    caption: str | None = None       # se omitido, IA gera a partir da ideia
+    hashtags: str | None = None      # se omitido, IA gera
+    cta: str | None = None           # se omitido, IA gera
+    formato: PostFormato | None = None  # se omitido, herda de idea.formato_sugerido
     prioridade: PostPrioridade = PostPrioridade.MEDIA
 
 

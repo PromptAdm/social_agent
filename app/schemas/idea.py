@@ -42,24 +42,25 @@ class IdeaOut(IdeaBase):
     model_config = {"from_attributes": True}
 
 
-# ── Geração de Ideias (mock) ───────────────────────────────────────────────────
+# ── Geração de Ideias via IA ───────────────────────────────────────────────────
 
 class IdeaGenerateRequest(BaseModel):
-    """Parâmetros para geração automática de ideias (mock/IA futura)."""
-    brand_id: int
-    count: int = Field(default=5, ge=1, le=20, description="Quantidade de ideias a gerar")
-    tema: str | None = Field(
-        default=None,
-        description="Tema ou palavra-chave para guiar a geração (ex: 'nutrição', 'treino em casa')",
-    )
-    formato_sugerido: IdeaFormatoSugerido | None = Field(
-        default=None,
-        description="Restringir geração a um formato específico",
-    )
+    """
+    Parâmetros recebidos do frontend para geração automática de ideias.
+    Campos alinhados com GenerateIdeasPayload do frontend.
+    """
+    brand_id:         int
+    quantidade:       int = Field(default=5, ge=1, le=20)
+    tema:             str | None = None
+    objetivo:         str | None = None     # engajamento | educacao | vendas | etc.
+    plataforma:       str | None = None     # instagram | linkedin | etc.
+    formato:          IdeaFormatoSugerido | None = None
+    pillar_id:        int | None = None
+    contexto:         str | None = None     # contexto adicional para a IA
 
 
 class IdeaGenerateOut(BaseModel):
     """Resultado da geração automática de ideias."""
-    ideas: list[IdeaOut]
+    ideas:           list[IdeaOut]
     generated_count: int
-    source: str = "mock"  # futuramente: "gpt-4o", "gemini", etc.
+    source:          str = "mock"  # "mock" | "claude"

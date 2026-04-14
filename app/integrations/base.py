@@ -4,17 +4,20 @@ Base: Camada de Integração
 Define:
     - Exceções tipadas (IntegrationError, RetryableIntegrationError)
     - RetryConfig: configuração de retry com backoff exponencial
-    - with_retry(): executor com retry conceitual + logging
+    - with_retry(): executor com retry real (time.sleep entre tentativas)
     - SocialPublisher: classe abstrata para publishers de redes sociais
     - N8nWebhookClient: classe abstrata para clientes n8n
 
 Princípio de Retry:
-    O retry nesta fase é "conceitual" — demonstra o padrão correto
-    sem implementar delays reais (que exigiriam Celery/ARQ/asyncio.sleep).
-    O with_retry() executa as tentativas sem espera entre elas.
-    Em produção, substituir pelo executar de tarefa assíncrona com backoff.
+    with_retry() usa time.sleep() real entre tentativas, o que é seguro porque
+    todos os publishers são chamados de threads (run_in_executor), nunca do
+    event loop principal do asyncio.
+
+    Backoff padrão: [2, 5, 15] segundos — suficiente para recuperar de
+    falhas transitórias da Meta API (429, 503).
 """
 
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -115,8 +118,9 @@ def with_retry(
             if attempt < cfg.max_attempts:
                 if on_retry:
                     on_retry(attempt, exc)
-                # PRODUÇÃO: await asyncio.sleep(cfg.backoff_seconds[attempt - 1])
-                # Aqui: continua imediatamente (mock sem delay real)
+                # Backoff real — seguro pois always executa em thread (run_in_executor)
+                delay = cfg.backoff_seconds[attempt - 1] if attempt - 1 < len(cfg.backoff_seconds) else cfg.backoff_seconds[-1]
+                time.sleep(delay)
                 continue
             # Esgotou tentativas — promove para IntegrationError permanente
             raise IntegrationError(

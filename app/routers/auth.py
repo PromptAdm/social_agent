@@ -24,7 +24,7 @@ from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_active_user, get_db
 from app.models.user import User
-from app.schemas.token import LoginRequest, RefreshRequest, Token, TokenResponse
+from app.schemas.token import LoginRequest, LogoutRequest, RefreshRequest, Token, TokenResponse
 from app.schemas.user import UserChangePassword, UserCreate, UserOut, UserUpdate
 from app.services import auth_service, user_service
 
@@ -102,6 +102,22 @@ def login_oauth2(
     Para frontends, prefira `POST /auth/login` (JSON).
     """
     return auth_service.login_form(db, form_data.username, form_data.password)
+
+
+# ── Logout ────────────────────────────────────────────────────────────────────
+
+@router.post(
+    "/logout",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Encerrar sessão",
+)
+def logout(payload: LogoutRequest) -> None:
+    """
+    Encerra a sessão do usuário.
+
+    Por ora JWT é stateless — o cliente deve descartar os tokens localmente.
+    Aceita o refresh_token no corpo para futura implementação de blacklist.
+    """
 
 
 # ── Renovação de tokens ────────────────────────────────────────────────────────

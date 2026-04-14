@@ -225,12 +225,12 @@ export function Sidebar() {
         >
           <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0">
             <span className="text-[11px] font-semibold text-white">
-              {initial(user?.name)}
+              {initial(user?.full_name ?? user?.email)}
             </span>
           </div>
           <div className="flex-1 text-left min-w-0">
             <p className="text-[13px] font-medium text-slate-200 truncate leading-tight">
-              {user?.name ?? 'Usuário'}
+              {user?.full_name ?? user?.email ?? 'Usuário'}
             </p>
             <p className="text-[11px] text-slate-600 truncate leading-tight">
               {user?.email ?? ''}

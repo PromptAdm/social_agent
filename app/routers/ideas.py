@@ -17,7 +17,7 @@ Filtros disponíveis em GET /ideas/brand/{brand_id}:
     ?formato_sugerido=carrossel|reels|…
 """
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Body, Depends, Query, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_active_user, get_db
@@ -146,8 +146,11 @@ def generate_ideas(
 )
 def idea_to_post(
     idea_id: int,
-    payload: PostCreateFromIdea,
+    payload: PostCreateFromIdea = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    return idea_service.idea_to_post(db, idea_id, payload, user_id=current_user.id)
+    # payload pode ser omitido pelo frontend — usa defaults (platform=instagram, AI gera o resto)
+    return idea_service.idea_to_post(
+        db, idea_id, payload or PostCreateFromIdea(), user_id=current_user.id
+    )

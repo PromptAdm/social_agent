@@ -1,6 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/api/queryClient'
-import { brandService, pillarService, type CreateBrandPayload, type UpdateBrandPayload, type CreatePillarPayload } from '@/services/brandService'
+import {
+  brandService, pillarService,
+  type CreateBrandPayload, type UpdateBrandPayload,
+  type CreatePillarPayload, type UpdatePillarPayload,
+} from '@/services/brandService'
 import { toast } from '@/store/uiStore'
 import { parseApiError } from '@/lib/api/errors'
 
@@ -24,7 +28,7 @@ export function useBrand(id: number) {
 export function useCreateBrand() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: brandService.create,
+    mutationFn: (payload: CreateBrandPayload) => brandService.create(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.brands() })
       toast.success('Marca criada com sucesso.')
@@ -49,10 +53,10 @@ export function useUpdateBrand(id: number) {
 export function useDeleteBrand() {
   const qc = useQueryClient()
   return useMutation({
-    mutationFn: brandService.delete,
+    mutationFn: (id: number) => brandService.delete(id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.brands() })
-      toast.success('Marca removida.')
+      toast.success('Marca excluída.')
     },
     onError: (err) => toast.error(parseApiError(err)),
   })
@@ -74,7 +78,33 @@ export function useCreatePillar(brandId: number) {
     mutationFn: (payload: CreatePillarPayload) => pillarService.create(brandId, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.pillars(brandId) })
+      qc.invalidateQueries({ queryKey: queryKeys.brands() })
       toast.success('Pilar criado.')
+    },
+    onError: (err) => toast.error(parseApiError(err)),
+  })
+}
+
+export function useUpdatePillar(pillarId: number, brandId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: UpdatePillarPayload) => pillarService.update(pillarId, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.pillars(brandId) })
+      toast.success('Pilar atualizado.')
+    },
+    onError: (err) => toast.error(parseApiError(err)),
+  })
+}
+
+export function useDeletePillar(brandId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (pillarId: number) => pillarService.delete(pillarId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.pillars(brandId) })
+      qc.invalidateQueries({ queryKey: queryKeys.brands() })
+      toast.success('Pilar excluído.')
     },
     onError: (err) => toast.error(parseApiError(err)),
   })

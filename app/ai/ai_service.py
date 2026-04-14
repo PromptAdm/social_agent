@@ -57,13 +57,14 @@ def get_ai_provider() -> AIProvider:
     if provider_name == "mock":
         return MockAIProvider()
 
-    # Ponto de extensão: adicionar provedores reais aqui
-    # elif provider_name == "openai":
-    #     from app.ai.providers.openai_provider import OpenAIProvider
-    #     return OpenAIProvider(api_key=settings.OPENAI_API_KEY)
-    # elif provider_name == "anthropic":
-    #     from app.ai.providers.anthropic_provider import AnthropicProvider
-    #     return AnthropicProvider(api_key=settings.ANTHROPIC_API_KEY)
+    if provider_name == "anthropic":
+        api_key = getattr(settings, "ANTHROPIC_API_KEY", "")
+        if not api_key:
+            raise ValueError(
+                "AI_PROVIDER=anthropic mas ANTHROPIC_API_KEY não está definida no .env"
+            )
+        from app.ai.providers.anthropic_provider import AnthropicProvider
+        return AnthropicProvider(api_key=api_key)
 
     # Fallback seguro
     return MockAIProvider()

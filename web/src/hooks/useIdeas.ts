@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/api/queryClient'
-import { ideaService, type CreateIdeaPayload, type UpdateIdeaPayload, type GenerateIdeasPayload } from '@/services/ideaService'
+import { ideaService, type CreateIdeaPayload, type UpdateIdeaPayload, type GenerateIdeasPayload, type IdeaObjetivo } from '@/services/ideaService'
 import { toast } from '@/store/uiStore'
 import { parseApiError } from '@/lib/api/errors'
 

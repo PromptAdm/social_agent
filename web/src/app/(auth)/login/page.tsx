@@ -4,7 +4,6 @@ import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Hexagon, Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { useAuthStore } from '@/store/authStore'
-import { parseApiError } from '@/lib/api/errors'
 
 function LoginForm() {
   const router       = useRouter()
@@ -38,12 +37,12 @@ function LoginForm() {
 
       if (!res.ok) {
         if (Array.isArray(data?.detail)) {
-        setError(data.detail.map((item: any) => item.msg).join(" | "));
-      } else if (typeof data?.detail === "string") {
-        setError(data.detail);
-      } else {
-        setError("Credenciais inválidas.");
-}
+          setError(data.detail.map((item: any) => item.msg).join(' | '))
+        } else if (typeof data?.detail === 'string') {
+          setError(data.detail)
+        } else {
+          setError('Credenciais inválidas.')
+        }
         return
       }
 
@@ -52,18 +51,8 @@ function LoginForm() {
 
       const from = searchParams.get('from') ?? '/overview'
       router.replace(from)
-    } catch (err: any) {
-      const apiError = err?.response?.data || err;
-
-if (Array.isArray(apiError?.detail)) {
-  setError(apiError.detail.map((item: any) => item.msg).join(" | "));
-} else if (typeof apiError?.detail === "string") {
-  setError(apiError.detail);
-} else if (typeof apiError?.message === "string") {
-  setError(apiError.message);
-} else {
-  setError("Erro ao fazer login.");
-}
+    } catch {
+      setError('Erro de conexão. Tente novamente.')
     } finally {
       setLoading(false)
     }

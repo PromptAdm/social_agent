@@ -5,17 +5,24 @@ import type { Post, PostStatus, PostFormato, PostPrioridade, SocialPlatform } fr
 export interface CreatePostPayload {
   brand_id:    number
   pillar_id?:  number
-  title:       string
-  content:     string
-  plataforma:  SocialPlatform
+  caption:     string
+  hashtags?:   string
+  cta?:        string
+  platform:    SocialPlatform
   formato:     PostFormato
   prioridade?: PostPrioridade
-  tags?:       string[]
-  agendado_para?: string // ISO datetime
 }
 
-export interface UpdatePostPayload extends Partial<CreatePostPayload> {
-  status?: PostStatus
+export interface UpdatePostPayload {
+  caption?:    string
+  hashtags?:   string
+  cta?:        string
+  platform?:   SocialPlatform
+  formato?:    PostFormato
+  prioridade?: PostPrioridade
+  pillar_id?:  number | null
+  status?:     PostStatus
+  scheduled_at?: string | null
 }
 
 export interface RejectPostPayload {
@@ -23,7 +30,7 @@ export interface RejectPostPayload {
 }
 
 export interface SchedulePostPayload {
-  agendado_para: string // ISO datetime
+  scheduled_at: string // ISO datetime
 }
 
 export const postService = {
@@ -37,7 +44,7 @@ export const postService = {
     api.post(API.posts.create, payload).then((r) => r.data),
 
   update: (id: number, payload: UpdatePostPayload): Promise<Post> =>
-    api.put(API.posts.update(id), payload).then((r) => r.data),
+    api.patch(API.posts.update(id), payload).then((r) => r.data),
 
   delete: (id: number): Promise<void> =>
     api.delete(API.posts.delete(id)).then(() => undefined),

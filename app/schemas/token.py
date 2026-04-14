@@ -46,6 +46,12 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
+class LogoutRequest(BaseModel):
+    """Payload de logout — refresh_token para futura invalidação em blacklist."""
+
+    refresh_token: str | None = None
+
+
 class TokenPayload(BaseModel):
     """Conteúdo decodificado de qualquer JWT do sistema."""
 
