@@ -3,8 +3,11 @@ Social Agent — Ponto de entrada da aplicação FastAPI.
 Registra todos os routers e configura CORS, metadados e health-check.
 """
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import get_settings
 from app.routers import (
@@ -33,6 +36,56 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# --- Exception handlers ---
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """
+    Normaliza erros de validação Pydantic (422).
+
+    Pydantic v2 prefixa mensagens de field_validator com "Value error, ".
+    Este handler remove o prefixo para que o frontend receba mensagens limpas,
+    ex.: "Senha fraca — requisitos: mínimo de 8 caracteres" em vez de
+         "Value error, Senha fraca — requisitos: mínimo de 8 caracteres".
+    """
+    _PREFIX = "Value error, "
+    errors = []
+    for err in exc.errors():
+        msg: str = err.get("msg", "Valor inválido.")
+        if msg.startswith(_PREFIX):
+            msg = msg[len(_PREFIX):]
+        errors.append({"field": err["loc"][-1] if err.get("loc") else None, "msg": msg})
+    return JSONResponse(status_code=422, content={"detail": errors})
+
+
+@app.exception_handler(SQLAlchemyError)
+async def sqlalchemy_exception_handler(
+    request: Request, exc: SQLAlchemyError
+) -> JSONResponse:
+    """Captura erros de banco de dados não tratados e retorna 500 limpo."""
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Erro de banco de dados. Tente novamente em instantes."},
+    )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(
+    request: Request, exc: Exception
+) -> JSONResponse:
+    """Captura qualquer exceção não tratada e retorna 500 sem expor detalhes internos."""
+    # Re-levanta HTTPException para que o handler padrão do FastAPI a trate normalmente
+    from fastapi import HTTPException as _HTTPException
+    if isinstance(exc, _HTTPException):
+        raise exc
+    return JSONResponse(
+        status_code=500,
+        content={"detail": "Erro interno do servidor. Tente novamente em instantes."},
+    )
+
 
 # --- CORS ---
 app.add_middleware(

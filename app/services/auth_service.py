@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 
 from fastapi import HTTPException, status
 from jose import JWTError
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.security import (
@@ -83,9 +84,11 @@ def register(db: Session, payload: UserCreate) -> User:
     Cria um novo usuário no sistema.
 
     Validações:
-        - E-mail único (409 se já existir)
-        - Força de senha (delegado ao schema UserCreate)
+        - E-mail único (409 se já existir — verificação prévia + catch de IntegrityError
+          para cobrir inserções concorrentes com o mesmo e-mail)
+        - Força de senha (delegado ao schema UserCreate via Pydantic)
     """
+    # Verificação antecipada — fornece mensagem de erro imediata na maioria dos casos
     existing = db.query(User).filter(User.email == payload.email).first()
     if existing:
         raise HTTPException(
@@ -99,7 +102,19 @@ def register(db: Session, payload: UserCreate) -> User:
         full_name=payload.full_name,
     )
     db.add(user)
-    db.commit()
+
+    # Catch de IntegrityError cobre a janela de corrida (TOCTOU) entre a verificação
+    # acima e o commit — dois requests concorrentes com o mesmo e-mail passariam pela
+    # verificação mas apenas um consegue commitar; o outro recebe 409, não 500.
+    try:
+        db.commit()
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="E-mail já cadastrado.",
+        )
+
     db.refresh(user)
     return user
 

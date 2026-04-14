@@ -29,12 +29,15 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 def get_db() -> Generator[Session, None, None]:
     """
     Fornece uma sessão de banco de dados por request.
-    Garante commit/rollback e fechamento ao final, mesmo em caso de exceção.
+    Garante rollback em caso de exceção e fechamento ao final.
     Uso: db: Session = Depends(get_db)
     """
     db = SessionLocal()
     try:
         yield db
+    except Exception:
+        db.rollback()
+        raise
     finally:
         db.close()
 
