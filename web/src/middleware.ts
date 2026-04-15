@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Rotas que não precisam de autenticação
-const PUBLIC_PATHS = ['/login']
+const PUBLIC_PATHS = ['/login', '/register']
 
 // Rotas que o Next.js não deve interceptar
 const STATIC_PREFIXES = ['/_next', '/favicon', '/api']

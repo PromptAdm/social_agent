@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1'
 
 /**
  * POST /api/auth/login
@@ -16,10 +16,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
 
     const apiRes = await fetch(`${API_URL}/auth/login`, {
-      method:  'POST',
+      method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({
-        email:    body.email    ?? '',
+      body: JSON.stringify({
+        email: body.email ?? '',
         password: body.password ?? '',
       }),
     })
@@ -37,18 +37,20 @@ export async function POST(req: NextRequest) {
 
     const response = NextResponse.json({ access_token, user })
 
-    // Seta refresh_token em cookie httpOnly — nunca acessível pelo JS do browser
     response.cookies.set('sa_refresh_token', refresh_token, {
       httpOnly: true,
-      secure:   process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      path:     '/api/auth',
-      maxAge:   60 * 60 * 24 * 30, // 30 dias
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
     })
 
     return response
   } catch (err) {
     console.error('[auth/login]', err)
-    return NextResponse.json({ detail: 'Erro ao conectar com o servidor.' }, { status: 502 })
+    return NextResponse.json(
+      { detail: 'Erro ao conectar com o servidor.' },
+      { status: 502 },
+    )
   }
 }
