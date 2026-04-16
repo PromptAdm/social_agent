@@ -1,9 +1,16 @@
-# ── Ambiente e segredos ────────────────────────────────────────────────────────
+# ── Segredos e variáveis de ambiente ─────────────────────────────────────────
 .env
 .env.local
 .env.*.local
 .env.prod
 *.env
+
+# Certificados e chaves criptográficas
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
 
 # ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
@@ -18,10 +25,11 @@ build/
 .eggs/
 
 # ── Virtual environments ──────────────────────────────────────────────────────
+# Nota: '.env/' removido — conflitava com o arquivo .env acima.
+# Ambientes virtuais padrão:
 venv/
 .venv/
 env/
-.env/
 ENV/
 
 # ── Banco de dados local ──────────────────────────────────────────────────────
@@ -42,6 +50,10 @@ alembic/versions/__pycache__/
 .DS_Store
 Thumbs.db
 
+# Obsidian — estado da janela (muda a cada sessão, irrelevante para o repo)
+.obsidian/workspace.json
+.obsidian/workspace-mobile.json
+
 # ── Backup ────────────────────────────────────────────────────────────────────
 backups/
 *.db.gz
@@ -58,8 +70,11 @@ logs/
 htmlcov/
 .tox/
 
-# ── Frontend (quando criado) ──────────────────────────────────────────────────
+# ── Frontend (Next.js / Node) ─────────────────────────────────────────────────
 node_modules/
 .next/
 out/
 .turbo/
+
+# ── Cache de ferramentas internas ─────────────────────────────────────────────
+graphify-out/cache/
