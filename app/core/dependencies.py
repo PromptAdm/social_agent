@@ -140,3 +140,35 @@ def require_superuser(
             detail="Acesso restrito a superusuários.",
         )
     return current_user
+
+
+# ── Billing / Planos ───────────────────────────────────────────────────────────
+
+def plan_limit(resource: str) -> Callable:
+    """
+    Fábrica de dependências para verificação de limites de plano.
+
+    Uso em routers de criação (POST):
+        @router.post("/", dependencies=[Depends(plan_limit("brands"))])
+        @router.post("/", dependencies=[Depends(plan_limit("posts_per_month"))])
+
+    Quando MONETIZATION_ENABLED=false → no-op, nunca bloqueia.
+    Quando limite atingido → HTTP 402 Payment Required.
+
+    Não interrompe login, leitura, edição ou exclusão — apenas criação.
+    """
+    def _check(
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_active_user),
+    ) -> None:
+        from app.services.subscription_service import check_limit
+        allowed, msg = check_limit(db, current_user.id, resource)
+        if not allowed:
+            raise HTTPException(
+                status_code=status.HTTP_402_PAYMENT_REQUIRED,
+                detail=msg,
+            )
+
+    # Nome único evita que o FastAPI deduplique dependências com o mesmo nome
+    _check.__name__ = f"plan_limit_{resource}"
+    return _check

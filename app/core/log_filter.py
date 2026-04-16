@@ -16,7 +16,6 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Any
 
 
 # ── Padrões de redação ────────────────────────────────────────────────────────
@@ -52,14 +51,25 @@ _PATTERNS: list[tuple[re.Pattern[str], str]] = [
     #    NÃO inclui "authorization" — já tratado pelo padrão Bearer acima
     (
         re.compile(
-            r"\b(password|passwd|secret(?:_key)?|token|api_key|apikey"
-            r"|access_token|auth_token|private_key"
+            r"\b(password|passwd|secret(?:_key)?|client_secret|token|api_key|apikey"
+            r"|access_token|refresh_token|auth_token|private_key"
             r"|anthropic_api_key|meta_app_secret|meta_access_token)\s*[=:]\s*\S+",
             re.IGNORECASE,
         ),
         r"\1=***",
     ),
-    # 5. Tokens opacos longos (≥ 40 chars alfanuméricos) isolados por espaços/aspas
+    # 5. Logs estruturados JSON/dict: "key": "value" ou 'key': 'value'
+    #    Cobre saídas de json.dumps(), repr(dict), logging com extra={}
+    (
+        re.compile(
+            r"""(['"](password|passwd|secret(?:_key)?|client_secret|token|api_key|apikey"""
+            r"""|access_token|refresh_token|auth_token|private_key"""
+            r"""|anthropic_api_key|meta_app_secret|meta_access_token)['"]\s*:\s*)(['"])[^'"]+\3""",
+            re.IGNORECASE,
+        ),
+        r'\1\3***\3',
+    ),
+    # 6. Tokens opacos longos (≥ 40 chars alfanuméricos) isolados por espaços/aspas
     #    Ex: Meta Page Access Tokens, Stripe keys
     (
         re.compile(r"""(?<=['"\s])[A-Za-z0-9]{40,}(?=['"\s]|$)"""),
@@ -75,19 +85,6 @@ def _redact(text: str) -> str:
     return text
 
 
-def _redact_args(args: Any) -> Any:
-    """
-    Redact recursivo para o campo record.args, que pode ser:
-      - tuple  (args posicionais de %-formatting)
-      - dict   (args nomeados de %-formatting)
-      - None   (sem args)
-    """
-    if isinstance(args, tuple):
-        return tuple(_redact(str(a)) if isinstance(a, str) else a for a in args)
-    if isinstance(args, dict):
-        return {k: (_redact(str(v)) if isinstance(v, str) else v) for k, v in args.items()}
-    return args
-
 
 class SensitiveDataFilter(logging.Filter):
     """
@@ -102,13 +99,17 @@ class SensitiveDataFilter(logging.Filter):
     """
 
     def filter(self, record: logging.LogRecord) -> bool:  # noqa: A003
-        # Redact na mensagem crua (antes de % interpolation)
-        if isinstance(record.msg, str):
-            record.msg = _redact(record.msg)
+        # Obtém a mensagem completamente interpolada (msg % args) antes de redact.
+        # Se modificarmos record.msg ANTES da interpolação, o logging tenta fazer
+        # "msg % args" com os %s já removidos → TypeError. Por isso chamamos
+        # getMessage() aqui, aplicamos redact no resultado e zeramos record.args.
+        try:
+            full_msg = record.getMessage()
+        except Exception:
+            full_msg = str(record.msg)
 
-        # Redact nos argumentos posicionais/nomeados
-        if record.args:
-            record.args = _redact_args(record.args)
+        record.msg = _redact(full_msg)
+        record.args = None  # já interpolado; evita segundo ciclo de formatação
 
         return True  # sempre deixa o registro passar — apenas sanitiza
 

@@ -33,7 +33,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_active_user, get_db
+from app.core.dependencies import get_current_active_user, get_db, plan_limit
 from app.models.post import PostFormato, PostPrioridade, PostStatus, SocialPlatform
 from app.models.user import User
 from app.schemas.post import PostCreate, PostOut, PostScheduleRequest, PostUpdate
@@ -49,6 +49,7 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
     response_model=PostOut,
     status_code=status.HTTP_201_CREATED,
     summary="Criar post",
+    dependencies=[Depends(plan_limit("posts_per_month"))],
 )
 def create_post(
     payload: PostCreate,

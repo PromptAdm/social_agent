@@ -19,6 +19,7 @@ from app.routers import (
     analytics,
     approval,
     auth,
+    billing,
     brands,
     content_pillars,
     engagement,
@@ -226,6 +227,7 @@ app.include_router(ai.router, prefix=API_PREFIX)
 app.include_router(panel.router, prefix=API_PREFIX)
 app.include_router(integrations.router, prefix=API_PREFIX)
 app.include_router(scheduler.router, prefix=API_PREFIX)
+app.include_router(billing.router, prefix=API_PREFIX)
 
 
 # --- Health check ---

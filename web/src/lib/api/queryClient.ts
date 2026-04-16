@@ -44,4 +44,7 @@ export const queryKeys = {
 
   // Panel (dashboard)
   panel:      (brandId: number) => ['panel', brandId] as const,
+
+  // Billing
+  billing: () => ['billing', 'summary'] as const,
 }

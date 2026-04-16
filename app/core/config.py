@@ -63,6 +63,9 @@ class Settings(BaseSettings):
     # --- Monitoramento (Sentry) ---
     SENTRY_DSN: str = ""  # https://xxxx@oXXXX.ingest.sentry.io/XXXX — desabilitado se vazio
 
+    # --- Monetização / Billing ---
+    MONETIZATION_ENABLED: bool = False   # False = limites não são aplicados (feature flag)
+
     # --- Backup ---
     BACKUP_DIR: str = "./backups"                         # diretório local para arquivos de backup
     BACKUP_RETENTION_DAYS: int = 7                        # dias para manter backups locais (0 = sem limpeza)
@@ -75,6 +78,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"  # variáveis de ambiente extras (ex: AWS_REGION para backup) não causam erro
 
 
 @lru_cache

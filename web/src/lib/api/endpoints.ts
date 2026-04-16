@@ -67,4 +67,8 @@ export const API = {
   publishing: {
     scheduled: '/publishing/scheduled',
   },
+
+  billing: {
+    summary: '/billing/summary',
+  },
 } as const

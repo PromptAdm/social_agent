@@ -25,6 +25,9 @@ import { useAuthStore }  from '@/store/authStore'
 import { useBrandStore } from '@/store/brandStore'
 import { useUIStore }    from '@/store/uiStore'
 import { useBrands }     from '@/hooks/useBrands'
+import { usePlan }       from '@/hooks/usePlan'
+import { PlanBadge }     from '@/components/billing/PlanBadge'
+import { UsageMeter }    from '@/components/billing/UsageMeter'
 
 const navigation = [
   {
@@ -70,6 +73,7 @@ export function Sidebar() {
   const activeBrand     = useBrandStore((s) => s.activeBrand)
   const setActiveBrand  = useBrandStore((s) => s.setActiveBrand)
   const pendingApprovals = useUIStore((s) => s.pendingApprovals)
+  const { data: plan }  = usePlan()
 
   const { data: brands = [] } = useBrands()
   const displayBrand = activeBrand ?? brands[0] ?? null
@@ -215,6 +219,33 @@ export function Sidebar() {
           </div>
         ))}
       </nav>
+
+      {/* Plan section — only rendered when billing data is available */}
+      {plan && (
+        <div className="px-3 py-2.5 border-t border-[#1A1A24] flex-shrink-0 space-y-2">
+          {/* Plan name + badge */}
+          <div className="flex items-center justify-between px-1">
+            <span className="text-[10px] text-slate-600 font-medium">Plano</span>
+            <PlanBadge plan={plan.plan_code} />
+          </div>
+
+          {/* Usage meters — only when monetization is enabled or limits are finite */}
+          {(plan.monetization_enabled || plan.limits.brands !== -1) && (
+            <UsageMeter
+              label="Marcas"
+              used={plan.usage.brands}
+              limit={plan.limits.brands}
+            />
+          )}
+          {(plan.monetization_enabled || plan.limits.posts_per_month !== -1) && (
+            <UsageMeter
+              label="Posts / mês"
+              used={plan.usage.posts_per_month}
+              limit={plan.limits.posts_per_month}
+            />
+          )}
+        </div>
+      )}
 
       {/* User row */}
       <div className="px-3 py-3 border-t border-[#1A1A24] flex-shrink-0">

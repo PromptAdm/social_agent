@@ -6,7 +6,7 @@ Endpoints CRUD para brands vinculadas ao usuário autenticado.
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_active_user, get_db
+from app.core.dependencies import get_current_active_user, get_db, plan_limit
 from app.models.user import User
 from app.schemas.brand import BrandConfigOut, BrandConfigUpdate, BrandCreate, BrandOut, BrandUpdate
 from app.services import brand_service
@@ -14,7 +14,8 @@ from app.services import brand_service
 router = APIRouter(prefix="/brands", tags=["Brands"])
 
 
-@router.post("/", response_model=BrandOut, status_code=status.HTTP_201_CREATED)
+@router.post("/", response_model=BrandOut, status_code=status.HTTP_201_CREATED,
+             dependencies=[Depends(plan_limit("brands"))])
 def create_brand(
     payload: BrandCreate,
     db: Session = Depends(get_db),

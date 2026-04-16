@@ -66,3 +66,6 @@ class User(Base):
     brands: Mapped[list["Brand"]] = relationship(  # type: ignore[name-defined]
         back_populates="owner", lazy="select"
     )
+    subscription: Mapped["UserSubscription | None"] = relationship(  # type: ignore[name-defined]
+        "UserSubscription", back_populates="user", uselist=False, lazy="raise"
+    )

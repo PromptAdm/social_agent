@@ -116,3 +116,29 @@ export interface Lead {
   created_at: string
   updated_at: string
 }
+
+// ── Billing / Planos ───────────────────────────────────────────────────────────
+
+export type PlanCode = 'free' | 'basic' | 'professional' | 'premium' | 'legacy'
+export type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'cancelled'
+
+export interface PlanLimits {
+  brands: number           // -1 = ilimitado
+  posts_per_month: number  // -1 = ilimitado
+}
+
+export interface PlanUsage {
+  brands: number
+  posts_per_month: number
+}
+
+export interface BillingSummary {
+  plan_code: PlanCode
+  plan_name: string
+  status: SubscriptionStatus
+  trial_ends_at: string | null
+  current_period_end: string | null
+  limits: PlanLimits
+  usage: PlanUsage
+  monetization_enabled: boolean
+}
