@@ -1,0 +1,94 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Social Agent — Render.com deploy config
+# Docs: https://render.com/docs/render-yaml-spec
+#
+# Serviços definidos:
+#   1. social-agent-api   — Backend FastAPI (Python native runtime)
+#   2. social-agent-db    — PostgreSQL gerenciado
+#
+# Deploy: conecte o repositório no dashboard do Render e ele detecta este arquivo.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Backend API ──────────────────────────────────────────────────────────────
+  - type: web
+    name: social-agent-api
+    runtime: python
+    plan: free                        # mude para "starter" em produção real
+
+    buildCommand: pip install -r requirements.txt && alembic upgrade head
+    startCommand: >
+      gunicorn app.main:app
+      --worker-class uvicorn.workers.UvicornWorker
+      --workers 3
+      --bind 0.0.0.0:$PORT
+      --timeout 120
+      --keep-alive 5
+      --access-logfile -
+      --error-logfile -
+
+    healthCheckPath: /health
+
+    envVars:
+      # ── Aplicação ────────────────────────────────────────────────────────────
+      - key: APP_NAME
+        value: Social Agent
+      - key: DEBUG
+        value: false
+
+      # ── Banco de dados ────────────────────────────────────────────────────────
+      - key: DATABASE_URL
+        fromDatabase:
+          name: social-agent-db
+          property: connectionString
+
+      # ── JWT (gere com: python -c "import secrets; print(secrets.token_hex(32))")
+      - key: SECRET_KEY
+        generateValue: true           # Render gera automaticamente
+      - key: ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: "60"
+      - key: REFRESH_TOKEN_EXPIRE_DAYS
+        value: "7"
+
+      # ── CORS — substitua pelo domínio real do frontend no Vercel ──────────────
+      - key: ALLOWED_ORIGINS
+        value: '["https://social-agent.vercel.app"]'
+
+      # ── IA ────────────────────────────────────────────────────────────────────
+      - key: AI_PROVIDER
+        value: anthropic              # ou "mock" para desabilitar
+      - key: ANTHROPIC_API_KEY
+        sync: false                   # preencher manualmente no dashboard
+
+      # ── Scheduler ─────────────────────────────────────────────────────────────
+      - key: SCHEDULER_ENABLED
+        value: "true"
+      - key: SCHEDULER_INTERVAL_SECONDS
+        value: "60"
+
+      # ── Meta (Instagram / Facebook) ───────────────────────────────────────────
+      - key: META_WEBHOOK_VERIFY_TOKEN
+        sync: false                   # preencher manualmente
+      - key: META_APP_SECRET
+        sync: false
+      - key: META_ACCESS_TOKEN
+        sync: false
+      - key: META_IG_USER_ID
+        sync: false
+      - key: META_FACEBOOK_PAGE_ID
+        sync: false
+      - key: META_API_VERSION
+        value: v21.0
+
+      # ── n8n ───────────────────────────────────────────────────────────────────
+      - key: N8N_WEBHOOK_BASE_URL
+        sync: false                   # ex: https://n8n.yourdomain.com/webhook
+
+databases:
+  # ── PostgreSQL gerenciado pelo Render ─────────────────────────────────────────
+  - name: social-agent-db
+    plan: free                        # mude para "starter" em produção real
+    databaseName: social_agent
+    user: social_agent

@@ -74,6 +74,16 @@ def _authenticate(db: Session, email: str, password: str) -> User:
     user.last_login_at = datetime.now(timezone.utc)
     db.commit()
     db.refresh(user)
+
+    # ── Analytics (fire-and-forget, never raises) ──────────────────────────────
+    try:
+        from app.core import analytics
+        analytics.track("user_logged_in", distinct_id=str(user.id), properties={
+            "email": user.email,
+        })
+    except Exception:
+        pass
+
     return user
 
 
@@ -138,6 +148,22 @@ def register(db: Session, payload: UserCreate) -> User:
         ) from exc
 
     db.refresh(user)
+
+    # ── Analytics (fire-and-forget, never raises) ──────────────────────────────
+    try:
+        from app.core import analytics
+        analytics.identify(str(user.id), {
+            "email":     user.email,
+            "full_name": user.full_name,
+            "role":      user.role.value if hasattr(user.role, "value") else str(user.role),
+        })
+        analytics.track("user_signed_up", distinct_id=str(user.id), properties={
+            "email": user.email,
+            "role":  user.role.value if hasattr(user.role, "value") else str(user.role),
+        })
+    except Exception:
+        pass
+
     return user
 
 

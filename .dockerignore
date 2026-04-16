@@ -1,0 +1,57 @@
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+.eggs/
+
+# ── Ambiente virtual ──────────────────────────────────────────────────────────
+.venv/
+venv/
+env/
+ENV/
+
+# ── Banco de dados local ──────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Variáveis de ambiente (segredos) ─────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+# .env.prod é incluído no .gitignore mas NUNCA deve estar no contexto de build
+# Use variáveis de ambiente da plataforma (Render/Railway) em vez de arquivos .env
+
+# ── Testes e cobertura ────────────────────────────────────────────────────────
+tests/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+
+# ── Ferramentas de desenvolvimento ───────────────────────────────────────────
+.git/
+.gitignore
+.github/
+.mypy_cache/
+.ruff_cache/
+
+# ── Frontend (build separado no Vercel) ──────────────────────────────────────
+web/
+
+# ── IDE e OS ──────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
+
+# ── Documentação e config de deploy (não necessários no container) ────────────
+*.md
+render.yaml
+railway.toml

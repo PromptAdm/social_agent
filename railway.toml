@@ -1,0 +1,18 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Social Agent — Railway deploy config
+# Docs: https://docs.railway.app/reference/config-as-code
+#
+# Railway detecta o Dockerfile automaticamente.
+# Variáveis de ambiente: configure no dashboard → Variables.
+# ─────────────────────────────────────────────────────────────────────────────
+
+[build]
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile"
+
+[deploy]
+startCommand = ""          # usa o CMD do Dockerfile
+healthcheckPath = "/health"
+healthcheckTimeout = 30
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

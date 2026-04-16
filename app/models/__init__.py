@@ -14,6 +14,7 @@ from app.models.reply_suggestion import ReplySuggestion
 from app.models.lead import Lead
 from app.models.analytics_snapshot import AnalyticsSnapshot
 from app.models.integration_log import IntegrationLog
+from app.models.scheduler_execution import SchedulerExecution, SchedulerLock, SchedulerPostAttempt
 
 __all__ = [
     "User",
@@ -27,4 +28,7 @@ __all__ = [
     "Lead",
     "AnalyticsSnapshot",
     "IntegrationLog",
+    "SchedulerExecution",
+    "SchedulerLock",
+    "SchedulerPostAttempt",
 ]

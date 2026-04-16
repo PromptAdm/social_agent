@@ -46,6 +46,7 @@ class Settings(BaseSettings):
 
     # --- Integrações Meta ---
     META_WEBHOOK_VERIFY_TOKEN: str = "social_agent_verify_token"  # token para handshake de webhook
+    META_APP_ID: str = ""             # App ID (necessário para /debug_token e diagnóstico de token)
     META_APP_SECRET: str = ""         # App Secret para verificar X-Hub-Signature-256
     META_ACCESS_TOKEN: str = ""       # Page/System User Access Token com instagram_content_publish
     META_IG_USER_ID: str = ""         # ID numérico do Instagram Business Account
@@ -54,6 +55,19 @@ class Settings(BaseSettings):
 
     # --- n8n ---
     N8N_WEBHOOK_BASE_URL: str = "https://n8n.yourdomain.com/webhook"  # base URL dos webhooks n8n
+
+    # --- Analytics (PostHog) ---
+    POSTHOG_API_KEY: str = ""                          # phc_xxxx — obtido em app.posthog.com
+    POSTHOG_HOST: str = "https://us.i.posthog.com"    # us.i.posthog.com | eu.i.posthog.com
+
+    # --- Monitoramento (Sentry) ---
+    SENTRY_DSN: str = ""  # https://xxxx@oXXXX.ingest.sentry.io/XXXX — desabilitado se vazio
+
+    # --- Backup ---
+    BACKUP_DIR: str = "./backups"                         # diretório local para arquivos de backup
+    BACKUP_RETENTION_DAYS: int = 7                        # dias para manter backups locais (0 = sem limpeza)
+    BACKUP_S3_BUCKET: str = ""                            # bucket S3; vazio = apenas backup local
+    BACKUP_S3_PREFIX: str = "social-agent/backups"        # prefixo/pasta dentro do bucket
 
     # --- CORS ---
     ALLOWED_ORIGINS: list[str] = ["http://localhost:3000"]

@@ -5,7 +5,7 @@ uvicorn[standard]==0.32.1
 # ── ORM & Banco de Dados ───────────────────────────────────────────────────────
 sqlalchemy==2.0.49
 alembic==1.14.0
-# psycopg2-binary omitido — usando SQLite para desenvolvimento local
+psycopg2-binary>=2.9.9            # driver PostgreSQL para produção
 
 # ── Validação e Settings ───────────────────────────────────────────────────────
 # pydantic 2.12+ tem wheels nativos para Python 3.14
@@ -20,6 +20,12 @@ python-multipart==0.0.12
 
 # ── IA ─────────────────────────────────────────────────────────────────────────
 anthropic>=0.40.0
+
+# ── Servidor de Produção ──────────────────────────────────────────────────────
+gunicorn>=23.0.0                  # process manager para produção
+
+# ── Monitoramento ─────────────────────────────────────────────────────────────
+sentry-sdk[fastapi]>=2.0.0        # instrumentação automática FastAPI/ASGI/SQLAlchemy
 
 # ── Utilitários ────────────────────────────────────────────────────────────────
 python-dotenv==1.0.1

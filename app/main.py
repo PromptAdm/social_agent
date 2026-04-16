@@ -36,6 +36,71 @@ logger = logging.getLogger("main")
 settings = get_settings()
 
 
+# ── Logging seguro ─────────────────────────────────────────────────────────────
+
+def _init_logging() -> None:
+    """
+    Instala o SensitiveDataFilter no logger raiz para que nenhum handler
+    (uvicorn, gunicorn, Sentry, etc.) grave tokens, senhas ou chaves em texto puro.
+    Chamado antes de qualquer outro init para cobrir logs de importação/startup.
+    """
+    from app.core.log_filter import install as _install_filter
+    _install_filter()
+
+
+_init_logging()
+
+
+# ── Sentry ─────────────────────────────────────────────────────────────────────
+
+def _sentry_before_send(event, hint):
+    """Descarta HTTPExceptions esperadas (4xx) — reporta apenas erros reais (5xx+)."""
+    exc_info = hint.get("exc_info")
+    if exc_info:
+        _, exc_value, _ = exc_info
+        from fastapi import HTTPException
+        if isinstance(exc_value, HTTPException) and exc_value.status_code < 500:
+            return None
+    return event
+
+
+def _init_sentry() -> None:
+    """
+    Inicializa Sentry se SENTRY_DSN configurado e DEBUG=False.
+    Chamado antes de app = FastAPI() para garantir patching ASGI.
+    """
+    if not settings.SENTRY_DSN or settings.DEBUG:
+        return
+    import sentry_sdk
+    from sentry_sdk.integrations.fastapi import FastApiIntegration
+    from sentry_sdk.integrations.starlette import StarletteIntegration
+    from sentry_sdk.integrations.sqlalchemy import SqlalchemyIntegration
+    from sentry_sdk.integrations.logging import LoggingIntegration
+    import logging as _logging
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        environment="production",
+        release=settings.APP_VERSION,
+        integrations=[
+            StarletteIntegration(transaction_style="endpoint"),
+            FastApiIntegration(transaction_style="endpoint"),
+            SqlalchemyIntegration(),
+            LoggingIntegration(
+                level=_logging.WARNING,
+                event_level=_logging.ERROR,
+            ),
+        ],
+        traces_sample_rate=0.1,
+        profiles_sample_rate=0.0,
+        send_default_pii=False,
+        before_send=_sentry_before_send,
+    )
+    logger.info("Sentry inicializado (release=%s)", settings.APP_VERSION)
+
+
+_init_sentry()
+
+
 # ── Lifespan: startup / shutdown ───────────────────────────────────────────────
 
 @asynccontextmanager
