@@ -70,5 +70,7 @@ export const API = {
 
   billing: {
     summary: '/billing/summary',
+    plans:   '/billing/plans',
+    usage:   '/billing/usage',
   },
 } as const

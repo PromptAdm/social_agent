@@ -10,8 +10,10 @@ from datetime import datetime
 from pydantic import BaseModel, Field
 
 
+# ── Limites e uso ─────────────────────────────────────────────────────────────
+
 class LimitSet(BaseModel):
-    """Limites do plano atual. -1 = ilimitado."""
+    """Limites do plano. -1 = ilimitado."""
     brands: int = Field(description="Máximo de brands (-1 = ilimitado)")
     posts_per_month: int = Field(description="Máximo de posts por mês (-1 = ilimitado)")
 
@@ -22,17 +24,50 @@ class UsageSet(BaseModel):
     posts_per_month: int = Field(description="Posts criados no mês calendário atual")
 
 
+# ── Features ──────────────────────────────────────────────────────────────────
+
+class PlanFeatures(BaseModel):
+    """Features incluídas no plano."""
+    scheduling:       bool
+    analytics:        bool
+    approval:         bool
+    priority_support: bool
+
+
+# ── Plano (para listagem pública) ─────────────────────────────────────────────
+
+class PlanDetail(BaseModel):
+    """Detalhe de um plano — usado em GET /billing/plans."""
+    code:                 str
+    display_name:         str
+    price_monthly_cents:  int = Field(description="Preço mensal em centavos")
+    price_yearly_cents:   int = Field(description="Preço por mês no plano anual (em centavos)")
+    limits:               LimitSet
+    features:             PlanFeatures
+    is_current:           bool = False  # preenchido dinamicamente pelo endpoint
+
+
+# ── Resumo do usuário ─────────────────────────────────────────────────────────
+
 class BillingSummary(BaseModel):
     """Resposta completa de GET /billing/summary."""
-    plan_code: str
-    plan_name: str
-    status: str
-    trial_ends_at: datetime | None = None
-    current_period_end: datetime | None = None
-    limits: LimitSet
-    usage: UsageSet
+    plan_code:            str
+    plan_name:            str
+    status:               str
+    billing_cycle:        str = "monthly"          # monthly | yearly
+    trial_ends_at:        datetime | None = None
+    current_period_start: datetime | None = None
+    current_period_end:   datetime | None = None
+    cancel_at_period_end: bool = False
+    limits:               LimitSet
+    usage:                UsageSet
+    features:             PlanFeatures
     monetization_enabled: bool = Field(
         description="Se false, limites são ignorados — somente informativo"
+    )
+    stripe_enabled: bool = Field(
+        default=False,
+        description="Se true, botões de upgrade redirecionam para o Stripe"
     )
 
     model_config = {"from_attributes": True}

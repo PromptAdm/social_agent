@@ -22,12 +22,18 @@ from datetime import datetime, timezone
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
-from app.billing.plans import PLANS, get_plan, is_unlimited
+from app.billing.plans import get_limit, get_plan, is_unlimited, public_plans
 from app.core.config import get_settings
 from app.models.brand import Brand
 from app.models.post import Post
 from app.models.subscription import UserSubscription
-from app.schemas.billing import BillingSummary, LimitSet, UsageSet
+from app.schemas.billing import (
+    BillingSummary,
+    LimitSet,
+    PlanDetail,
+    PlanFeatures,
+    UsageSet,
+)
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -41,15 +47,25 @@ def _start_of_month() -> datetime:
     return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
 
+def _features_schema(plan_code: str) -> PlanFeatures:
+    feat = get_plan(plan_code)["features"]
+    return PlanFeatures(
+        scheduling=feat["scheduling"],
+        analytics=feat["analytics"],
+        approval=feat["approval"],
+        priority_support=feat["priority_support"],
+    )
+
+
 # ── Criar / obter assinatura ───────────────────────────────────────────────────
 
 def get_or_create(db: Session, user_id: int) -> UserSubscription:
     """
     Retorna a assinatura do usuário; cria com plan_code="legacy" se não existir.
 
-    "legacy" significa: usuário já existia antes do sistema de billing → acesso
-    irrestrito preservado. Novos usuários criados APÓS a ativação do billing
-    devem receber "free" (feito no auth_service.register quando MONETIZATION_ENABLED=true).
+    "legacy" = usuário existia antes do billing → acesso irrestrito preservado.
+    Novos usuários criados após MONETIZATION_ENABLED=true devem receber "starter"
+    (responsabilidade do auth_service.register).
     """
     sub = (
         db.query(UserSubscription)
@@ -61,6 +77,8 @@ def get_or_create(db: Session, user_id: int) -> UserSubscription:
             user_id=user_id,
             plan_code="legacy",
             status="active",
+            billing_cycle="monthly",
+            cancel_at_period_end=False,
         )
         db.add(sub)
         try:
@@ -68,7 +86,7 @@ def get_or_create(db: Session, user_id: int) -> UserSubscription:
             db.refresh(sub)
         except Exception:
             db.rollback()
-            # Race condition: outra thread criou antes → re-busca
+            # Race condition: outra thread criou antes — re-busca
             sub = (
                 db.query(UserSubscription)
                 .filter(UserSubscription.user_id == user_id)
@@ -82,7 +100,7 @@ def get_or_create(db: Session, user_id: int) -> UserSubscription:
 def get_usage(db: Session, user_id: int) -> dict[str, int]:
     """
     Retorna o uso atual do usuário para recursos limitados.
-    Não depende de MONETIZATION_ENABLED — sempre disponível para exibição.
+    Independente de MONETIZATION_ENABLED — sempre disponível para exibição.
     """
     brand_count: int = (
         db.query(func.count(Brand.id))
@@ -130,7 +148,6 @@ def check_limit(db: Session, user_id: int, resource: str) -> tuple[bool, str | N
         if is_unlimited(plan_code, resource):
             return (True, None)
 
-        from app.billing.plans import get_limit
         limit = get_limit(plan_code, resource)
         usage = get_usage(db, user_id)
         current = usage.get(resource, 0)
@@ -151,18 +168,14 @@ def check_limit(db: Session, user_id: int, resource: str) -> tuple[bool, str | N
         return (True, None)
 
     except Exception as exc:
-        # Nunca bloqueia por erro interno de billing
-        logger.warning("check_limit falhou para user_id=%s resource=%s: %s", user_id, resource, exc)
-        return (True, None)
+        logger.warning("check_limit falhou: user=%s resource=%s err=%s", user_id, resource, exc)
+        return (True, None)  # fail-open
 
 
 # ── Resumo completo ────────────────────────────────────────────────────────────
 
 def get_billing_summary(db: Session, user_id: int) -> BillingSummary:
-    """
-    Retorna plano + uso + limites do usuário.
-    Usado pelo GET /billing/summary e pelo frontend.
-    """
+    """Retorna plano + uso + limites + features do usuário."""
     sub = get_or_create(db, user_id)
     plan = get_plan(sub.plan_code)
     limits = plan["limits"]
@@ -172,8 +185,11 @@ def get_billing_summary(db: Session, user_id: int) -> BillingSummary:
         plan_code=sub.plan_code,
         plan_name=plan["display_name"],
         status=sub.status,
+        billing_cycle=getattr(sub, "billing_cycle", "monthly"),
         trial_ends_at=sub.trial_ends_at,
+        current_period_start=getattr(sub, "current_period_start", None),
         current_period_end=sub.current_period_end,
+        cancel_at_period_end=getattr(sub, "cancel_at_period_end", False),
         limits=LimitSet(
             brands=limits["brands"],
             posts_per_month=limits["posts_per_month"],
@@ -182,5 +198,37 @@ def get_billing_summary(db: Session, user_id: int) -> BillingSummary:
             brands=usage["brands"],
             posts_per_month=usage["posts_per_month"],
         ),
+        features=_features_schema(sub.plan_code),
         monetization_enabled=settings.MONETIZATION_ENABLED,
+        stripe_enabled=settings.STRIPE_ENABLED,
     )
+
+
+# ── Listagem de planos públicos ────────────────────────────────────────────────
+
+def list_public_plans(current_plan_code: str) -> list[PlanDetail]:
+    """
+    Retorna os planos visíveis na pricing page, marcando qual é o plano atual.
+    """
+    result = []
+    for code, plan in public_plans():
+        limits = plan["limits"]
+        feat = plan["features"]
+        result.append(PlanDetail(
+            code=code,
+            display_name=plan["display_name"],
+            price_monthly_cents=plan["price_monthly_cents"],
+            price_yearly_cents=plan["price_yearly_cents"],
+            limits=LimitSet(
+                brands=limits["brands"],
+                posts_per_month=limits["posts_per_month"],
+            ),
+            features=PlanFeatures(
+                scheduling=feat["scheduling"],
+                analytics=feat["analytics"],
+                approval=feat["approval"],
+                priority_support=feat["priority_support"],
+            ),
+            is_current=(code == current_plan_code),
+        ))
+    return result

@@ -9,6 +9,7 @@ interface PlanBadgeProps {
 }
 
 const PLAN_STYLES: Record<PlanCode, string> = {
+  starter:      'bg-blue-600/15 text-blue-400 border-blue-500/25',
   free:         'bg-slate-700/40 text-slate-400 border-slate-700/50',
   basic:        'bg-blue-600/15 text-blue-400 border-blue-500/25',
   professional: 'bg-indigo-600/15 text-indigo-400 border-indigo-500/25',
@@ -17,8 +18,9 @@ const PLAN_STYLES: Record<PlanCode, string> = {
 }
 
 const PLAN_LABELS: Record<PlanCode, string> = {
-  free:         'Free',
-  basic:        'Basic',
+  starter:      'Starter',
+  free:         'Starter',
+  basic:        'Starter',
   professional: 'Pro',
   premium:      'Premium',
   legacy:       'Legacy',

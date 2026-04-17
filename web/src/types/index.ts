@@ -119,8 +119,9 @@ export interface Lead {
 
 // ── Billing / Planos ───────────────────────────────────────────────────────────
 
-export type PlanCode = 'free' | 'basic' | 'professional' | 'premium' | 'legacy'
+export type PlanCode = 'starter' | 'professional' | 'premium' | 'legacy' | 'free' | 'basic'
 export type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'cancelled'
+export type BillingCycle = 'monthly' | 'yearly'
 
 export interface PlanLimits {
   brands: number           // -1 = ilimitado
@@ -132,13 +133,35 @@ export interface PlanUsage {
   posts_per_month: number
 }
 
+export interface PlanFeatures {
+  scheduling: boolean
+  analytics: boolean
+  approval: boolean
+  priority_support: boolean
+}
+
+export interface PlanDetail {
+  code: PlanCode
+  display_name: string
+  price_monthly_cents: number
+  price_yearly_cents: number
+  limits: PlanLimits
+  features: PlanFeatures
+  is_current: boolean
+}
+
 export interface BillingSummary {
   plan_code: PlanCode
   plan_name: string
   status: SubscriptionStatus
+  billing_cycle: BillingCycle
   trial_ends_at: string | null
+  current_period_start: string | null
   current_period_end: string | null
+  cancel_at_period_end: boolean
   limits: PlanLimits
   usage: PlanUsage
+  features: PlanFeatures
   monetization_enabled: boolean
+  stripe_enabled: boolean
 }

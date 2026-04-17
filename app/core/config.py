@@ -66,6 +66,11 @@ class Settings(BaseSettings):
     # --- Monetização / Billing ---
     MONETIZATION_ENABLED: bool = False   # False = limites não são aplicados (feature flag)
 
+    # --- Stripe (desabilitado por padrão — sem cobrança real) ---
+    STRIPE_ENABLED: bool = False         # True = ativa checkout real com Stripe
+    STRIPE_SECRET_KEY: str = ""          # sk_live_... ou sk_test_...
+    STRIPE_WEBHOOK_SECRET: str = ""      # whsec_... — verificação de assinatura do webhook
+
     # --- Backup ---
     BACKUP_DIR: str = "./backups"                         # diretório local para arquivos de backup
     BACKUP_RETENTION_DAYS: int = 7                        # dias para manter backups locais (0 = sem limpeza)

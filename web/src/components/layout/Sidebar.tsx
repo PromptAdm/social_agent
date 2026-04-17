@@ -12,6 +12,7 @@ import {
   Send,
   BarChart3,
   Building2,
+  CreditCard,
   Plug,
   Settings,
   ChevronDown,
@@ -56,9 +57,10 @@ const navigation = [
   {
     section: 'Sistema',
     items: [
-      { label: 'Marcas',         href: '/brands',       icon: Building2 },
-      { label: 'Integrações',    href: '/integrations', icon: Plug },
-      { label: 'Configurações',  href: '/settings',     icon: Settings },
+      { label: 'Marcas',            href: '/brands',       icon: Building2 },
+      { label: 'Integrações',       href: '/integrations', icon: Plug },
+      { label: 'Plano & Billing',   href: '/billing',      icon: CreditCard },
+      { label: 'Configurações',     href: '/settings',     icon: Settings },
     ],
   },
 ]

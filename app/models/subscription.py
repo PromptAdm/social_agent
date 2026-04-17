@@ -12,7 +12,7 @@ from __future__ import annotations
 import enum
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -49,12 +49,23 @@ class UserSubscription(Base):
         String(20), nullable=False, default=SubscriptionStatus.ACTIVE.value
     )
 
+    # ── Ciclo de cobrança ──────────────────────────────────────────────────────
+    billing_cycle: Mapped[str] = mapped_column(
+        String(10), nullable=False, default="monthly"  # monthly | yearly
+    )
+
     # ── Datas de ciclo ─────────────────────────────────────────────────────────
     trial_ends_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    current_period_start: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     current_period_end: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
+    )
+    cancel_at_period_end: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
     )
 
     # ── Stripe (preparado, sem lógica ativa) ───────────────────────────────────
