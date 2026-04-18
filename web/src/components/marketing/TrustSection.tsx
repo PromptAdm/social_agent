@@ -50,15 +50,15 @@ export function TrustSection() {
 
         {/* Stats bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 rounded-2xl overflow-hidden mb-20
-          border border-slate-200/70 divide-x divide-y md:divide-y-0 divide-slate-200/70
-          shadow-[0_1px_8px_rgba(0,0,0,0.05)]">
+          border border-slate-200/60 divide-x divide-y md:divide-y-0 divide-slate-200/60
+          shadow-[0_1px_4px_rgba(0,0,0,0.04),0_4px_16px_rgba(99,102,241,0.05)]">
           {stats.map(({ value, label, sub }) => (
-            <div key={label} className="bg-white hover:bg-indigo-50/30 transition-colors px-6 py-8 text-center group">
-              <p className="text-[36px] font-extrabold leading-none mb-2 mktg-gradient-text tracking-tight">
+            <div key={label} className="bg-white hover:bg-gradient-to-b hover:from-indigo-50/40 hover:to-white transition-all duration-250 px-6 py-9 text-center group cursor-default">
+              <p className="text-[34px] font-extrabold leading-none mb-2.5 mktg-gradient-text tracking-tight">
                 {value}
               </p>
-              <p className="text-[13px] font-semibold text-slate-700 mb-1">{label}</p>
-              <p className="text-[11px] text-slate-400">{sub}</p>
+              <p className="text-[13px] font-semibold text-slate-700 mb-1 leading-tight">{label}</p>
+              <p className="text-[11px] text-slate-400 tracking-wide">{sub}</p>
             </div>
           ))}
         </div>
@@ -79,15 +79,18 @@ export function TrustSection() {
           {trust.map(({ icon: Icon, title, body }) => (
             <div
               key={title}
-              className="group flex gap-4 bg-white border border-slate-100
-                hover:border-indigo-200/50 rounded-2xl p-6
-                shadow-[0_1px_4px_rgba(0,0,0,0.04)]
-                hover:shadow-[0_8px_28px_rgba(79,70,229,0.07)]
-                transition-all duration-300"
+              className="group flex gap-4 bg-white border border-slate-200/60
+                hover:border-indigo-200/60 rounded-2xl p-6
+                shadow-[0_1px_3px_rgba(0,0,0,0.04)]
+                hover:shadow-[0_6px_24px_rgba(99,102,241,0.09)]
+                hover:-translate-y-0.5
+                transition-all duration-250"
             >
-              <div className="w-10 h-10 bg-indigo-50 border border-indigo-200/60 rounded-xl
+              <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-xl
                 flex items-center justify-center flex-shrink-0 mt-0.5
-                group-hover:bg-indigo-100 group-hover:border-indigo-200 transition-all">
+                group-hover:bg-indigo-100 group-hover:border-indigo-200
+                group-hover:scale-110 group-hover:shadow-sm group-hover:shadow-indigo-200/60
+                transition-all duration-250">
                 <Icon className="w-4 h-4 text-indigo-600" />
               </div>
               <div>

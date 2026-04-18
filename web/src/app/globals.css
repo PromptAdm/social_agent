@@ -184,8 +184,10 @@
   50%       { transform: translateY(-10px) rotate(1deg); }
 }
 
-.animate-float-soft { animation: float-soft 5s ease-in-out infinite; }
+.animate-float-soft      { animation: float-soft 5s ease-in-out infinite; }
 .animate-float-soft-slow { animation: float-soft 7s ease-in-out infinite reverse; }
+.animate-float-soft-d2   { animation: float-soft 6s ease-in-out 2s infinite; }
+.animate-float-soft-d3   { animation: float-soft 8s ease-in-out 3.5s infinite reverse; }
 
 /* Glass card — light */
 .glass-light {

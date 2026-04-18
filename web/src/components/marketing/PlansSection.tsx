@@ -95,23 +95,24 @@ export function PlansSection() {
             >
               {/* Gradient border for featured */}
               {plan.highlight && (
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-b from-indigo-400/60 via-violet-400/30 to-transparent p-px pointer-events-none" />
+                <div className="absolute inset-0 rounded-2xl p-px pointer-events-none"
+                  style={{background: 'linear-gradient(160deg, rgba(129,140,248,0.8) 0%, rgba(167,139,250,0.55) 40%, rgba(196,181,253,0.25) 75%, transparent 100%)'}} />
               )}
 
               <div className={cn(
                 'relative flex flex-col h-full rounded-2xl p-7',
                 plan.highlight
-                  ? 'bg-white shadow-[0_8px_40px_rgba(79,70,229,0.15)]'
-                  : 'bg-white border border-slate-100/80 shadow-[0_1px_4px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.07)] transition-shadow',
+                  ? 'bg-white shadow-[0_2px_8px_rgba(0,0,0,0.04),0_12px_48px_rgba(99,102,241,0.14)]'
+                  : 'bg-white border border-slate-200/70 shadow-[0_1px_3px_rgba(0,0,0,0.04)] hover:shadow-[0_4px_24px_rgba(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-250',
               )}>
 
                 {/* Popular badge */}
                 {plan.popular && (
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 z-10">
-                    <span className="flex items-center gap-1.5 px-4 py-1.5
-                      bg-gradient-to-r from-indigo-600 to-violet-600
-                      text-white text-[10px] font-bold uppercase tracking-widest
-                      rounded-full shadow-lg shadow-indigo-600/25">
+                  <div className="absolute -top-[18px] left-1/2 -translate-x-1/2 z-10">
+                    <span className="flex items-center gap-1.5 px-4 py-[5px]
+                      bg-gradient-to-r from-indigo-500 to-violet-500
+                      text-white text-[10px] font-semibold uppercase tracking-[0.12em]
+                      rounded-full shadow-[0_2px_12px_rgba(99,102,241,0.4)]">
                       <Sparkles className="w-2.5 h-2.5" />
                       Mais popular
                     </span>
@@ -120,7 +121,8 @@ export function PlansSection() {
 
                 {/* Top accent line for featured */}
                 {plan.highlight && (
-                  <div className="absolute top-0 inset-x-8 h-px bg-gradient-to-r from-transparent via-indigo-400/50 to-transparent" />
+                  <div className="absolute top-0 left-8 right-8 h-px"
+                    style={{background: 'linear-gradient(90deg, transparent, rgba(129,140,248,0.6), transparent)'}} />
                 )}
 
                 {/* Plan name */}
@@ -181,10 +183,10 @@ export function PlansSection() {
                 <Link
                   href="/register"
                   className={cn(
-                    'group flex items-center justify-center gap-1.5 h-11 rounded-xl text-[14px] font-semibold transition-all',
+                    'group flex items-center justify-center gap-1.5 h-11 rounded-xl text-[14px] font-semibold transition-all duration-200',
                     plan.highlight
-                      ? 'bg-slate-900 hover:bg-slate-800 text-white shadow-md hover:shadow-lg hover:-translate-y-px'
-                      : 'bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900',
+                      ? 'bg-gradient-to-r from-indigo-600 to-violet-500 hover:from-indigo-500 hover:to-violet-400 text-white shadow-[0_4px_14px_rgba(99,102,241,0.4)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.5)] hover:-translate-y-px'
+                      : 'bg-slate-100/80 hover:bg-slate-200/80 text-slate-600 hover:text-slate-900 border border-slate-200/60 hover:border-slate-300/60',
                   )}
                 >
                   {plan.cta}

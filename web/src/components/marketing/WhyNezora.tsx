@@ -58,15 +58,17 @@ export function WhyNezora() {
               <div
                 key={title}
                 className="group grid grid-cols-1 md:grid-cols-2 bg-white
-                  border border-slate-100 hover:border-slate-200 rounded-2xl overflow-hidden
-                  shadow-[0_1px_4px_rgba(0,0,0,0.04)]
-                  hover:shadow-[0_4px_20px_rgba(0,0,0,0.07)]
-                  transition-all duration-300"
+                  border border-slate-100/80 hover:border-slate-200/80
+                  rounded-2xl overflow-hidden
+                  shadow-[0_1px_3px_rgba(0,0,0,0.04),0_2px_8px_rgba(0,0,0,0.03)]
+                  hover:shadow-[0_4px_24px_rgba(0,0,0,0.08)]
+                  hover:-translate-y-0.5
+                  transition-all duration-250"
               >
                 {/* Pain side */}
-                <div className={`relative p-7 border-b md:border-b-0 md:border-r ${t.bg} ${t.border}/60`}>
+                <div className={`relative p-7 border-b md:border-b-0 md:border-r ${t.bg} ${t.border}/60 transition-colors duration-250`}>
                   {/* Top accent bar */}
-                  <div className={`absolute top-0 left-7 right-7 h-0.5 ${t.bar} opacity-60`} />
+                  <div className={`absolute top-0 left-0 right-0 h-[3px] ${t.bar} opacity-50`} />
 
                   <div className="flex items-start gap-4 mb-4">
                     <div className={`w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0 ${t.icon}`}>
@@ -83,10 +85,11 @@ export function WhyNezora() {
                 </div>
 
                 {/* Gain side */}
-                <div className="relative p-7 bg-gradient-to-br from-indigo-50/60 to-violet-50/30
-                  group-hover:from-indigo-50/90 group-hover:to-violet-50/50 transition-colors duration-300">
+                <div className="relative p-7 bg-gradient-to-br from-indigo-50/50 to-violet-50/20
+                  group-hover:from-indigo-50/80 group-hover:to-violet-50/40 transition-colors duration-250">
                   {/* Top accent bar */}
-                  <div className="absolute top-0 left-7 right-7 h-0.5 bg-gradient-to-r from-indigo-300 to-violet-300 opacity-60" />
+                  <div className="absolute top-0 left-0 right-0 h-[3px]"
+                    style={{background: 'linear-gradient(90deg, #818cf8, #a78bfa)'}} />
 
                   <div className="flex items-start gap-4 mb-4">
                     <div className="w-9 h-9 rounded-xl bg-indigo-100 border border-indigo-200/60

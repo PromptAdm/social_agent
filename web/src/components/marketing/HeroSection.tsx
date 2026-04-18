@@ -8,22 +8,36 @@ export function HeroSection() {
 
       {/* ── Background ─────────────────────────────────────────────────── */}
       <div className="absolute inset-0" aria-hidden="true">
-        {/* Base gradient — light lavender */}
-        <div className="absolute inset-0 bg-gradient-to-br from-[#EEECff] via-[#F7F6FE] to-[#F0EEFF]" />
+        {/* Base gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-[#ECEBFF] via-[#F5F4FD] to-[#F9F6FF]" />
 
-        {/* Soft radial glows */}
-        <div className="absolute top-0 right-1/4 w-[700px] h-[700px]
-          bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.12)_0%,transparent_60%)]" />
-        <div className="absolute bottom-0 left-1/4 w-[500px] h-[500px]
-          bg-[radial-gradient(ellipse_at_bottom_left,rgba(99,102,241,0.10)_0%,transparent_65%)]" />
-        <div className="absolute top-1/3 left-0 w-[400px] h-[400px]
-          bg-[radial-gradient(circle,rgba(219,214,255,0.5)_0%,transparent_70%)]" />
+        {/* Layered radial glows */}
+        <div className="absolute -top-20 right-0 w-[800px] h-[700px]
+          bg-[radial-gradient(ellipse_at_top_right,rgba(139,92,246,0.11)_0%,transparent_55%)]" />
+        <div className="absolute bottom-0 -left-20 w-[600px] h-[500px]
+          bg-[radial-gradient(ellipse_at_bottom_left,rgba(99,102,241,0.09)_0%,transparent_60%)]" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[900px] h-[600px]
+          bg-[radial-gradient(ellipse_at_center,rgba(224,221,255,0.35)_0%,transparent_65%)]" />
 
-        {/* Dot grid overlay — very subtle */}
-        <div className="absolute inset-0 dot-grid-light" />
+        {/* Abstract floating spheres */}
+        <div className="absolute top-[18%] right-[12%] w-[110px] h-[110px] rounded-full
+          bg-gradient-to-br from-violet-200/70 to-indigo-200/50
+          blur-[3px] animate-float-soft pointer-events-none" />
+        <div className="absolute top-[55%] right-[4%] w-[64px] h-[64px] rounded-full
+          bg-gradient-to-br from-blue-200/60 to-violet-100/40
+          blur-[2px] animate-float-soft-slow pointer-events-none" />
+        <div className="absolute top-[35%] left-[6%] w-[80px] h-[80px] rounded-full
+          bg-gradient-to-br from-purple-100/60 to-pink-100/40
+          blur-[2px] animate-float-soft-d2 pointer-events-none" />
+        <div className="absolute top-[70%] left-[22%] w-[48px] h-[48px] rounded-full
+          bg-gradient-to-br from-indigo-200/50 to-blue-100/30
+          blur-[1px] animate-float-soft-d3 pointer-events-none" />
 
-        {/* Bottom blend to section below */}
-        <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-[#F7F6FE] to-transparent" />
+        {/* Dot grid overlay */}
+        <div className="absolute inset-0 dot-grid-light opacity-60" />
+
+        {/* Bottom blend */}
+        <div className="absolute bottom-0 inset-x-0 h-48 bg-gradient-to-t from-[#F7F6FE] to-transparent" />
       </div>
 
       {/* ── Content ────────────────────────────────────────────────────── */}
@@ -65,20 +79,24 @@ export function HeroSection() {
               <Link
                 href="/register"
                 className="group inline-flex items-center gap-2 px-7 py-3.5
-                  bg-slate-900 hover:bg-slate-800 text-white
-                  text-[15px] font-semibold rounded-full
-                  shadow-[0_4px_20px_rgba(15,15,26,0.25)]
-                  hover:shadow-[0_8px_28px_rgba(15,15,26,0.32)]
-                  hover:-translate-y-0.5 transition-all duration-200"
+                  bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-500
+                  hover:from-indigo-500 hover:via-violet-500 hover:to-indigo-400
+                  text-white text-[15px] font-semibold rounded-full
+                  shadow-[0_4px_20px_rgba(99,102,241,0.35)]
+                  hover:shadow-[0_8px_28px_rgba(99,102,241,0.45)]
+                  hover:-translate-y-0.5 hover:scale-[1.02]
+                  transition-all duration-200"
               >
                 Criar conta grátis
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
               </Link>
               <Link
                 href="/login"
-                className="inline-flex items-center gap-1.5 px-6 py-3.5
-                  text-[15px] font-medium text-slate-500 hover:text-slate-900
-                  transition-colors"
+                className="inline-flex items-center gap-1.5 px-5 py-3.5
+                  text-[15px] font-medium text-slate-500 hover:text-slate-800
+                  border border-slate-200/80 hover:border-slate-300 rounded-full
+                  hover:bg-white/60 hover:shadow-sm
+                  transition-all duration-200"
               >
                 Já tenho conta
               </Link>
@@ -126,27 +144,30 @@ export function HeroSection() {
 
             {/* Floating card — engagement */}
             <div className="absolute top-12 -left-6 z-20
-              glass-light rounded-2xl px-4 py-3
-              shadow-[0_8px_32px_rgba(0,0,0,0.12)]
+              bg-white/80 backdrop-blur-md
+              ring-1 ring-white/90 rounded-2xl px-4 py-3.5
+              shadow-[0_4px_24px_rgba(99,102,241,0.12),0_1px_4px_rgba(0,0,0,0.06)]
               animate-float-soft-slow">
-              <p className="text-[10px] font-semibold text-slate-400 mb-1">Engajamento semanal</p>
-              <p className="text-[22px] font-bold text-slate-900 leading-none">+18%</p>
-              <p className="text-[11px] text-emerald-500 font-semibold mt-0.5">↑ em relação à semana passada</p>
+              <p className="text-[10px] font-semibold text-slate-400 mb-1 tracking-wide uppercase">Engajamento semanal</p>
+              <p className="text-[22px] font-bold text-slate-900 leading-none tracking-tight">+18%</p>
+              <p className="text-[11px] text-emerald-500 font-semibold mt-1">↑ vs. semana passada</p>
             </div>
 
             {/* Floating card — content generated */}
             <div className="absolute bottom-16 -right-4 z-20
-              glass-light rounded-2xl px-4 py-3
-              shadow-[0_8px_32px_rgba(0,0,0,0.12)]
+              bg-white/80 backdrop-blur-md
+              ring-1 ring-white/90 rounded-2xl px-4 py-3.5
+              shadow-[0_4px_24px_rgba(99,102,241,0.12),0_1px_4px_rgba(0,0,0,0.06)]
               animate-float-soft">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-violet-600
-                  rounded-xl flex items-center justify-center flex-shrink-0">
+                <div className="w-9 h-9 bg-gradient-to-br from-indigo-500 to-violet-600
+                  rounded-xl flex items-center justify-center flex-shrink-0
+                  shadow-sm shadow-indigo-500/30">
                   <Sparkles className="w-3.5 h-3.5 text-white" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-semibold text-slate-800">5 posts gerados</p>
-                  <p className="text-[10px] text-slate-400">prontos para revisão</p>
+                  <p className="text-[12px] font-semibold text-slate-800 leading-tight">5 posts gerados</p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">prontos para revisão</p>
                 </div>
               </div>
             </div>
