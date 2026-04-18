@@ -44,7 +44,7 @@ export function Topbar() {
   const meta = getPageMeta(pathname)
 
   return (
-    <header className="h-14 bg-white border-b border-slate-200/80 flex items-center px-5 gap-4 flex-shrink-0">
+    <header className="h-14 bg-white border-b border-slate-200 flex items-center px-5 gap-4 flex-shrink-0">
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 flex-1 min-w-0">
@@ -74,7 +74,7 @@ export function Topbar() {
       {/* Notification bell */}
       <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
         <Bell className="w-[15px] h-[15px]" />
-        <span className="absolute top-[7px] right-[7px] w-[7px] h-[7px] bg-indigo-500 rounded-full ring-[1.5px] ring-white" />
+        <span className="absolute top-[7px] right-[7px] w-[7px] h-[7px] bg-blue-500 rounded-full ring-[1.5px] ring-white" />
       </button>
     </header>
   )

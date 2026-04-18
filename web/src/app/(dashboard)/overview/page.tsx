@@ -38,17 +38,17 @@ const FORMAT_LABEL: Record<string, string> = {
 }
 
 const PIPELINE_ROWS = [
-  { status: 'rascunho'  as const, color: 'bg-slate-600',   label: 'Rascunho' },
+  { status: 'rascunho'  as const, color: 'bg-slate-400',   label: 'Rascunho' },
   { status: 'aprovado'  as const, color: 'bg-emerald-500', label: 'Aprovado' },
-  { status: 'agendado'  as const, color: 'bg-indigo-500',  label: 'Agendado' },
+  { status: 'agendado'  as const, color: 'bg-blue-500',    label: 'Agendado' },
   { status: 'publicado' as const, color: 'bg-teal-500',    label: 'Publicado' },
 ]
 
 const AI_STATUS_COLOR: Record<ProjectStatus, string> = {
-  pending:    'text-amber-400',
-  processing: 'text-indigo-400',
-  completed:  'text-emerald-400',
-  failed:     'text-red-400',
+  pending:    'text-amber-500',
+  processing: 'text-blue-500',
+  completed:  'text-emerald-500',
+  failed:     'text-red-500',
 }
 
 const AI_STATUS_LABEL: Record<ProjectStatus, string> = {
@@ -212,7 +212,7 @@ export default function OverviewPage() {
                   key={post.id}
                   className="flex items-start gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
                 >
-                  <div className="w-1 h-1 rounded-full bg-indigo-500 flex-shrink-0 mt-[7px]" />
+                  <div className="w-1 h-1 rounded-full bg-blue-500 flex-shrink-0 mt-[7px]" />
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] text-slate-600 truncate leading-snug">
                       {post.caption}
@@ -237,29 +237,29 @@ export default function OverviewPage() {
           <div className="grid grid-cols-2 gap-3">
             <Link
               href="/images"
-              className="group flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 hover:border-violet-500/30 hover:bg-violet-500/5 transition-all"
+              className="group flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
             >
-              <div className="w-9 h-9 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-500/20 transition-colors">
-                <ImageIcon className="w-4 h-4 text-violet-400" />
+              <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
+                <ImageIcon className="w-4 h-4 text-slate-500" />
               </div>
               <div className="min-w-0">
                 <p className="text-[13px] font-medium text-slate-700 group-hover:text-slate-900 truncate">Árvore de Imagens</p>
-                <p className="text-[11px] text-slate-600 mt-0.5">Gerar famílias visuais</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Gerar famílias visuais</p>
               </div>
-              <Sparkles className="w-3.5 h-3.5 text-slate-700 group-hover:text-violet-400 transition-colors ml-auto flex-shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-500 transition-colors ml-auto flex-shrink-0" />
             </Link>
             <Link
               href="/video"
-              className="group flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all"
+              className="group flex items-center gap-3 p-4 rounded-xl bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 transition-all"
             >
-              <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-500/20 transition-colors">
-                <Video className="w-4 h-4 text-indigo-400" />
+              <div className="w-9 h-9 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
+                <Video className="w-4 h-4 text-slate-500" />
               </div>
               <div className="min-w-0">
                 <p className="text-[13px] font-medium text-slate-700 group-hover:text-slate-900 truncate">Legendar Vídeo</p>
-                <p className="text-[11px] text-slate-600 mt-0.5">Transcrição + legendas</p>
+                <p className="text-[11px] text-slate-400 mt-0.5">Transcrição + legendas</p>
               </div>
-              <Sparkles className="w-3.5 h-3.5 text-slate-700 group-hover:text-indigo-400 transition-colors ml-auto flex-shrink-0" />
+              <Sparkles className="w-3.5 h-3.5 text-slate-400 group-hover:text-blue-500 transition-colors ml-auto flex-shrink-0" />
             </Link>
           </div>
         </div>
@@ -288,13 +288,10 @@ export default function OverviewPage() {
                       href={p.kind === 'image' && p.status === 'completed' ? `/images?project=${p.id}` : `/${p.kind === 'image' ? 'images' : 'video'}`}
                       className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-100 transition-colors group"
                     >
-                      <div className={cn(
-                        'w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0',
-                        p.kind === 'image' ? 'bg-violet-500/10' : 'bg-indigo-500/10',
-                      )}>
+                      <div className="w-6 h-6 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
                         {p.kind === 'image'
-                          ? <ImageIcon className="w-3 h-3 text-violet-400" />
-                          : <Video className="w-3 h-3 text-indigo-400" />}
+                          ? <ImageIcon className="w-3 h-3 text-slate-400" />
+                          : <Video className="w-3 h-3 text-slate-400" />}
                       </div>
                       <p className="flex-1 text-[12px] text-slate-400 truncate group-hover:text-slate-700 transition-colors">
                         {p.title ?? `Projeto #${p.id}`}
@@ -330,7 +327,7 @@ export default function OverviewPage() {
                   key={idea.id}
                   className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer group"
                 >
-                  <div className="w-1 h-1 rounded-full bg-violet-500 flex-shrink-0" />
+                  <div className="w-1 h-1 rounded-full bg-slate-400 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-[13px] text-slate-600 truncate group-hover:text-slate-900 transition-colors leading-snug">
                       {idea.title}

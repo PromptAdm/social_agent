@@ -69,10 +69,11 @@ export function MarketingNav() {
           </Link>
           <Link
             href="/register"
-            className="px-5 py-2.5 text-[14px] font-semibold
-              bg-slate-900 hover:bg-slate-800 text-white
-              rounded-full shadow-sm hover:shadow-md
-              hover:-translate-y-px transition-all duration-200"
+            className="btn-primary-soft inline-flex items-center
+              px-5 py-2.5 rounded-full
+              text-[14px] font-semibold text-white
+              hover:-translate-y-px active:translate-y-0
+              transition-transform duration-200"
           >
             Começar grátis
           </Link>
@@ -114,8 +115,8 @@ export function MarketingNav() {
             <Link
               href="/register"
               onClick={() => setMenuOpen(false)}
-              className="block text-center px-4 py-3 text-[14px] font-semibold
-                bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all"
+              className="btn-primary-soft block text-center px-4 py-3
+                text-[14px] font-semibold text-white rounded-xl"
             >
               Começar grátis
             </Link>

@@ -102,12 +102,12 @@ export function Sidebar() {
     str?.charAt(0)?.toUpperCase() ?? '?'
 
   return (
-    <aside className="w-[232px] h-screen bg-white border-r border-slate-200/80 flex flex-col overflow-hidden flex-shrink-0">
+    <aside className="w-[232px] h-screen bg-white border-r border-slate-200 flex flex-col overflow-hidden flex-shrink-0">
 
       {/* Logo */}
-      <div className="h-14 px-5 flex items-center border-b border-slate-200/80 flex-shrink-0">
+      <div className="h-14 px-5 flex items-center border-b border-slate-200 flex-shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-500/25">
+          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
             <Hexagon className="w-[15px] h-[15px] text-white" strokeWidth={2.5} />
           </div>
           <span className="text-[13px] font-semibold text-slate-900 tracking-tight">
@@ -117,13 +117,13 @@ export function Sidebar() {
       </div>
 
       {/* Brand switcher */}
-      <div className="px-3 pt-2.5 pb-2 border-b border-slate-200/80 flex-shrink-0">
+      <div className="px-3 pt-2.5 pb-2 border-b border-slate-200 flex-shrink-0">
         <button
           onClick={() => setBrandOpen(!brandOpen)}
           className="w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg hover:bg-slate-50 transition-colors group"
         >
-          <div className="w-6 h-6 rounded-md bg-indigo-50 border border-indigo-200/60 flex items-center justify-center flex-shrink-0">
-            <span className="text-[10px] font-bold text-indigo-600">
+          <div className="w-6 h-6 rounded-md bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
+            <span className="text-[10px] font-bold text-slate-600">
               {initial(displayBrand?.name)}
             </span>
           </div>
@@ -145,18 +145,18 @@ export function Sidebar() {
                 className={cn(
                   'w-full flex items-center gap-2.5 px-3 py-2 text-[13px] transition-colors',
                   brand.id === displayBrand?.id
-                    ? 'bg-indigo-50 text-indigo-700'
+                    ? 'bg-slate-50 text-slate-900 font-medium'
                     : 'text-slate-600 hover:bg-slate-50'
                 )}
               >
-                <div className="w-5 h-5 rounded bg-indigo-50 border border-indigo-200/60 flex items-center justify-center flex-shrink-0">
-                  <span className="text-[9px] font-bold text-indigo-600">
+                <div className="w-5 h-5 rounded bg-slate-100 border border-slate-200 flex items-center justify-center flex-shrink-0">
+                  <span className="text-[9px] font-bold text-slate-500">
                     {brand.name.charAt(0)}
                   </span>
                 </div>
                 <span className="flex-1 text-left truncate">{brand.name}</span>
                 {brand.id === displayBrand?.id && (
-                  <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 flex-shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 flex-shrink-0" />
                 )}
               </button>
             ))}
@@ -188,24 +188,24 @@ export function Sidebar() {
                     className={cn(
                       'relative flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] transition-all group',
                       isActive
-                        ? 'bg-indigo-50 text-indigo-700 shadow-sm'
+                        ? 'bg-slate-100 text-slate-900'
                         : isHighlight
-                        ? 'text-indigo-600 bg-indigo-50/60 hover:bg-indigo-50 border border-indigo-200/40 hover:border-indigo-200/70'
+                        ? 'text-blue-600 hover:bg-blue-50/60'
                         : 'text-slate-500 hover:text-slate-800 hover:bg-slate-100/80',
                     )}
                   >
                     {/* Active indicator */}
                     {isActive && (
-                      <span className="absolute left-0 inset-y-1.5 w-[3px] bg-gradient-to-b from-indigo-500 to-violet-500 rounded-r-full" />
+                      <span className="absolute left-0 inset-y-1.5 w-[3px] bg-blue-600 rounded-r-full" />
                     )}
 
                     <item.icon
                       className={cn(
                         'w-[15px] h-[15px] flex-shrink-0',
                         isActive
-                          ? 'text-indigo-600'
+                          ? 'text-blue-600'
                           : isHighlight
-                          ? 'text-indigo-500'
+                          ? 'text-blue-500'
                           : 'text-slate-400 group-hover:text-slate-600',
                       )}
                     />
@@ -214,14 +214,14 @@ export function Sidebar() {
 
                     {/* IA badge */}
                     {isHighlight && !isActive && (
-                      <span className="text-[8px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-200/60 px-1.5 py-0.5 rounded tracking-wide uppercase leading-none">
+                      <span className="text-[8px] font-bold text-blue-600 bg-blue-50 border border-blue-200/60 px-1.5 py-0.5 rounded tracking-wide uppercase leading-none">
                         IA
                       </span>
                     )}
 
                     {/* Pending approvals badge */}
                     {'badge' in item && item.badge && pendingApprovals > 0 && (
-                      <span className="min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold bg-indigo-600 text-white rounded-full px-1 leading-none">
+                      <span className="min-w-[18px] h-[18px] flex items-center justify-center text-[10px] font-bold bg-blue-600 text-white rounded-full px-1 leading-none">
                         {pendingApprovals}
                       </span>
                     )}
@@ -235,7 +235,7 @@ export function Sidebar() {
 
       {/* Plan section — only rendered when billing data is available */}
       {plan && (
-        <div className="px-3 py-2.5 border-t border-slate-200/80 flex-shrink-0 space-y-2">
+        <div className="px-3 py-2.5 border-t border-slate-200 flex-shrink-0 space-y-2">
           {/* Plan name + badge */}
           <div className="flex items-center justify-between px-1">
             <span className="text-[10px] text-slate-400 font-medium">Plano</span>
@@ -261,14 +261,14 @@ export function Sidebar() {
       )}
 
       {/* User row */}
-      <div className="px-3 py-3 border-t border-slate-200/80 flex-shrink-0">
+      <div className="px-3 py-3 border-t border-slate-200 flex-shrink-0">
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-slate-50 transition-colors group"
           title="Sair"
         >
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-[11px] font-semibold text-white">
+          <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+            <span className="text-[11px] font-semibold text-slate-600">
               {initial(user?.full_name ?? user?.email)}
             </span>
           </div>

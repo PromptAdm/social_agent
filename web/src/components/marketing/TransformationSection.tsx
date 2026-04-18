@@ -51,15 +51,15 @@ export function TransformationSection() {
           <div className="bg-[#FFF8F8] border border-red-100 rounded-2xl p-7
             shadow-[0_1px_4px_rgba(0,0,0,0.04)]">
             <div className="flex items-center gap-2.5 mb-6">
-              <div className="w-7 h-7 bg-red-100 rounded-full flex items-center justify-center">
-                <X className="w-3.5 h-3.5 text-red-500" />
+              <div className="icon-circle icon-red w-7 h-7">
+                <X className="w-3.5 h-3.5 text-red-500" strokeWidth={1.5} />
               </div>
               <span className="text-[14px] font-semibold text-red-600">Sem Nezora</span>
             </div>
             <ul className="space-y-3">
               {before.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-[13px] text-slate-500">
-                  <X className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
+                  <X className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" strokeWidth={1.5} />
                   {item}
                 </li>
               ))}
@@ -68,9 +68,8 @@ export function TransformationSection() {
 
           {/* Arrow divider */}
           <div className="hidden md:flex items-center justify-center mt-16">
-            <div className="w-9 h-9 bg-indigo-50 border border-indigo-200/60
-              rounded-full flex items-center justify-center shadow-sm">
-              <ArrowRight className="w-4 h-4 text-indigo-600" />
+            <div className="icon-circle icon-indigo w-9 h-9">
+              <ArrowRight className="w-4 h-4 text-indigo-600" strokeWidth={1.5} />
             </div>
           </div>
 
@@ -81,15 +80,15 @@ export function TransformationSection() {
             <div className="absolute -top-12 -right-12 w-40 h-40
               bg-[radial-gradient(circle,rgba(99,102,241,0.12)_0%,transparent_70%)] pointer-events-none" />
             <div className="flex items-center gap-2.5 mb-6">
-              <div className="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center">
-                <Check className="w-3.5 h-3.5 text-indigo-600" />
+              <div className="icon-circle icon-indigo w-7 h-7">
+                <Check className="w-3.5 h-3.5 text-indigo-600" strokeWidth={1.5} />
               </div>
               <span className="text-[14px] font-semibold text-indigo-700">Com Nezora</span>
             </div>
             <ul className="space-y-3 relative">
               {after.map((item) => (
                 <li key={item} className="flex items-start gap-3 text-[13px] text-slate-700">
-                  <Check className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 mt-0.5" />
+                  <Check className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0 mt-0.5" strokeWidth={1.5} />
                   {item}
                 </li>
               ))}
@@ -99,8 +98,8 @@ export function TransformationSection() {
 
         {/* Mobile arrow */}
         <div className="md:hidden flex justify-center -mt-10 mb-6">
-          <div className="w-8 h-8 bg-indigo-50 border border-indigo-200/60 rounded-full flex items-center justify-center rotate-90">
-            <ArrowRight className="w-4 h-4 text-indigo-600" />
+          <div className="icon-circle icon-indigo w-8 h-8 rotate-90">
+            <ArrowRight className="w-4 h-4 text-indigo-600" strokeWidth={1.5} />
           </div>
         </div>
 
@@ -122,7 +121,7 @@ export function TransformationSection() {
             <a href="/register"
               className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-indigo-600 hover:text-indigo-700 transition-colors group">
               Ver todas as integrações
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" strokeWidth={1.5} />
             </a>
           </div>
 
@@ -148,34 +147,34 @@ export function TransformationSection() {
 
             {[
               {
-                icon:    Zap,
-                accent:  'indigo',
-                badge:   'IA',
-                title:   'Gerar com IA',
-                desc:    'Descreva sua marca e deixe a IA criar ideias, legendas e hashtags com sua voz.',
-                feats:   ['Ideia gerada em 3s', 'Tom de voz personalizado'],
+                icon:   Zap,
+                accent: 'indigo',
+                badge:  'IA',
+                title:  'Gerar com IA',
+                desc:   'Descreva sua marca e deixe a IA criar ideias, legendas e hashtags com sua voz.',
+                feats:  ['Ideia gerada em 3s', 'Tom de voz personalizado'],
               },
               {
-                icon:    ImageIcon,
-                accent:  'violet',
-                badge:   'IA',
-                title:   'Árvore de Imagens',
-                desc:    'Gere famílias visuais completas com variações de estilo, paleta e composição.',
-                feats:   ['Até 3 famílias por geração', 'Refine com um clique'],
+                icon:   ImageIcon,
+                accent: 'violet',
+                badge:  'IA',
+                title:  'Árvore de Imagens',
+                desc:   'Gere famílias visuais completas com variações de estilo, paleta e composição.',
+                feats:  ['Até 3 famílias por geração', 'Refine com um clique'],
               },
               {
-                icon:    Video,
-                accent:  'sky',
-                badge:   'IA',
-                title:   'Legendar Vídeo',
-                desc:    'Transcreva e gere legendas automáticas para seus vídeos de forma precisa e rápida.',
-                feats:   ['Português e inglês', 'Exporta em SRT e texto'],
+                icon:   Video,
+                accent: 'sky',
+                badge:  'IA',
+                title:  'Legendar Vídeo',
+                desc:   'Transcreva e gere legendas automáticas para seus vídeos de forma precisa e rápida.',
+                feats:  ['Português e inglês', 'Exporta em SRT e texto'],
               },
             ].map(({ icon: Icon, accent, badge, title, desc, feats }) => {
-              const colors: Record<string, { wrap: string; icon: string; badge: string; dot: string }> = {
-                indigo: { wrap: 'border-indigo-100 hover:border-indigo-200/70 hover:shadow-indigo-500/6', icon: 'bg-indigo-50 border-indigo-200/60 text-indigo-600', badge: 'text-indigo-700 bg-indigo-50 border-indigo-200/60', dot: 'bg-indigo-500' },
-                violet: { wrap: 'border-violet-100 hover:border-violet-200/70 hover:shadow-violet-500/6', icon: 'bg-violet-50 border-violet-200/60 text-violet-600', badge: 'text-violet-700 bg-violet-50 border-violet-200/60', dot: 'bg-violet-500' },
-                sky:    { wrap: 'border-sky-100    hover:border-sky-200/70    hover:shadow-sky-500/6',    icon: 'bg-sky-50    border-sky-200/60    text-sky-600',    badge: 'text-sky-700    bg-sky-50    border-sky-200/60',    dot: 'bg-sky-500'    },
+              const colors: Record<string, { wrap: string; iconTint: string; iconColor: string; badge: string; dot: string }> = {
+                indigo: { wrap: 'border-indigo-100 hover:border-indigo-200/70', iconTint: 'icon-indigo', iconColor: 'text-indigo-600', badge: 'text-indigo-700 bg-indigo-50 border-indigo-200/60', dot: 'bg-indigo-500' },
+                violet: { wrap: 'border-violet-100 hover:border-violet-200/70', iconTint: 'icon-violet', iconColor: 'text-violet-600', badge: 'text-violet-700 bg-violet-50 border-violet-200/60', dot: 'bg-violet-500' },
+                sky:    { wrap: 'border-sky-100    hover:border-sky-200/70',    iconTint: 'icon-sky',    iconColor: 'text-sky-600',    badge: 'text-sky-700    bg-sky-50    border-sky-200/60',    dot: 'bg-sky-500'    },
               }
               const c = colors[accent]
               return (
@@ -185,8 +184,8 @@ export function TransformationSection() {
                     hover:shadow-[0_8px_28px_rgba(0,0,0,0.08)]
                     transition-all duration-300`}>
                   <div className="flex items-start justify-between mb-4">
-                    <div className={`w-9 h-9 border rounded-xl flex items-center justify-center ${c.icon}`}>
-                      <Icon className="w-4 h-4" />
+                    <div className={`icon-pill w-9 h-9 ${c.iconTint} ${c.iconColor}`}>
+                      <Icon className="w-4 h-4" strokeWidth={1.5} />
                     </div>
                     <span className={`text-[9px] font-bold uppercase tracking-wider border rounded-full px-2 py-0.5 ${c.badge}`}>
                       {badge}

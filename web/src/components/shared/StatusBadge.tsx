@@ -36,9 +36,9 @@ const CONFIG: Record<Status, StatusConfig> = {
   },
   agendado: {
     label: 'Agendado',
-    badge: 'bg-indigo-50 border-indigo-200',
-    text:  'text-indigo-700',
-    dot:   'bg-indigo-500',
+    badge: 'bg-blue-50 border-blue-200',
+    text:  'text-blue-700',
+    dot:   'bg-blue-500',
   },
   publicado: {
     label: 'Publicado',
@@ -60,9 +60,9 @@ const CONFIG: Record<Status, StatusConfig> = {
   },
   novo: {
     label: 'Novo',
-    badge: 'bg-indigo-50 border-indigo-200',
-    text:  'text-indigo-700',
-    dot:   'bg-indigo-500',
+    badge: 'bg-blue-50 border-blue-200',
+    text:  'text-blue-700',
+    dot:   'bg-blue-500',
   },
   contatado: {
     label: 'Contatado',
@@ -90,9 +90,9 @@ const CONFIG: Record<Status, StatusConfig> = {
   },
   ideia: {
     label: 'Ideia',
-    badge: 'bg-violet-50 border-violet-200',
-    text:  'text-violet-700',
-    dot:   'bg-violet-500',
+    badge: 'bg-slate-50 border-slate-200',
+    text:  'text-slate-600',
+    dot:   'bg-slate-400',
   },
 }
 

@@ -24,10 +24,10 @@ const comparisons = [
   },
 ]
 
-const THEME: Record<string, { bg: string; border: string; icon: string; iconText: string; bar: string }> = {
-  amber:  { bg: 'bg-amber-50',  border: 'border-amber-100',  icon: 'bg-amber-100  border-amber-200/60',  iconText: 'text-amber-600',  bar: 'bg-amber-200'  },
-  violet: { bg: 'bg-violet-50', border: 'border-violet-100', icon: 'bg-violet-100 border-violet-200/60', iconText: 'text-violet-600', bar: 'bg-violet-200' },
-  red:    { bg: 'bg-red-50',    border: 'border-red-100',    icon: 'bg-red-100    border-red-200/60',    iconText: 'text-red-600',    bar: 'bg-red-200'    },
+const THEME: Record<string, { bg: string; border: string; iconTint: string; iconText: string; bar: string }> = {
+  amber:  { bg: 'bg-amber-50',  border: 'border-amber-100',  iconTint: 'icon-amber',  iconText: 'text-amber-600',  bar: 'bg-amber-200'  },
+  violet: { bg: 'bg-violet-50', border: 'border-violet-100', iconTint: 'icon-violet', iconText: 'text-violet-600', bar: 'bg-violet-200' },
+  red:    { bg: 'bg-red-50',    border: 'border-red-100',    iconTint: 'icon-red',    iconText: 'text-red-600',    bar: 'bg-red-200'    },
 }
 
 export function WhyNezora() {
@@ -71,8 +71,8 @@ export function WhyNezora() {
                   <div className={`absolute top-0 left-0 right-0 h-[3px] ${t.bar} opacity-50`} />
 
                   <div className="flex items-start gap-4 mb-4">
-                    <div className={`w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0 ${t.icon}`}>
-                      <Icon className={`w-4 h-4 ${t.iconText}`} />
+                    <div className={`icon-pill w-9 h-9 ${t.iconTint}`}>
+                      <Icon className={`w-4 h-4 ${t.iconText}`} strokeWidth={1.5} />
                     </div>
                     <div>
                       <p className="text-[10px] font-bold tracking-[0.1em] uppercase text-slate-400 mb-0.5">
@@ -92,9 +92,8 @@ export function WhyNezora() {
                     style={{background: 'linear-gradient(90deg, #818cf8, #a78bfa)'}} />
 
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-9 h-9 rounded-xl bg-indigo-100 border border-indigo-200/60
-                      flex items-center justify-center flex-shrink-0">
-                      <CheckCircle2 className="w-4 h-4 text-indigo-600" />
+                    <div className="icon-pill icon-indigo w-9 h-9">
+                      <CheckCircle2 className="w-4 h-4 text-indigo-600" strokeWidth={1.5} />
                     </div>
                     <div>
                       <p className="text-[10px] font-bold tracking-[0.1em] uppercase text-indigo-400 mb-0.5">

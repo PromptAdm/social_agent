@@ -86,12 +86,9 @@ export function TrustSection() {
                 hover:-translate-y-0.5
                 transition-all duration-250"
             >
-              <div className="w-10 h-10 bg-indigo-50 border border-indigo-100 rounded-xl
-                flex items-center justify-center flex-shrink-0 mt-0.5
-                group-hover:bg-indigo-100 group-hover:border-indigo-200
-                group-hover:scale-110 group-hover:shadow-sm group-hover:shadow-indigo-200/60
-                transition-all duration-250">
-                <Icon className="w-4 h-4 text-indigo-600" />
+              <div className="icon-pill icon-indigo w-10 h-10 mt-0.5
+                group-hover:scale-110 transition-transform duration-250">
+                <Icon className="w-4 h-4 text-indigo-600" strokeWidth={1.5} />
               </div>
               <div>
                 <h3 className="text-[15px] font-semibold text-slate-900 mb-1.5">{title}</h3>

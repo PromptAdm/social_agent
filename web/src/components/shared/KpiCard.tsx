@@ -14,11 +14,11 @@ interface KpiCardProps {
 }
 
 const ACCENT_BAR: Record<string, string> = {
-  default: 'bg-slate-300',
-  indigo:  'bg-indigo-400',
-  emerald: 'bg-emerald-400',
-  amber:   'bg-amber-400',
-  red:     'bg-red-400',
+  default: 'bg-slate-200',
+  indigo:  'bg-blue-500',
+  emerald: 'bg-emerald-500',
+  amber:   'bg-amber-500',
+  red:     'bg-red-500',
 }
 
 export function KpiCard({
@@ -37,10 +37,8 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        'relative bg-white border border-slate-200/80 rounded-2xl p-5',
+        'relative bg-white border border-slate-200 rounded-xl p-5',
         'flex flex-col gap-3 overflow-hidden',
-        'shadow-[0_1px_3px_rgba(0,0,0,0.05),0_1px_2px_rgba(0,0,0,0.04)]',
-        'hover:shadow-[0_4px_16px_rgba(0,0,0,0.07)] hover:-translate-y-px transition-all duration-200',
         className,
       )}
     >
@@ -85,7 +83,7 @@ export function KpiCard({
         {href && (
           <Link
             href={href}
-            className="flex items-center gap-0.5 text-[11px] text-indigo-600 hover:text-indigo-700 transition-colors"
+            className="flex items-center gap-0.5 text-[11px] text-blue-600 hover:text-blue-700 transition-colors"
           >
             {hrefLabel ?? 'Ver'}
             <ArrowRight className="w-3 h-3" />

@@ -40,7 +40,7 @@ export function CreditsDisplay({ className }: CreditsDisplayProps) {
     >
       <Zap className={cn(
         'w-3 h-3 flex-shrink-0',
-        isEmpty ? 'text-red-400' : isLow ? 'text-amber-400' : 'text-indigo-400',
+        isEmpty ? 'text-red-400' : isLow ? 'text-amber-400' : 'text-blue-500',
       )} />
       <span>{balance.toLocaleString('pt-BR')}</span>
       <span className="text-[10px] opacity-60 font-normal">créditos</span>

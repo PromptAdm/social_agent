@@ -183,14 +183,14 @@ export function PlansSection() {
                 <Link
                   href="/register"
                   className={cn(
-                    'group flex items-center justify-center gap-1.5 h-11 rounded-xl text-[14px] font-semibold transition-all duration-200',
+                    'group flex items-center justify-center gap-1.5 h-11 rounded-xl text-[14px] font-semibold transition-transform duration-200 hover:-translate-y-px active:translate-y-0',
                     plan.highlight
-                      ? 'bg-gradient-to-r from-indigo-600 to-violet-500 hover:from-indigo-500 hover:to-violet-400 text-white shadow-[0_4px_14px_rgba(99,102,241,0.4)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.5)] hover:-translate-y-px'
-                      : 'bg-slate-100/80 hover:bg-slate-200/80 text-slate-600 hover:text-slate-900 border border-slate-200/60 hover:border-slate-300/60',
+                      ? 'btn-primary-soft text-white'
+                      : 'btn-secondary-soft text-slate-700 hover:text-slate-900',
                   )}
                 >
                   {plan.cta}
-                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                  <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" strokeWidth={1.5} />
                 </Link>
               </div>
             </div>

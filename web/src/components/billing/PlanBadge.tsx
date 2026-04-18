@@ -9,12 +9,12 @@ interface PlanBadgeProps {
 }
 
 const PLAN_STYLES: Record<PlanCode, string> = {
-  starter:      'bg-blue-600/15 text-blue-400 border-blue-500/25',
-  free:         'bg-slate-700/40 text-slate-400 border-slate-700/50',
-  basic:        'bg-blue-600/15 text-blue-400 border-blue-500/25',
-  professional: 'bg-indigo-600/15 text-indigo-400 border-indigo-500/25',
-  premium:      'bg-violet-600/15 text-violet-400 border-violet-500/25',
-  legacy:       'bg-slate-700/40 text-slate-500 border-slate-700/50',
+  starter:      'bg-slate-100 text-slate-500 border-slate-200',
+  free:         'bg-slate-100 text-slate-500 border-slate-200',
+  basic:        'bg-slate-100 text-slate-500 border-slate-200',
+  professional: 'bg-blue-50 text-blue-600 border-blue-200',
+  premium:      'bg-blue-50 text-blue-700 border-blue-200',
+  legacy:       'bg-slate-100 text-slate-400 border-slate-200',
 }
 
 const PLAN_LABELS: Record<PlanCode, string> = {

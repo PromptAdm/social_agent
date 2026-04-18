@@ -213,29 +213,25 @@ export function HeroSection() {
           >
             <Link
               href="/register"
-              className="group inline-flex items-center gap-2 px-7 py-3.5
-                bg-slate-900 hover:bg-slate-800
-                text-white text-[15px] font-semibold rounded-full
-                shadow-[0_2px_14px_rgba(15,23,42,0.18)]
-                hover:shadow-[0_6px_24px_rgba(15,23,42,0.26)]
+              className="group btn-primary-soft inline-flex items-center gap-2
+                px-7 py-3.5 rounded-full
+                text-white text-[15px] font-semibold
                 hover:scale-[1.02] active:scale-[0.99]
-                transition-all duration-300 ease-out will-change-transform"
+                transition-transform duration-200 will-change-transform"
             >
               Começar agora
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-300" />
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200" strokeWidth={1.5} />
             </Link>
 
             <button
               onClick={() =>
                 document.getElementById('why')?.scrollIntoView({ behavior: 'smooth' })
               }
-              className="inline-flex items-center gap-1.5 px-6 py-3.5
+              className="btn-secondary-soft inline-flex items-center gap-1.5
+                px-6 py-3.5 rounded-full
                 text-[15px] font-medium text-slate-600 hover:text-slate-900
-                border border-slate-300/60 hover:border-slate-400 rounded-full
-                hover:bg-white/55 backdrop-blur-sm
-                hover:shadow-[0_2px_10px_rgba(0,0,0,0.05)]
                 hover:scale-[1.02] active:scale-[0.99]
-                transition-all duration-300 ease-out will-change-transform"
+                transition-transform duration-200 will-change-transform"
             >
               Ver como funciona
             </button>

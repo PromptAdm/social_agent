@@ -56,10 +56,8 @@ export function ProposalSection() {
               </span>
 
               {/* Icon */}
-              <div className="w-11 h-11 bg-indigo-50 border border-indigo-100
-                rounded-xl flex items-center justify-center mb-5
-                group-hover:bg-indigo-100 group-hover:border-indigo-200 transition-all">
-                <Icon className="w-5 h-5 text-indigo-600" />
+              <div className="icon-pill icon-indigo w-11 h-11 mb-5">
+                <Icon className="w-5 h-5 text-indigo-600" strokeWidth={1.5} />
               </div>
 
               <h3 className="text-[16px] font-semibold text-slate-900 mb-2.5 leading-snug">{title}</h3>
