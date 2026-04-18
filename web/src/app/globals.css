@@ -136,10 +136,84 @@
   background-clip: padding-box;
 }
 
-/* Dot grid pattern */
+/* Dot grid pattern — dark */
 .dot-grid {
   background-image: radial-gradient(rgba(99,102,241,0.18) 1px, transparent 1px);
   background-size: 28px 28px;
+}
+
+/* Dot grid pattern — light */
+.dot-grid-light {
+  background-image: radial-gradient(rgba(99,102,241,0.09) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ── Marketing light-mode utilities ─────────────────────────────── */
+
+/* Gradient text for light backgrounds */
+.hero-gradient-text {
+  background: linear-gradient(135deg, #4338CA 0%, #7C3AED 50%, #4F46E5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.mktg-gradient-text {
+  background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Staggered entrance animation — smoother than fadeInUp */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.animate-rise       { animation: rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.animate-rise-100   { animation: rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.10s both; }
+.animate-rise-200   { animation: rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.20s both; }
+.animate-rise-300   { animation: rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.30s both; }
+.animate-rise-400   { animation: rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.40s both; }
+.animate-rise-500   { animation: rise 0.65s cubic-bezier(0.22, 1, 0.36, 1) 0.55s both; }
+
+/* Soft float for hero decorative elements */
+@keyframes float-soft {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50%       { transform: translateY(-10px) rotate(1deg); }
+}
+
+.animate-float-soft { animation: float-soft 5s ease-in-out infinite; }
+.animate-float-soft-slow { animation: float-soft 7s ease-in-out infinite reverse; }
+
+/* Glass card — light */
+.glass-light {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+}
+
+/* Marketing card */
+.mktg-card {
+  background: #ffffff;
+  border: 1px solid rgba(224, 221, 250, 0.7);
+  border-radius: 1.25rem;
+  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.04), 0 8px 24px rgba(0, 0, 0, 0.05);
+}
+
+.mktg-card:hover {
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.08), 0 16px 48px rgba(0, 0, 0, 0.08);
+}
+
+/* Section backgrounds */
+.mktg-section {
+  background-color: #F7F6FE;
+}
+
+.mktg-section-white {
+  background-color: #ffffff;
 }
 
 @layer components {

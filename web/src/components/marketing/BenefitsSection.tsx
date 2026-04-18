@@ -45,23 +45,24 @@ const benefits = [
   },
 ]
 
-const ACCENT: Record<string, { tag: string; icon: string; top: string }> = {
-  indigo:  { tag: 'text-indigo-400  bg-indigo-500/10  border-indigo-500/20',  icon: 'bg-indigo-600/15  border-indigo-500/20  text-indigo-400',  top: 'bg-indigo-500'  },
-  violet:  { tag: 'text-violet-400  bg-violet-500/10  border-violet-500/20',  icon: 'bg-violet-600/15  border-violet-500/20  text-violet-400',  top: 'bg-violet-500'  },
-  sky:     { tag: 'text-sky-400     bg-sky-500/10     border-sky-500/20',     icon: 'bg-sky-600/15     border-sky-500/20     text-sky-400',     top: 'bg-sky-500'     },
-  emerald: { tag: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20', icon: 'bg-emerald-600/15 border-emerald-500/20 text-emerald-400', top: 'bg-emerald-500' },
-  amber:   { tag: 'text-amber-400   bg-amber-500/10   border-amber-500/20',   icon: 'bg-amber-600/15   border-amber-500/20   text-amber-400',   top: 'bg-amber-500'   },
-  pink:    { tag: 'text-pink-400    bg-pink-500/10    border-pink-500/20',    icon: 'bg-pink-600/15    border-pink-500/20    text-pink-400',    top: 'bg-pink-500'    },
-} as const
+const ACCENT: Record<string, { tag: string; icon: string; border: string; top: string }> = {
+  indigo:  { tag: 'text-indigo-700  bg-indigo-50  border-indigo-200/60',  icon: 'bg-indigo-50  border-indigo-200/60  text-indigo-600',  border: 'group-hover:border-indigo-200/60',  top: 'bg-gradient-to-r from-indigo-400 to-indigo-500'  },
+  violet:  { tag: 'text-violet-700  bg-violet-50  border-violet-200/60',  icon: 'bg-violet-50  border-violet-200/60  text-violet-600',  border: 'group-hover:border-violet-200/60',  top: 'bg-gradient-to-r from-violet-400 to-violet-500'  },
+  sky:     { tag: 'text-sky-700     bg-sky-50     border-sky-200/60',     icon: 'bg-sky-50     border-sky-200/60     text-sky-600',     border: 'group-hover:border-sky-200/60',     top: 'bg-gradient-to-r from-sky-400    to-sky-500'     },
+  emerald: { tag: 'text-emerald-700 bg-emerald-50 border-emerald-200/60', icon: 'bg-emerald-50 border-emerald-200/60 text-emerald-600', border: 'group-hover:border-emerald-200/60', top: 'bg-gradient-to-r from-emerald-400 to-emerald-500' },
+  amber:   { tag: 'text-amber-700   bg-amber-50   border-amber-200/60',   icon: 'bg-amber-50   border-amber-200/60   text-amber-600',   border: 'group-hover:border-amber-200/60',   top: 'bg-gradient-to-r from-amber-400   to-amber-500'   },
+  pink:    { tag: 'text-pink-700    bg-pink-50    border-pink-200/60',    icon: 'bg-pink-50    border-pink-200/60    text-pink-600',    border: 'group-hover:border-pink-200/60',    top: 'bg-gradient-to-r from-pink-400    to-pink-500'    },
+}
 
 export function BenefitsSection() {
   return (
-    <section id="benefits" className="py-28 px-5 relative overflow-hidden">
+    <section id="benefits" className="py-28 px-6 bg-[#F7F6FE] relative overflow-hidden">
 
-      {/* Background glow */}
+      {/* Subtle radial glow */}
       <div
-        className="absolute left-1/2 top-0 -translate-x-1/2 w-[1000px] h-[700px]
-          bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.06)_0%,transparent_70%)] pointer-events-none"
+        className="absolute left-1/2 -translate-x-1/2 top-0 w-[900px] h-[500px]
+          bg-[radial-gradient(ellipse_at_top,rgba(99,102,241,0.07)_0%,transparent_65%)]
+          pointer-events-none"
         aria-hidden="true"
       />
 
@@ -69,55 +70,49 @@ export function BenefitsSection() {
 
         {/* Header */}
         <div className="text-center mb-16">
-          <span className="inline-block text-[11px] font-bold tracking-[0.14em] uppercase text-indigo-400 mb-4">
-            O que você ganha
+          <span className="inline-block text-[11px] font-bold tracking-[0.14em] uppercase text-indigo-600 mb-4">
+            Funcionalidades
           </span>
-          <h2 className="text-[32px] sm:text-[42px] font-bold text-slate-100 leading-tight mb-5">
-            Tudo que você precisa para{' '}
-            <span className="gradient-text">crescer com consistência</span>
+          <h2 className="text-[30px] sm:text-[40px] font-bold text-slate-900 leading-tight mb-5 tracking-tight">
+            Tudo que você precisa para crescer
+            <br className="hidden sm:block" />
+            <span className="mktg-gradient-text">com consistência</span>
           </h2>
-          <p className="max-w-xl mx-auto text-[16px] text-slate-400 leading-relaxed">
+          <p className="max-w-xl mx-auto text-[16px] text-slate-500 leading-relaxed">
             Cada funcionalidade foi pensada para eliminar fricção — não para adicionar
             mais uma ferramenta na sua lista.
           </p>
         </div>
 
         {/* Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {benefits.map(({ icon: Icon, title, body, tag, accent }) => {
             const a = ACCENT[accent]
             return (
               <div
                 key={title}
-                className="group relative bg-[#0D0D14] border border-[#1A1A24]
-                  hover:border-[#27273A] rounded-2xl p-6 overflow-hidden
-                  transition-all duration-300 hover:-translate-y-1
-                  hover:shadow-xl hover:shadow-black/50"
+                className={`group relative bg-white border border-slate-100/80 ${a.border}
+                  rounded-2xl p-6 overflow-hidden
+                  shadow-[0_1px_4px_rgba(0,0,0,0.04)]
+                  hover:shadow-[0_8px_32px_rgba(0,0,0,0.08)]
+                  transition-all duration-300 hover:-translate-y-1`}
               >
-                {/* Top accent line */}
+                {/* Top accent line on hover */}
                 <span className={`absolute top-0 left-6 right-6 h-[2px] rounded-b ${a.top}
-                  opacity-0 group-hover:opacity-60 transition-opacity duration-300`} />
+                  opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
 
-                {/* Tag */}
-                <span className={`inline-flex items-center text-[9px] font-bold uppercase
-                  tracking-wider border px-2 py-0.5 rounded-full mb-4 ${a.tag}`}>
-                  {tag}
-                </span>
-
-                {/* Icon */}
-                <div className={`w-10 h-10 border rounded-xl flex items-center justify-center mb-4
-                  transition-all duration-300 ${a.icon}`}>
-                  <Icon className="w-4.5 h-4.5" />
+                {/* Icon + tag row */}
+                <div className="flex items-start justify-between mb-5">
+                  <div className={`w-10 h-10 border rounded-xl flex items-center justify-center ${a.icon}`}>
+                    <Icon className="w-4.5 h-4.5 w-[18px] h-[18px]" />
+                  </div>
+                  <span className={`text-[10px] font-bold tracking-wide uppercase border rounded-full px-2.5 py-1 ${a.tag}`}>
+                    {tag}
+                  </span>
                 </div>
 
-                <h3 className="text-[15px] font-semibold text-slate-200 mb-2 leading-snug">{title}</h3>
+                <h3 className="text-[15px] font-semibold text-slate-900 mb-2 leading-snug">{title}</h3>
                 <p className="text-[13px] text-slate-500 leading-relaxed">{body}</p>
-
-                {/* Hover gradient overlay */}
-                <div className="absolute inset-0 rounded-2xl
-                  bg-gradient-to-br from-indigo-600/0 to-violet-600/0
-                  group-hover:from-indigo-600/3 group-hover:to-violet-600/2
-                  transition-all duration-300 pointer-events-none" />
               </div>
             )
           })}

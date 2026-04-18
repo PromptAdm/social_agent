@@ -32,22 +32,16 @@ const trust = [
 
 export function TrustSection() {
   return (
-    <section id="trust" className="py-28 px-5 relative overflow-hidden">
+    <section id="trust" className="py-28 px-6 bg-[#F7F6FE] relative overflow-hidden">
 
-      {/* Gradient dividers */}
-      <div
-        className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"
-        aria-hidden="true"
-      />
+      {/* Top + bottom dividers */}
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-indigo-200/60 to-transparent" aria-hidden="true" />
+      <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-indigo-200/60 to-transparent" aria-hidden="true" />
 
-      {/* Subtle radial glow */}
+      {/* Subtle background radial */}
       <div
         className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 w-[700px] h-[500px]
-          bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.06)_0%,transparent_70%)]
+          bg-[radial-gradient(ellipse_at_center,rgba(99,102,241,0.05)_0%,transparent_70%)]
           pointer-events-none"
         aria-hidden="true"
       />
@@ -56,26 +50,27 @@ export function TrustSection() {
 
         {/* Stats bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 rounded-2xl overflow-hidden mb-20
-          border border-[#1A1A24] divide-x divide-y md:divide-y-0 divide-[#1A1A24]">
+          border border-slate-200/70 divide-x divide-y md:divide-y-0 divide-slate-200/70
+          shadow-[0_1px_8px_rgba(0,0,0,0.05)]">
           {stats.map(({ value, label, sub }) => (
-            <div key={label} className="bg-[#0D0D14] hover:bg-[#0F0F18] transition-colors px-6 py-8 text-center group">
-              <p className="text-[34px] font-bold leading-none mb-2 gradient-text-shimmer">
+            <div key={label} className="bg-white hover:bg-indigo-50/30 transition-colors px-6 py-8 text-center group">
+              <p className="text-[36px] font-extrabold leading-none mb-2 mktg-gradient-text tracking-tight">
                 {value}
               </p>
-              <p className="text-[13px] font-semibold text-slate-300 mb-1">{label}</p>
-              <p className="text-[11px] text-slate-600">{sub}</p>
+              <p className="text-[13px] font-semibold text-slate-700 mb-1">{label}</p>
+              <p className="text-[11px] text-slate-400">{sub}</p>
             </div>
           ))}
         </div>
 
-        {/* Trust points header */}
+        {/* Header */}
         <div className="text-center mb-12">
-          <span className="inline-block text-[11px] font-bold tracking-[0.12em] uppercase text-indigo-400 mb-4">
+          <span className="inline-block text-[11px] font-bold tracking-[0.14em] uppercase text-indigo-600 mb-4">
             Você pode confiar
           </span>
-          <h2 className="text-[32px] sm:text-[38px] font-bold text-slate-100 leading-tight">
+          <h2 className="text-[30px] sm:text-[38px] font-bold text-slate-900 leading-tight tracking-tight">
             Construído para durar,{' '}
-            <span className="gradient-text-shimmer">não para impressionar</span>
+            <span className="mktg-gradient-text">não para impressionar</span>
           </h2>
         </div>
 
@@ -84,17 +79,19 @@ export function TrustSection() {
           {trust.map(({ icon: Icon, title, body }) => (
             <div
               key={title}
-              className="group flex gap-4 bg-[#0D0D14] border border-[#1A1A24]
-                hover:border-indigo-500/20 rounded-2xl p-6 transition-all duration-300
-                hover:shadow-lg hover:shadow-black/40"
+              className="group flex gap-4 bg-white border border-slate-100
+                hover:border-indigo-200/50 rounded-2xl p-6
+                shadow-[0_1px_4px_rgba(0,0,0,0.04)]
+                hover:shadow-[0_8px_28px_rgba(79,70,229,0.07)]
+                transition-all duration-300"
             >
-              <div className="w-10 h-10 bg-indigo-600/12 border border-indigo-500/20 rounded-xl
+              <div className="w-10 h-10 bg-indigo-50 border border-indigo-200/60 rounded-xl
                 flex items-center justify-center flex-shrink-0 mt-0.5
-                group-hover:bg-indigo-600/20 group-hover:border-indigo-500/30 transition-all">
-                <Icon className="w-4 h-4 text-indigo-400" />
+                group-hover:bg-indigo-100 group-hover:border-indigo-200 transition-all">
+                <Icon className="w-4 h-4 text-indigo-600" />
               </div>
               <div>
-                <h3 className="text-[15px] font-semibold text-slate-200 mb-1.5">{title}</h3>
+                <h3 className="text-[15px] font-semibold text-slate-900 mb-1.5">{title}</h3>
                 <p className="text-[13px] text-slate-500 leading-relaxed">{body}</p>
               </div>
             </div>
