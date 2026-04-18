@@ -44,17 +44,17 @@ export function Topbar() {
   const meta = getPageMeta(pathname)
 
   return (
-    <header className="h-14 bg-[#0C0C11] border-b border-[#1A1A24] flex items-center px-5 gap-4 flex-shrink-0">
+    <header className="h-14 bg-white border-b border-slate-200/80 flex items-center px-5 gap-4 flex-shrink-0">
 
       {/* Breadcrumb */}
       <div className="flex items-center gap-1.5 flex-1 min-w-0">
         {meta.parent && (
           <>
-            <span className="text-[13px] text-slate-600">{meta.parent}</span>
-            <ChevronRight className="w-3 h-3 text-slate-700 flex-shrink-0" />
+            <span className="text-[13px] text-slate-400">{meta.parent}</span>
+            <ChevronRight className="w-3 h-3 text-slate-600 flex-shrink-0" />
           </>
         )}
-        <span className="text-[13px] font-semibold text-slate-200 tracking-tight truncate">
+        <span className="text-[13px] font-semibold text-slate-800 tracking-tight truncate">
           {meta.title}
         </span>
       </div>
@@ -63,18 +63,18 @@ export function Topbar() {
       <CreditsDisplay />
 
       {/* Search trigger */}
-      <button className="hidden md:flex items-center gap-2 bg-[#111118] border border-[#1E1E2A] rounded-lg px-3 py-1.5 w-48 cursor-pointer hover:border-[#27273A] transition-colors">
-        <Search className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
-        <span className="text-[13px] text-slate-600 flex-1 text-left select-none">Buscar…</span>
-        <kbd className="text-[10px] text-slate-700 bg-[#17171F] border border-[#27273A] px-1.5 py-0.5 rounded font-mono leading-tight">
+      <button className="hidden md:flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 w-48 cursor-pointer hover:border-slate-300 transition-colors">
+        <Search className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
+        <span className="text-[13px] text-slate-400 flex-1 text-left select-none">Buscar…</span>
+        <kbd className="text-[10px] text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded font-mono leading-tight">
           ⌘K
         </kbd>
       </button>
 
       {/* Notification bell */}
-      <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#17171F] text-slate-600 hover:text-slate-300 transition-colors">
+      <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
         <Bell className="w-[15px] h-[15px]" />
-        <span className="absolute top-[7px] right-[7px] w-[7px] h-[7px] bg-indigo-500 rounded-full ring-[1.5px] ring-[#0C0C11]" />
+        <span className="absolute top-[7px] right-[7px] w-[7px] h-[7px] bg-indigo-500 rounded-full ring-[1.5px] ring-white" />
       </button>
     </header>
   )

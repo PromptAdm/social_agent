@@ -149,12 +149,12 @@ function IdeaFormModal({ brandId, pillars, initial, onClose }: IdeaFormModalProp
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[560px] shadow-modal animate-fade-up max-h-[90vh] flex flex-col">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[560px] shadow-modal animate-fade-up max-h-[90vh] flex flex-col">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E1E2A] flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 flex-shrink-0">
           <div>
-            <h2 className="text-sm font-semibold text-slate-100">
+            <h2 className="text-sm font-semibold text-slate-900">
               {isEdit ? 'Editar ideia' : 'Nova ideia'}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -162,7 +162,7 @@ function IdeaFormModal({ brandId, pillars, initial, onClose }: IdeaFormModalProp
             </p>
           </div>
           <button onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-[#17171F] transition-colors">
+            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-slate-100 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -286,7 +286,7 @@ function IdeaFormModal({ brandId, pillars, initial, onClose }: IdeaFormModalProp
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A] flex-shrink-0">
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200 flex-shrink-0">
             <button type="button" onClick={onClose} className="btn-ghost">Cancelar</button>
             <button type="submit" disabled={isPending || !title.trim()} className="btn-primary min-w-[120px]">
               {isPending
@@ -315,17 +315,17 @@ interface DeleteIdeaModalProps {
 function DeleteIdeaModal({ idea, onClose, onDelete, loading }: DeleteIdeaModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[400px] shadow-modal animate-fade-up">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[400px] shadow-modal animate-fade-up">
         <div className="px-6 py-5">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg bg-red-950/40 border border-red-900/30 flex items-center justify-center flex-shrink-0">
               <Trash2 className="w-4 h-4 text-red-400" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">Excluir ideia</h2>
+              <h2 className="text-sm font-semibold text-slate-900">Excluir ideia</h2>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                 Tem certeza que deseja excluir{' '}
-                <span className="text-slate-200 font-medium">"{idea.title}"</span>?
+                <span className="text-slate-700 font-medium">"{idea.title}"</span>?
               </p>
             </div>
           </div>
@@ -333,7 +333,7 @@ function DeleteIdeaModal({ idea, onClose, onDelete, loading }: DeleteIdeaModalPr
             <p className="text-[11px] text-red-400 leading-relaxed">Esta ação não pode ser desfeita.</p>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
           <button onClick={onClose} className="btn-ghost">Cancelar</button>
           <button onClick={onDelete} disabled={loading} className="btn-danger min-w-[100px]">
             {loading
@@ -364,7 +364,7 @@ function ConvertToPostModal({ idea, onClose, onConfirm, loading, success }: Conv
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[420px] shadow-modal animate-fade-up">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[420px] shadow-modal animate-fade-up">
         {success ? (
           <>
             <div className="px-6 py-8 flex flex-col items-center text-center gap-3">
@@ -372,13 +372,13 @@ function ConvertToPostModal({ idea, onClose, onConfirm, loading, success }: Conv
                 <Check className="w-5 h-5 text-emerald-400" />
               </div>
               <div>
-                <h2 className="text-sm font-semibold text-slate-100">Post criado com sucesso!</h2>
+                <h2 className="text-sm font-semibold text-slate-900">Post criado com sucesso!</h2>
                 <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                   Um rascunho de post foi gerado a partir da ideia.
                 </p>
               </div>
             </div>
-            <div className="flex items-center justify-center gap-2 px-6 py-4 border-t border-[#1E1E2A]">
+            <div className="flex items-center justify-center gap-2 px-6 py-4 border-t border-slate-200">
               <button onClick={onClose} className="btn-ghost">Fechar</button>
               <button onClick={() => router.push('/posts')} className="btn-primary">
                 <FileText className="w-3.5 h-3.5" />
@@ -394,16 +394,16 @@ function ConvertToPostModal({ idea, onClose, onConfirm, loading, success }: Conv
                   <ArrowRight className="w-4 h-4 text-indigo-400" />
                 </div>
                 <div>
-                  <h2 className="text-sm font-semibold text-slate-100">Converter em post</h2>
+                  <h2 className="text-sm font-semibold text-slate-900">Converter em post</h2>
                   <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                     Isso criará um rascunho de post baseado em{' '}
-                    <span className="text-slate-200 font-medium">"{idea.title}"</span>.
+                    <span className="text-slate-700 font-medium">"{idea.title}"</span>.
                     Você poderá editar o conteúdo antes de publicar.
                   </p>
                 </div>
               </div>
             </div>
-            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
+            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
               <button onClick={onClose} disabled={loading} className="btn-ghost">Cancelar</button>
               <button onClick={onConfirm} disabled={loading} className="btn-primary min-w-[120px]">
                 {loading
@@ -436,13 +436,13 @@ function IdeaDetailPanel({ idea, pillars, onClose, onEdit, onDelete, onConvert }
   const pillarName = pillars.find((p) => p.id === idea.pillar_id)?.name ?? null
 
   return (
-    <div className="w-[340px] border-l border-[#1E1E2A] flex flex-col bg-[#0C0C11] flex-shrink-0">
+    <div className="w-[340px] border-l border-slate-200 flex flex-col bg-white flex-shrink-0">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[#1E1E2A]">
-        <span className="text-[13px] font-semibold text-slate-200">Detalhe</span>
+      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
+        <span className="text-[13px] font-semibold text-slate-700">Detalhe</span>
         <button
           onClick={onClose}
-          className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[#17171F] text-slate-500 hover:text-slate-300 transition-colors"
+          className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-colors"
         >
           <X className="w-4 h-4" />
         </button>
@@ -453,7 +453,7 @@ function IdeaDetailPanel({ idea, pillars, onClose, onEdit, onDelete, onConvert }
 
         {/* Title */}
         <div>
-          <h3 className="text-[13px] font-semibold text-slate-100 leading-snug">
+          <h3 className="text-[13px] font-semibold text-slate-900 leading-snug">
             {idea.title}
           </h3>
           <p className="text-[11px] text-slate-500 mt-1">{formatRelative(idea.created_at)}</p>
@@ -505,7 +505,7 @@ function IdeaDetailPanel({ idea, pillars, onClose, onEdit, onDelete, onConvert }
               {idea.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="px-2 py-0.5 text-[11px] bg-[#17171F] border border-[#27273A] rounded text-slate-500"
+                  className="px-2 py-0.5 text-[11px] bg-slate-100 border border-slate-300 rounded text-slate-500"
                 >
                   #{tag}
                 </span>
@@ -516,7 +516,7 @@ function IdeaDetailPanel({ idea, pillars, onClose, onEdit, onDelete, onConvert }
       </div>
 
       {/* Footer actions */}
-      <div className="p-4 border-t border-[#1E1E2A] space-y-2">
+      <div className="p-4 border-t border-slate-200 space-y-2">
         <button
           onClick={onConvert}
           className="btn-primary w-full justify-center"
@@ -533,7 +533,7 @@ function IdeaDetailPanel({ idea, pillars, onClose, onEdit, onDelete, onConvert }
             onClick={onDelete}
             className={cn(
               'btn',
-              'bg-transparent border border-[#27273A] text-slate-500',
+              'bg-transparent border border-slate-300 text-slate-500',
               'hover:border-red-900/50 hover:text-red-400 hover:bg-red-950/20',
               'transition-colors',
             )}
@@ -572,27 +572,27 @@ function RowMenu({ onEdit, onDelete, onConvert }: RowMenuProps) {
     <div ref={ref} className="relative">
       <button
         onClick={(e) => { e.stopPropagation(); setOpen((v) => !v) }}
-        className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-[#17171F] transition-colors"
+        className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-slate-100 transition-colors"
       >
         <MoreHorizontal className="w-4 h-4" />
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 w-44 bg-[#111118] border border-[#27273A] rounded-lg shadow-modal z-20 animate-fade-up overflow-hidden">
+        <div className="absolute right-0 top-full mt-1 w-44 bg-slate-50 border border-slate-300 rounded-lg shadow-modal z-20 animate-fade-up overflow-hidden">
           <button
             onClick={(e) => { e.stopPropagation(); setOpen(false); onConvert() }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-300 hover:bg-[#17171F] hover:text-slate-100 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
           >
             <ArrowRight className="w-3.5 h-3.5 text-indigo-400" />
             Converter em post
           </button>
           <button
             onClick={(e) => { e.stopPropagation(); setOpen(false); onEdit() }}
-            className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-300 hover:bg-[#17171F] hover:text-slate-100 transition-colors"
+            className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
           >
             <Pencil className="w-3.5 h-3.5 text-slate-500" />
             Editar
           </button>
-          <div className="border-t border-[#1E1E2A] my-0.5" />
+          <div className="border-t border-slate-200 my-0.5" />
           <button
             onClick={(e) => { e.stopPropagation(); setOpen(false); onDelete() }}
             className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-red-950/40 transition-colors"
@@ -744,7 +744,7 @@ export default function IdeasPage() {
           {/* Filters */}
           <div className="flex items-center gap-3 mb-5 flex-wrap">
             {/* Status tabs */}
-            <div className="flex items-center gap-0.5 bg-[#111118] border border-[#27273A] rounded-lg p-1">
+            <div className="flex items-center gap-0.5 bg-slate-50 border border-slate-300 rounded-lg p-1">
               {(['all', 'ideia', 'rascunho', 'arquivado'] as const).map((s) => (
                 <button
                   key={s}
@@ -753,7 +753,7 @@ export default function IdeasPage() {
                     'px-3 py-1 rounded-md text-[12px] font-medium transition-colors',
                     statusFilter === s
                       ? 'bg-indigo-600 text-white'
-                      : 'text-slate-500 hover:text-slate-300',
+                      : 'text-slate-500 hover:text-slate-700',
                   )}
                 >
                   {s === 'all' ? 'Todos' : STATUS_LABELS[s as IdeaStatus]}
@@ -801,11 +801,11 @@ export default function IdeasPage() {
           {isLoading ? (
             <div className="card overflow-hidden animate-pulse">
               {[0,1,2,3,4].map((i) => (
-                <div key={i} className="flex items-center gap-4 px-4 py-3.5 border-b border-[#1E1E2A] last:border-0">
-                  <div className="h-3 bg-[#17171F] rounded flex-1" />
-                  <div className="h-3 bg-[#17171F] rounded w-16" />
-                  <div className="h-3 bg-[#17171F] rounded w-16" />
-                  <div className="h-3 bg-[#17171F] rounded w-16" />
+                <div key={i} className="flex items-center gap-4 px-4 py-3.5 border-b border-slate-200 last:border-0">
+                  <div className="h-3 bg-slate-100 rounded flex-1" />
+                  <div className="h-3 bg-slate-100 rounded w-16" />
+                  <div className="h-3 bg-slate-100 rounded w-16" />
+                  <div className="h-3 bg-slate-100 rounded w-16" />
                 </div>
               ))}
             </div>
@@ -851,7 +851,7 @@ export default function IdeasPage() {
                         )}
                       >
                         <td className="table-td">
-                          <p className="text-[13px] text-slate-200 font-medium line-clamp-1">
+                          <p className="text-[13px] text-slate-700 font-medium line-clamp-1">
                             {idea.title}
                           </p>
                           {pillarName && (

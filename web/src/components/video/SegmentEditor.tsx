@@ -119,7 +119,7 @@ export function SegmentEditor({
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-[18px] font-semibold text-slate-100">Revise as legendas</h2>
+          <h2 className="text-[18px] font-semibold text-slate-900">Revise as legendas</h2>
           <p className="text-[13px] text-slate-500 mt-1">
             Clique em qualquer bloco para editar o texto. Salve antes de gerar o vídeo.
           </p>
@@ -128,7 +128,7 @@ export function SegmentEditor({
           {dirty && (
             <button
               onClick={handleReset}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] text-slate-500 hover:text-slate-300 hover:bg-[#17171F] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[13px] text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               Desfazer
@@ -140,8 +140,8 @@ export function SegmentEditor({
             className={cn(
               'flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-[13px] font-medium transition-all',
               dirty
-                ? 'bg-[#17171F] border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600/10'
-                : 'bg-[#17171F] border border-[#27273A] text-slate-600 cursor-not-allowed',
+                ? 'bg-slate-100 border border-indigo-500/30 text-indigo-400 hover:bg-indigo-600/10'
+                : 'bg-slate-100 border border-slate-300 text-slate-600 cursor-not-allowed',
             )}
           >
             {isSaving ? (
@@ -176,14 +176,14 @@ export function SegmentEditor({
                     if (e.key === 'Escape') cancelEdit()
                   }}
                   rows={2}
-                  className="w-full bg-transparent text-[14px] text-slate-100 resize-none outline-none leading-relaxed"
+                  className="w-full bg-transparent text-[14px] text-slate-900 resize-none outline-none leading-relaxed"
                 />
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-[11px] text-indigo-500/70">Enter para confirmar · Esc para cancelar</span>
                   <div className="flex gap-2">
                     <button
                       onClick={cancelEdit}
-                      className="px-2.5 py-1 rounded-lg text-[12px] text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-colors"
+                      className="px-2.5 py-1 rounded-lg text-[12px] text-slate-500 hover:text-slate-700 hover:bg-white/5 transition-colors"
                     >
                       Cancelar
                     </button>
@@ -199,14 +199,14 @@ export function SegmentEditor({
             ) : (
               /* View mode */
               <div
-                className="flex items-start gap-3 px-4 py-3 bg-[#0F0F17] border border-[#1E1E2A] hover:border-[#2A2A38] rounded-xl cursor-pointer transition-all group"
+                className="flex items-start gap-3 px-4 py-3 bg-white border border-slate-200 hover:border-slate-300 rounded-xl cursor-pointer transition-all group"
                 onClick={() => startEdit(idx)}
               >
                 <span className="text-[10px] font-bold text-slate-700 mt-0.5 w-5 flex-shrink-0 text-right">
                   {seg.index}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[13px] text-slate-300 leading-relaxed">
+                  <p className="text-[13px] text-slate-600 leading-relaxed">
                     {seg.text || <span className="text-slate-700 italic">Texto vazio</span>}
                   </p>
                   <p className="text-[11px] text-slate-700 mt-0.5">
@@ -261,7 +261,7 @@ export function SegmentEditor({
             'flex-1 h-12 rounded-xl text-[15px] font-semibold transition-all flex items-center justify-center gap-2',
             !isRendering
               ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 hover:-translate-y-0.5'
-              : 'bg-[#17171F] text-slate-600 border border-[#27273A] cursor-not-allowed',
+              : 'bg-slate-100 text-slate-600 border border-slate-300 cursor-not-allowed',
           )}
         >
           {isRendering ? (

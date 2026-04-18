@@ -38,7 +38,7 @@ export function DownloadPanel({ status, onNewProject }: DownloadPanelProps) {
 
       {/* Title */}
       <div>
-        <h2 className="text-[22px] font-semibold text-slate-100 mb-2">
+        <h2 className="text-[22px] font-semibold text-slate-900 mb-2">
           {hasVideo ? 'Vídeo pronto!' : 'Legendas prontas!'}
         </h2>
         <p className="text-[14px] text-slate-500">
@@ -76,13 +76,13 @@ export function DownloadPanel({ status, onNewProject }: DownloadPanelProps) {
             className={cn(
               'w-full flex items-center gap-3 px-5 py-4 rounded-2xl transition-all border',
               hasVideo
-                ? 'bg-[#0F0F17] border-[#1E1E2A] hover:border-[#2A2A38] text-slate-300 hover:text-slate-100'
+                ? 'bg-white border-slate-200 hover:border-slate-300 text-slate-600 hover:text-slate-900'
                 : 'bg-emerald-500/8 border-emerald-500/25 text-emerald-300 hover:bg-emerald-500/12',
             )}
           >
             <div className={cn(
               'w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0',
-              hasVideo ? 'bg-[#17171F] border border-[#27273A]' : 'bg-emerald-500/15',
+              hasVideo ? 'bg-slate-100 border border-slate-300' : 'bg-emerald-500/15',
             )}>
               <FileText className="w-4 h-4" />
             </div>
@@ -110,8 +110,8 @@ export function DownloadPanel({ status, onNewProject }: DownloadPanelProps) {
           { label: 'Créditos',  value: `${status.project.credits_cost}` },
           { label: 'Segmentos', value: status.segments ? String(status.segments.length) : '—' },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-[#0F0F17] border border-[#1E1E2A] rounded-xl py-3 px-2">
-            <p className="text-[18px] font-bold text-slate-100">{value}</p>
+          <div key={label} className="bg-white border border-slate-200 rounded-xl py-3 px-2">
+            <p className="text-[18px] font-bold text-slate-900">{value}</p>
             <p className="text-[11px] text-slate-600 mt-0.5">{label}</p>
           </div>
         ))}
@@ -120,7 +120,7 @@ export function DownloadPanel({ status, onNewProject }: DownloadPanelProps) {
       {/* New project */}
       <button
         onClick={onNewProject}
-        className="flex items-center gap-2 mx-auto px-5 py-2.5 rounded-xl border border-[#27273A] text-[13px] font-medium text-slate-400 hover:text-slate-200 hover:border-[#3A3A50] transition-all"
+        className="flex items-center gap-2 mx-auto px-5 py-2.5 rounded-xl border border-slate-300 text-[13px] font-medium text-slate-400 hover:text-slate-700 hover:border-slate-300 transition-all"
       >
         <RotateCcw className="w-3.5 h-3.5" />
         Novo vídeo

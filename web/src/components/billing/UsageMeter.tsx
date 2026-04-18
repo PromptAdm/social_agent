@@ -35,7 +35,7 @@ export function UsageMeter({ label, used, limit, className }: UsageMeterProps) {
 
       {/* Bar */}
       {!unlimited && (
-        <div className="h-[3px] w-full bg-[#1A1A24] rounded-full overflow-hidden">
+        <div className="h-[3px] w-full bg-slate-100 rounded-full overflow-hidden">
           <div
             className={cn('h-full rounded-full transition-all duration-500', barColor(pct))}
             style={{ width: `${pct}%` }}

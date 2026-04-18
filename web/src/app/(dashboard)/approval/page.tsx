@@ -79,13 +79,13 @@ function RejectModal({ onConfirm, onClose }: RejectModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[480px] shadow-2xl animate-fade-in">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E1E2A]">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[480px] shadow-2xl animate-fade-in">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <div>
-            <h3 className="text-sm font-semibold text-slate-100">Rejeitar post</h3>
+            <h3 className="text-sm font-semibold text-slate-900">Rejeitar post</h3>
             <p className="text-xs text-slate-500 mt-0.5">O motivo será enviado ao editor responsável.</p>
           </div>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-[#17171F] transition-colors">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-slate-100 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -95,13 +95,13 @@ function RejectModal({ onConfirm, onClose }: RejectModalProps) {
             onChange={(e) => setReason(e.target.value)}
             rows={4}
             placeholder="Ex.: Caption muito longa, revisar hashtags, CTA pouco claro..."
-            className="w-full bg-[#17171F] border border-[#27273A] rounded-md px-3 py-2.5 text-sm text-slate-200 placeholder-slate-600 resize-none focus:outline-none focus:border-indigo-500 transition-colors"
+            className="w-full bg-slate-100 border border-slate-300 rounded-md px-3 py-2.5 text-sm text-slate-700 placeholder-slate-600 resize-none focus:outline-none focus:border-indigo-500 transition-colors"
             autoFocus
           />
           <p className="text-[10px] text-slate-700 mt-1.5 text-right">{reason.length} caracteres</p>
         </div>
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-slate-700 transition-colors">
             Cancelar
           </button>
           <button
@@ -131,13 +131,13 @@ function EditModal({ post, onConfirm, onClose }: EditModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[560px] shadow-2xl animate-fade-in">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E1E2A]">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[560px] shadow-2xl animate-fade-in">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <div>
-            <h3 className="text-sm font-semibold text-slate-100">Editar post</h3>
+            <h3 className="text-sm font-semibold text-slate-900">Editar post</h3>
             <p className="text-xs text-slate-500 mt-0.5">Salvar retorna o post à fila com as alterações.</p>
           </div>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-[#17171F] transition-colors">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-slate-100 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -150,7 +150,7 @@ function EditModal({ post, onConfirm, onClose }: EditModalProps) {
               value={caption}
               onChange={(e) => setCaption(e.target.value)}
               rows={6}
-              className="w-full bg-[#17171F] border border-[#27273A] rounded-md px-3 py-2.5 text-sm text-slate-200 resize-none focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed"
+              className="w-full bg-slate-100 border border-slate-300 rounded-md px-3 py-2.5 text-sm text-slate-700 resize-none focus:outline-none focus:border-indigo-500 transition-colors leading-relaxed"
               autoFocus
             />
             <p className="text-[10px] text-slate-600 mt-1 text-right">{caption.length} caracteres</p>
@@ -168,7 +168,7 @@ function EditModal({ post, onConfirm, onClose }: EditModalProps) {
                     'flex-1 py-1.5 rounded-md text-xs font-medium border transition-colors',
                     prioridade === p
                       ? 'bg-indigo-600 border-indigo-500 text-white'
-                      : 'bg-[#17171F] border-[#27273A] text-slate-400 hover:text-slate-200 hover:border-[#3F3F56]'
+                      : 'bg-slate-100 border-slate-300 text-slate-400 hover:text-slate-700 hover:border-slate-300'
                   )}
                 >
                   {PRIORITY_LABEL[p]}
@@ -177,8 +177,8 @@ function EditModal({ post, onConfirm, onClose }: EditModalProps) {
             </div>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-slate-700 transition-colors">
             Cancelar
           </button>
           <button
@@ -221,13 +221,13 @@ function ScheduleModal({ onConfirm, onClose }: ScheduleModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[420px] shadow-2xl animate-fade-in">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E1E2A]">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[420px] shadow-2xl animate-fade-in">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <div>
-            <h3 className="text-sm font-semibold text-slate-100">Agendar publicação</h3>
+            <h3 className="text-sm font-semibold text-slate-900">Agendar publicação</h3>
             <p className="text-xs text-slate-500 mt-0.5">O post será aprovado e agendado automaticamente.</p>
           </div>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-[#17171F] transition-colors">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-slate-100 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -241,7 +241,7 @@ function ScheduleModal({ onConfirm, onClose }: ScheduleModalProps) {
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-[#17171F] border border-[#27273A] rounded-md px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full bg-slate-100 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
             <div>
@@ -252,7 +252,7 @@ function ScheduleModal({ onConfirm, onClose }: ScheduleModalProps) {
                 type="time"
                 value={time}
                 onChange={(e) => setTime(e.target.value)}
-                className="w-full bg-[#17171F] border border-[#27273A] rounded-md px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors"
+                className="w-full bg-slate-100 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-indigo-500 transition-colors"
               />
             </div>
           </div>
@@ -263,8 +263,8 @@ function ScheduleModal({ onConfirm, onClose }: ScheduleModalProps) {
             </div>
           )}
         </div>
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-slate-700 transition-colors">
             Cancelar
           </button>
           <button
@@ -290,7 +290,7 @@ function PostPreview({ post }: { post: Post }) {
 
   return (
     <div className="w-full max-w-[400px] mx-auto select-none">
-      <div className="bg-[#0A0A0F] border border-[#27273A] rounded-2xl overflow-hidden shadow-2xl">
+      <div className="bg-white border border-slate-300 rounded-2xl overflow-hidden shadow-2xl">
         {/* Platform header */}
         <div className={cn('px-4 py-3 flex items-center justify-between bg-gradient-to-r', PLATFORM_GRADIENT[post.platform])}>
           <div className="flex items-center gap-2.5">
@@ -307,7 +307,7 @@ function PostPreview({ post }: { post: Post }) {
 
         {/* Media placeholder */}
         <div className={cn('h-52 bg-gradient-to-br relative flex items-center justify-center', PLATFORM_GRADIENT[post.platform])}>
-          <div className="absolute inset-0 bg-[#050508]/50" />
+          <div className="absolute inset-0 bg-black/5" />
           <div className="relative z-10 text-center space-y-1.5">
             <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
               <span className="text-2xl">{FORMAT_ICON[post.formato] ?? '🖼'}</span>
@@ -317,7 +317,7 @@ function PostPreview({ post }: { post: Post }) {
         </div>
 
         {/* Content area */}
-        <div className="px-4 py-3.5 space-y-3 bg-[#0D0D15]">
+        <div className="px-4 py-3.5 space-y-3 bg-slate-50">
           {/* Engagement icons */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3.5">
@@ -331,14 +331,14 @@ function PostPreview({ post }: { post: Post }) {
                   <Heart className="w-4 h-4" />
                 </button>
               )}
-              <button className="text-slate-500 hover:text-slate-300 transition-colors">
+              <button className="text-slate-500 hover:text-slate-700 transition-colors">
                 <MessageCircle className="w-4 h-4" />
               </button>
-              <button className="text-slate-500 hover:text-slate-300 transition-colors">
+              <button className="text-slate-500 hover:text-slate-700 transition-colors">
                 <Send className="w-4 h-4" />
               </button>
             </div>
-            <button className="text-slate-500 hover:text-slate-300 transition-colors">
+            <button className="text-slate-500 hover:text-slate-700 transition-colors">
               <Bookmark className="w-4 h-4" />
             </button>
           </div>
@@ -347,8 +347,8 @@ function PostPreview({ post }: { post: Post }) {
           <p className="text-[11px] font-semibold text-slate-400">{likes.toLocaleString('pt-BR')} curtidas</p>
 
           {/* Caption */}
-          <div className="text-xs text-slate-200 leading-relaxed">
-            <span className="font-semibold text-slate-100">minha_marca</span>{' '}
+          <div className="text-xs text-slate-700 leading-relaxed">
+            <span className="font-semibold text-slate-900">minha_marca</span>{' '}
             <span className="whitespace-pre-line line-clamp-6">{post.caption}</span>
           </div>
 
@@ -498,11 +498,11 @@ export default function ApprovalPage() {
       <div className="flex h-full">
 
         {/* ── Left: Queue list ───────────────────────────────────────────────── */}
-        <div className="w-[296px] border-r border-[#1E1E2A] flex flex-col flex-shrink-0">
+        <div className="w-[296px] border-r border-slate-200 flex flex-col flex-shrink-0">
           {/* Header */}
-          <div className="px-4 py-3.5 border-b border-[#1E1E2A] flex-shrink-0">
+          <div className="px-4 py-3.5 border-b border-slate-200 flex-shrink-0">
             <div className="flex items-center justify-between">
-              <h1 className="text-sm font-semibold text-slate-100">Fila de Aprovação</h1>
+              <h1 className="text-sm font-semibold text-slate-900">Fila de Aprovação</h1>
               {queue.length > 0 && (
                 <span className="text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25 px-2 py-0.5 rounded-full">
                   {queue.length}
@@ -517,7 +517,7 @@ export default function ApprovalPage() {
           </div>
 
           {/* Keyboard hints */}
-          <div className="px-4 py-2 border-b border-[#1E1E2A] bg-[#0A0A0F]/60 flex-shrink-0">
+          <div className="px-4 py-2 border-b border-slate-200 bg-white/60 flex-shrink-0">
             <div className="flex flex-wrap gap-x-3 gap-y-1">
               {[
                 { key: 'A', label: 'Aprovar' },
@@ -527,7 +527,7 @@ export default function ApprovalPage() {
                 { key: '← →', label: 'Navegar' },
               ].map(({ key, label }) => (
                 <span key={key} className="flex items-center gap-1 text-[10px] text-slate-700">
-                  <kbd className="bg-[#17171F] border border-[#27273A] px-1.5 py-0.5 rounded font-mono text-[9px] text-slate-500 leading-tight">
+                  <kbd className="bg-slate-100 border border-slate-300 px-1.5 py-0.5 rounded font-mono text-[9px] text-slate-500 leading-tight">
                     {key}
                   </kbd>
                   {label}
@@ -544,7 +544,7 @@ export default function ApprovalPage() {
                   <CheckCheck className="w-6 h-6 text-emerald-500" />
                 </div>
                 <div>
-                  <p className="text-sm font-semibold text-slate-300">Tudo aprovado!</p>
+                  <p className="text-sm font-semibold text-slate-600">Tudo aprovado!</p>
                   <p className="text-xs text-slate-600 mt-0.5">Nenhum post aguardando revisão.</p>
                 </div>
               </div>
@@ -556,8 +556,8 @@ export default function ApprovalPage() {
                     key={post.id}
                     onClick={() => setSelectedId(post.id)}
                     className={cn(
-                      'w-full text-left px-4 py-3 border-b border-[#1E1E2A] transition-all relative',
-                      isSelected ? 'bg-indigo-600/10' : 'hover:bg-[#17171F]'
+                      'w-full text-left px-4 py-3 border-b border-slate-200 transition-all relative',
+                      isSelected ? 'bg-indigo-600/10' : 'hover:bg-slate-100'
                     )}
                   >
                     {isSelected && (
@@ -566,7 +566,7 @@ export default function ApprovalPage() {
                     <div className="flex items-start gap-2.5">
                       <span className={cn('w-1.5 h-1.5 rounded-full mt-[5px] flex-shrink-0', PRIORITY_DOT[post.prioridade])} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[11px] text-slate-200 line-clamp-2 leading-snug mb-1.5">
+                        <p className="text-[11px] text-slate-700 line-clamp-2 leading-snug mb-1.5">
                           {post.caption}
                         </p>
                         <div className="flex items-center gap-1.5 flex-wrap">
@@ -590,11 +590,11 @@ export default function ApprovalPage() {
         </div>
 
         {/* ── Center: Social preview ────────────────────────────────────────── */}
-        <div className="flex-1 flex flex-col min-w-0 border-r border-[#1E1E2A]">
+        <div className="flex-1 flex flex-col min-w-0 border-r border-slate-200">
           {selectedPost ? (
             <>
               {/* Preview header bar */}
-              <div className="px-6 py-3 border-b border-[#1E1E2A] flex items-center justify-between flex-shrink-0">
+              <div className="px-6 py-3 border-b border-slate-200 flex items-center justify-between flex-shrink-0">
                 <div className="flex items-center gap-2">
                   <span className={cn('text-[11px] font-semibold px-2.5 py-1 rounded-full border', PLATFORM_BADGE[selectedPost.platform])}>
                     {PLATFORM_LABEL[selectedPost.platform]}
@@ -605,7 +605,7 @@ export default function ApprovalPage() {
                   <button
                     onClick={() => navigate('prev')}
                     disabled={selectedIndex <= 0}
-                    className="w-7 h-7 flex items-center justify-center rounded hover:bg-[#17171F] text-slate-500 hover:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 text-slate-500 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </button>
@@ -615,7 +615,7 @@ export default function ApprovalPage() {
                   <button
                     onClick={() => navigate('next')}
                     disabled={selectedIndex >= queue.length - 1}
-                    className="w-7 h-7 flex items-center justify-center rounded hover:bg-[#17171F] text-slate-500 hover:text-slate-300 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                    className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 text-slate-500 hover:text-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </button>
@@ -633,7 +633,7 @@ export default function ApprovalPage() {
                 <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
                   <CheckCheck className="w-8 h-8 text-emerald-500" />
                 </div>
-                <p className="text-sm font-semibold text-slate-300">
+                <p className="text-sm font-semibold text-slate-600">
                   {allDone ? 'Tudo em dia!' : 'Selecione um post para revisar'}
                 </p>
                 <p className="text-xs text-slate-600 mt-1">
@@ -650,7 +650,7 @@ export default function ApprovalPage() {
         <div className="w-[256px] flex flex-col flex-shrink-0">
           {selectedPost ? (
             <>
-              <div className="px-4 py-3.5 border-b border-[#1E1E2A] flex-shrink-0">
+              <div className="px-4 py-3.5 border-b border-slate-200 flex-shrink-0">
                 <h2 className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Ações do revisor</h2>
               </div>
 
@@ -678,34 +678,34 @@ export default function ApprovalPage() {
 
                 {/* Divider */}
                 <div className="py-1">
-                  <div className="border-t border-[#1E1E2A]" />
+                  <div className="border-t border-slate-200" />
                 </div>
 
                 {/* Schedule */}
                 <button
                   onClick={() => setModal('schedule')}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-[#17171F] hover:bg-[#1E1E2A] border border-[#27273A] hover:border-[#3F3F56] text-slate-300 text-sm font-medium rounded-lg transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 hover:border-slate-300 text-slate-600 text-sm font-medium rounded-lg transition-colors"
                 >
                   <Calendar className="w-4 h-4 flex-shrink-0 text-indigo-400" />
                   <span className="flex-1 text-left">Agendar</span>
-                  <kbd className="text-[10px] text-slate-600 bg-[#27273A] px-1.5 py-0.5 rounded font-mono">S</kbd>
+                  <kbd className="text-[10px] text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded font-mono">S</kbd>
                 </button>
 
                 {/* Edit */}
                 <button
                   onClick={() => setModal('edit')}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-[#17171F] hover:bg-[#1E1E2A] border border-[#27273A] hover:border-[#3F3F56] text-slate-300 text-sm font-medium rounded-lg transition-colors"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 hover:border-slate-300 text-slate-600 text-sm font-medium rounded-lg transition-colors"
                 >
                   <Pencil className="w-4 h-4 flex-shrink-0 text-amber-400" />
                   <span className="flex-1 text-left">Editar</span>
-                  <kbd className="text-[10px] text-slate-600 bg-[#27273A] px-1.5 py-0.5 rounded font-mono">E</kbd>
+                  <kbd className="text-[10px] text-slate-600 bg-slate-200 px-1.5 py-0.5 rounded font-mono">E</kbd>
                 </button>
 
                 {/* Duplicate */}
                 <button
                   onClick={handleDuplicate}
                   disabled={duplicatePost.isPending}
-                  className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-[#17171F] hover:bg-[#1E1E2A] border border-[#27273A] hover:border-[#3F3F56] text-slate-300 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
+                  className="w-full flex items-center gap-2.5 px-3 py-2.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 hover:border-slate-300 text-slate-600 text-sm font-medium rounded-lg transition-colors disabled:opacity-50"
                 >
                   <Copy className="w-4 h-4 flex-shrink-0 text-slate-500" />
                   <span className="flex-1 text-left">Duplicar</span>
@@ -713,7 +713,7 @@ export default function ApprovalPage() {
 
                 {/* Post metadata card */}
                 <div className="pt-2">
-                  <div className="bg-[#0E0E16] border border-[#1E1E2A] rounded-xl p-3.5 space-y-3">
+                  <div className="bg-slate-50 border border-slate-200 rounded-xl p-3.5 space-y-3">
                     <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider">Detalhes</p>
                     <div className="space-y-2.5">
                       {[
@@ -725,7 +725,7 @@ export default function ApprovalPage() {
                         {
                           label: 'Formato',
                           value: FORMAT_LABEL[selectedPost.formato],
-                          className: 'text-slate-300',
+                          className: 'text-slate-600',
                         },
                         {
                           label: 'Prioridade',

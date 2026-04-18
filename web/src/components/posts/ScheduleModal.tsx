@@ -120,22 +120,22 @@ export function ScheduleModal({ post, onClose }: ScheduleModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div
-        className="bg-[#111118] border border-[#27273A] rounded-xl w-full max-w-[480px] shadow-modal animate-fade-up"
+        className="bg-slate-50 border border-slate-300 rounded-xl w-full max-w-[480px] shadow-modal animate-fade-up"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E1E2A]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-blue-600/15 border border-blue-500/20 flex items-center justify-center">
               <CalendarClock className="w-4 h-4 text-blue-400" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">Agendar publicação</h2>
+              <h2 className="text-sm font-semibold text-slate-900">Agendar publicação</h2>
               <p className="text-[11px] text-slate-500 truncate max-w-[260px]">{post.caption}</p>
             </div>
           </div>
           <button onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-300 hover:bg-[#17171F] transition-colors">
+            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-700 hover:bg-slate-100 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -156,7 +156,7 @@ export function ScheduleModal({ post, onClose }: ScheduleModalProps) {
                       'px-3 py-2 rounded-lg text-[12px] font-medium border text-left transition-all',
                       dateValue === opt.value
                         ? 'bg-blue-600/20 border-blue-500/40 text-blue-300'
-                        : 'bg-[#0C0C11] border-[#27273A] text-slate-400 hover:text-slate-200 hover:border-[#3F3F56]',
+                        : 'bg-white border-slate-300 text-slate-400 hover:text-slate-700 hover:border-slate-300',
                     )}
                   >
                     {opt.label}
@@ -167,9 +167,9 @@ export function ScheduleModal({ post, onClose }: ScheduleModalProps) {
 
             {/* Divider */}
             <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-[#1E1E2A]" />
+              <div className="flex-1 h-px bg-slate-200" />
               <span className="text-[10px] text-slate-700 uppercase tracking-wide">ou escolha</span>
-              <div className="flex-1 h-px bg-[#1E1E2A]" />
+              <div className="flex-1 h-px bg-slate-200" />
             </div>
 
             {/* Manual datetime */}
@@ -208,7 +208,7 @@ export function ScheduleModal({ post, onClose }: ScheduleModalProps) {
             )}
           </div>
 
-          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
             <button type="button" onClick={onClose} className="btn-ghost">Cancelar</button>
             <button
               type="submit"

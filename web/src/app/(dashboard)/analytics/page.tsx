@@ -48,13 +48,13 @@ export default function AnalyticsPage() {
     <div className="p-8 max-w-[1300px] space-y-7">
       <PageHeader title="Analytics" subtitle="Desempenho do seu conteúdo nas redes sociais.">
         {/* Period selector */}
-        <div className="flex items-center gap-1 bg-[#111118] border border-[#27273A] rounded-md p-1">
+        <div className="flex items-center gap-1 bg-slate-50 border border-slate-300 rounded-md p-1">
           {PERIODS.map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
               className={`px-3 py-1 rounded text-xs font-medium transition-colors ${
-                period === p ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-300'
+                period === p ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
               {p}
@@ -80,9 +80,9 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-[1fr_320px] gap-4">
         {/* Engagement trend — built from snapshots */}
         <div className="card p-5">
-          <h3 className="text-sm font-semibold text-slate-200 mb-5">Engajamento por Snapshot</h3>
+          <h3 className="text-sm font-semibold text-slate-700 mb-5">Engajamento por Snapshot</h3>
           {snapshotsLoading ? (
-            <div className="h-32 animate-pulse bg-[#1E1E2A] rounded" />
+            <div className="h-32 animate-pulse bg-slate-200 rounded" />
           ) : snapshots.length === 0 ? (
             <div className="h-32 flex items-center justify-center text-sm text-slate-600">
               Sem dados de snapshot disponíveis.
@@ -101,7 +101,7 @@ export default function AnalyticsPage() {
                           className="w-full max-w-[32px] bg-indigo-600/30 hover:bg-indigo-500/50 border border-indigo-600/40 rounded-t transition-colors"
                           style={{ height: `${height}%`, minHeight: '4px' }}
                         />
-                        <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-[#17171F] border border-[#27273A] rounded px-1.5 py-0.5 text-[10px] text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                        <div className="absolute -top-7 left-1/2 -translate-x-1/2 bg-slate-100 border border-slate-300 rounded px-1.5 py-0.5 text-[10px] text-slate-600 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
                           {engPct.toFixed(1)}%
                         </div>
                       </div>
@@ -110,7 +110,7 @@ export default function AnalyticsPage() {
                   )
                 })}
               </div>
-              <div className="mt-4 pt-4 border-t border-[#1E1E2A] flex items-center gap-4">
+              <div className="mt-4 pt-4 border-t border-slate-200 flex items-center gap-4">
                 <div className="flex items-center gap-1.5 text-xs text-emerald-400">
                   <TrendingUp className="w-3.5 h-3.5" />
                   <span>Taxa geral: {summary ? `${(summary.engagement_rate * 100).toFixed(1)}%` : '—'}</span>
@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
 
         {/* Platform breakdown */}
         <div className="card p-5">
-          <h3 className="text-sm font-semibold text-slate-200 mb-5">Alcance por Plataforma</h3>
+          <h3 className="text-sm font-semibold text-slate-700 mb-5">Alcance por Plataforma</h3>
           <div className="space-y-4">
             {platforms.length === 0 ? (
               <p className="text-sm text-slate-600 py-4 text-center">Sem dados de plataforma.</p>
@@ -131,17 +131,17 @@ export default function AnalyticsPage() {
               return (
                 <div key={p.name}>
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-xs font-medium text-slate-300 capitalize">{p.name}</span>
+                    <span className="text-xs font-medium text-slate-600 capitalize">{p.name}</span>
                     <div className="flex items-center gap-3">
                       <span className="text-[11px] text-slate-500">
                         Eng. {engRate}%
                       </span>
-                      <span className="text-xs font-semibold text-slate-200">
+                      <span className="text-xs font-semibold text-slate-700">
                         {(p.reach / 1000).toFixed(1)}K
                       </span>
                     </div>
                   </div>
-                  <div className="h-1.5 bg-[#1E1E2A] rounded-full overflow-hidden">
+                  <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full ${PLATFORM_BAR[p.name] ?? 'bg-slate-600'}`}
                       style={{ width: `${(p.reach / maxReach) * 100}%` }}
@@ -152,7 +152,7 @@ export default function AnalyticsPage() {
             })}
           </div>
 
-          <div className="mt-5 pt-4 border-t border-[#1E1E2A] space-y-2">
+          <div className="mt-5 pt-4 border-t border-slate-200 space-y-2">
             <h4 className="text-[10px] font-semibold uppercase tracking-widest text-slate-600">
               Por Formato
             </h4>
@@ -164,7 +164,7 @@ export default function AnalyticsPage() {
             ].map((f) => (
               <div key={f.label} className="flex items-center gap-2">
                 <span className="text-[11px] text-slate-500 w-16">{f.label}</span>
-                <div className="flex-1 h-1 bg-[#1E1E2A] rounded-full overflow-hidden">
+                <div className="flex-1 h-1 bg-slate-200 rounded-full overflow-hidden">
                   <div className="h-full bg-indigo-500/60 rounded-full" style={{ width: `${f.bar}%` }} />
                 </div>
                 <span className="text-[11px] text-slate-400 w-8 text-right">{f.value}</span>
@@ -176,7 +176,7 @@ export default function AnalyticsPage() {
 
       {/* Snapshots table */}
       <div>
-        <h2 className="text-sm font-semibold text-slate-300 mb-3">Snapshots por Plataforma</h2>
+        <h2 className="text-sm font-semibold text-slate-600 mb-3">Snapshots por Plataforma</h2>
         <div className="card overflow-hidden">
           <table className="w-full">
             <thead>
@@ -204,13 +204,13 @@ export default function AnalyticsPage() {
                     </span>
                   </td>
                   <td className="table-td">
-                    <span className="text-sm text-slate-300">{s.followers.toLocaleString('pt-BR')}</span>
+                    <span className="text-sm text-slate-600">{s.followers.toLocaleString('pt-BR')}</span>
                   </td>
                   <td className="table-td">
-                    <span className="text-sm text-slate-300">{s.reach.toLocaleString('pt-BR')}</span>
+                    <span className="text-sm text-slate-600">{s.reach.toLocaleString('pt-BR')}</span>
                   </td>
                   <td className="table-td">
-                    <span className="text-sm text-slate-300">{s.engagement.toLocaleString('pt-BR')}</span>
+                    <span className="text-sm text-slate-600">{s.engagement.toLocaleString('pt-BR')}</span>
                   </td>
                   <td className="table-td">
                     <span className="text-sm text-slate-400">{s.posts_count}</span>

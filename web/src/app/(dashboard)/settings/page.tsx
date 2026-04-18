@@ -16,7 +16,7 @@ function Section({ title, description, children }: {
   return (
     <div className="grid grid-cols-[240px_1fr] gap-8">
       <div>
-        <h3 className="text-sm font-semibold text-slate-200">{title}</h3>
+        <h3 className="text-sm font-semibold text-slate-700">{title}</h3>
         {description && (
           <p className="text-xs text-slate-500 mt-1 leading-relaxed">{description}</p>
         )}
@@ -27,7 +27,7 @@ function Section({ title, description, children }: {
 }
 
 function Divider() {
-  return <div className="border-t border-[#1E1E2A]" />
+  return <div className="border-t border-slate-200" />
 }
 
 // ── Toast inline ──────────────────────────────────────────────────────────────
@@ -90,7 +90,7 @@ function ProfileSection() {
             </span>
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-200">
+            <p className="text-sm font-medium text-slate-700">
               {user?.full_name ?? 'Sem nome'}
             </p>
             <p className="text-xs text-slate-500">{user?.email}</p>
@@ -277,7 +277,7 @@ function DangerZoneSection() {
       <div className="card border-red-900/30 p-5">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-slate-200">Encerrar conta</p>
+            <p className="text-sm font-medium text-slate-700">Encerrar conta</p>
             <p className="text-xs text-slate-500 mt-0.5">
               Todos os dados serão permanentemente removidos.
             </p>
@@ -309,21 +309,21 @@ export default function SettingsPage() {
     <div className="p-6 max-w-[860px]">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-xl font-semibold text-slate-100">Configurações</h1>
+        <h1 className="text-xl font-semibold text-slate-900">Configurações</h1>
         <p className="text-sm text-slate-500 mt-0.5">
           Gerencie sua conta e preferências.
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 border-b border-[#1E1E2A] mb-8">
+      <div className="flex items-center gap-1 border-b border-slate-200 mb-8">
         {TABS.map((t) => (
           <button
             key={t.id}
             onClick={() => setTab(t.id)}
             className={cn(
               'flex items-center gap-2 px-4 py-2.5 text-sm font-medium relative transition-colors',
-              tab === t.id ? 'text-slate-100' : 'text-slate-500 hover:text-slate-300',
+              tab === t.id ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700',
             )}
           >
             <t.icon className="w-3.5 h-3.5" />

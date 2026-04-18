@@ -169,7 +169,7 @@ export function PlansSection() {
                       <li key={label} className="flex items-center gap-2.5 text-[13px]">
                         {included
                           ? <Check className={cn('w-3.5 h-3.5 flex-shrink-0', plan.highlight ? 'text-indigo-500' : 'text-emerald-500')} />
-                          : <X     className="w-3.5 h-3.5 text-slate-300 flex-shrink-0" />
+                          : <X     className="w-3.5 h-3.5 text-slate-600 flex-shrink-0" />
                         }
                         <span className={included ? 'text-slate-700' : 'text-slate-400'}>
                           {label}

@@ -37,7 +37,7 @@ export function GeneratingView() {
 
       {/* Heading */}
       <div className="space-y-2">
-        <h2 className="text-[22px] font-semibold text-slate-100 tracking-tight">
+        <h2 className="text-[22px] font-semibold text-slate-900 tracking-tight">
           Gerando famílias visuais
         </h2>
         <p className="text-[14px] text-slate-500 leading-relaxed max-w-xs mx-auto">
@@ -63,11 +63,11 @@ export function GeneratingView() {
                 {isDone && <CheckCircle2 className="w-[18px] h-[18px] text-emerald-500 transition-all" />}
                 {isActive && <Loader2 className="w-[18px] h-[18px] text-indigo-400 animate-spin" />}
                 {!isDone && !isActive && (
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#2A2A3A]" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-300" />
                 )}
               </div>
               <span className={`text-[13px] transition-colors duration-400 ${
-                isActive ? 'text-slate-200 font-medium'
+                isActive ? 'text-slate-700 font-medium'
                 : isDone  ? 'text-slate-500'
                            : 'text-slate-700'
               }`}>

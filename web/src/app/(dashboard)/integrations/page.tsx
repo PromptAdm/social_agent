@@ -92,16 +92,16 @@ export default function IntegrationsPage() {
             <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           </div>
           <div>
-            <p className="text-xl font-bold text-slate-100">{connected.length}</p>
+            <p className="text-xl font-bold text-slate-900">{connected.length}</p>
             <p className="text-xs text-slate-500">Conectadas</p>
           </div>
         </div>
         <div className="card p-4 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#17171F] border border-[#27273A] flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-slate-100 border border-slate-300 flex items-center justify-center">
             <Circle className="w-4 h-4 text-slate-600" />
           </div>
           <div>
-            <p className="text-xl font-bold text-slate-100">{disconnected.length}</p>
+            <p className="text-xl font-bold text-slate-900">{disconnected.length}</p>
             <p className="text-xs text-slate-500">Disponíveis</p>
           </div>
         </div>
@@ -110,7 +110,7 @@ export default function IntegrationsPage() {
             <Webhook className="w-4 h-4 text-indigo-400" />
           </div>
           <div>
-            <p className="text-xl font-bold text-slate-100">
+            <p className="text-xl font-bold text-slate-900">
               {integrations.reduce((sum, i) => sum + (i.webhooks ?? 0), 0)}
             </p>
             <p className="text-xs text-slate-500">Webhooks ativos</p>
@@ -171,15 +171,15 @@ function IntegrationCard({
   const isConnected = integration.status === 'connected'
 
   return (
-    <div className={`card p-5 flex items-start gap-4 hover:border-[#3F3F56] transition-colors ${
+    <div className={`card p-5 flex items-start gap-4 hover:border-slate-300 transition-colors ${
       isConnected ? '' : 'opacity-80'
     }`}>
       <div className="flex-shrink-0 mt-0.5">{integration.icon}</div>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2.5 mb-1">
-          <h3 className="text-sm font-semibold text-slate-100">{integration.name}</h3>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#17171F] border border-[#27273A] text-slate-600">
+          <h3 className="text-sm font-semibold text-slate-900">{integration.name}</h3>
+          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 border border-slate-300 text-slate-600">
             {integration.category}
           </span>
           {isConnected ? (
@@ -218,7 +218,7 @@ function IntegrationCard({
           <>
             <button
               onClick={onRefresh}
-              className="w-8 h-8 flex items-center justify-center rounded-md border border-[#27273A] hover:bg-[#17171F] text-slate-500 hover:text-slate-300 transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-md border border-slate-300 hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-colors"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>

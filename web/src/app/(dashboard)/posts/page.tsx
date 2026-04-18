@@ -75,24 +75,24 @@ function DeleteConfirmModal({ post, onClose, onConfirm, loading }: {
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[400px] shadow-modal animate-fade-up">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[400px] shadow-modal animate-fade-up">
         <div className="px-6 py-5">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg bg-red-950/40 border border-red-900/30 flex items-center justify-center flex-shrink-0">
               <Trash2 className="w-4 h-4 text-red-400" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">Excluir post</h2>
+              <h2 className="text-sm font-semibold text-slate-900">Excluir post</h2>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                 Tem certeza? O rascunho será excluído permanentemente.
               </p>
             </div>
           </div>
-          <div className="bg-[#0C0C11] border border-[#27273A] rounded-lg px-3 py-2.5">
+          <div className="bg-white border border-slate-300 rounded-lg px-3 py-2.5">
             <p className="text-[12px] text-slate-400 line-clamp-2">{post.caption}</p>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
           <button onClick={onClose} className="btn-ghost">Cancelar</button>
           <button onClick={onConfirm} disabled={loading} className="btn-danger min-w-[90px]">
             {loading
@@ -115,26 +115,26 @@ function PublishConfirmModal({ post, onClose, onConfirm, loading }: {
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[420px] shadow-modal animate-fade-up">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[420px] shadow-modal animate-fade-up">
         <div className="px-6 py-5">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg bg-teal-950/40 border border-teal-900/30 flex items-center justify-center flex-shrink-0">
               <Send className="w-4 h-4 text-teal-400" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">Publicar agora</h2>
+              <h2 className="text-sm font-semibold text-slate-900">Publicar agora</h2>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                 O post será publicado imediatamente na{' '}
-                <span className="font-medium text-slate-300">{PLATFORM_LABEL[post.platform]}</span>.
+                <span className="font-medium text-slate-600">{PLATFORM_LABEL[post.platform]}</span>.
                 Essa ação não pode ser desfeita.
               </p>
             </div>
           </div>
-          <div className="bg-[#0C0C11] border border-[#27273A] rounded-lg px-3 py-2.5">
+          <div className="bg-white border border-slate-300 rounded-lg px-3 py-2.5">
             <p className="text-[12px] text-slate-400 line-clamp-2">{post.caption}</p>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
           <button onClick={onClose} className="btn-ghost">Cancelar</button>
           <button
             onClick={onConfirm}
@@ -213,7 +213,7 @@ function PostRowActions({ post, onApprove, onSchedule, onPublish, onDuplicate }:
     return (
       <button
         onClick={(e) => { e.stopPropagation(); onDuplicate() }}
-        className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-slate-400 bg-[#17171F] hover:bg-[#1E1E2A] border border-[#27273A] rounded transition-colors"
+        className="flex items-center gap-1 px-2.5 py-1 text-[11px] font-medium text-slate-400 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded transition-colors"
       >
         <Copy className="w-3 h-3" />
         Duplicar
@@ -340,14 +340,14 @@ export default function PostsPage() {
           </PageHeader>
 
           {/* Status Tabs */}
-          <div className="flex items-center gap-0 border-b border-[#1E1E2A] mb-5">
+          <div className="flex items-center gap-0 border-b border-slate-200 mb-5">
             {STATUS_TABS.map((tab) => (
               <button
                 key={tab.key}
                 onClick={() => setActiveStatus(tab.key)}
                 className={cn(
                   'flex items-center gap-2 px-4 py-2.5 text-sm font-medium relative transition-colors',
-                  activeStatus === tab.key ? 'text-slate-100' : 'text-slate-500 hover:text-slate-300',
+                  activeStatus === tab.key ? 'text-slate-900' : 'text-slate-500 hover:text-slate-700',
                 )}
               >
                 {tab.label}
@@ -356,7 +356,7 @@ export default function PostsPage() {
                     'text-[10px] px-1.5 py-0.5 rounded-full',
                     activeStatus === tab.key
                       ? 'bg-indigo-600 text-white'
-                      : 'bg-[#17171F] text-slate-600',
+                      : 'bg-slate-100 text-slate-600',
                   )}>
                     {counts[tab.key]}
                   </span>
@@ -372,7 +372,7 @@ export default function PostsPage() {
               <select
                 value={platformFilter}
                 onChange={(e) => setPlatformFilter(e.target.value as SocialPlatform | 'all')}
-                className="text-xs bg-[#111118] border border-[#27273A] rounded-md px-3 py-1.5 text-slate-400 focus:outline-none focus:border-indigo-500 cursor-pointer"
+                className="text-xs bg-slate-50 border border-slate-300 rounded-md px-3 py-1.5 text-slate-400 focus:outline-none focus:border-indigo-500 cursor-pointer"
               >
                 <option value="all">Plataforma: Todas</option>
                 <option value="instagram">Instagram</option>
@@ -388,11 +388,11 @@ export default function PostsPage() {
           {isLoading ? (
             <div className="card overflow-hidden">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-[#191925] last:border-0">
-                  <div className="w-20 h-5 bg-[#17171F] rounded animate-pulse" />
-                  <div className="flex-1 h-4 bg-[#17171F] rounded animate-pulse" />
-                  <div className="w-24 h-4 bg-[#17171F] rounded animate-pulse" />
-                  <div className="w-20 h-4 bg-[#17171F] rounded animate-pulse" />
+                <div key={i} className="flex items-center gap-4 px-4 py-3 border-b border-slate-100 last:border-0">
+                  <div className="w-20 h-5 bg-slate-100 rounded animate-pulse" />
+                  <div className="flex-1 h-4 bg-slate-100 rounded animate-pulse" />
+                  <div className="w-24 h-4 bg-slate-100 rounded animate-pulse" />
+                  <div className="w-20 h-4 bg-slate-100 rounded animate-pulse" />
                 </div>
               ))}
             </div>
@@ -429,7 +429,7 @@ export default function PostsPage() {
                     >
                       <td className="table-td"><StatusBadge status={post.status} /></td>
                       <td className="table-td max-w-[280px]">
-                        <p className="text-sm text-slate-200 truncate">{post.caption}</p>
+                        <p className="text-sm text-slate-700 truncate">{post.caption}</p>
                       </td>
                       <td className="table-td">
                         <span className={cn('text-xs font-medium', PLATFORM_COLOR[post.platform])}>
@@ -466,16 +466,16 @@ export default function PostsPage() {
 
         {/* ── Side panel ────────────────────────────────────────────────────── */}
         {selectedPost && (
-          <div className="w-[360px] border-l border-[#1E1E2A] flex flex-col bg-[#0C0C11] flex-shrink-0 overflow-hidden">
+          <div className="w-[360px] border-l border-slate-200 flex flex-col bg-white flex-shrink-0 overflow-hidden">
             {/* Panel header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[#1E1E2A] flex-shrink-0">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200 flex-shrink-0">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-slate-200">Post</span>
+                <span className="text-sm font-semibold text-slate-700">Post</span>
                 <StatusBadge status={selectedPost.status} />
               </div>
               <button
                 onClick={() => setSelectedPost(null)}
-                className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-[#17171F] text-slate-500 hover:text-slate-300 transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded-md hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -485,7 +485,7 @@ export default function PostsPage() {
             <div className="flex-1 overflow-y-auto p-5 space-y-5">
               <div>
                 <p className="field-label mb-2">Caption</p>
-                <p className="text-sm text-slate-200 leading-relaxed">{selectedPost.caption}</p>
+                <p className="text-sm text-slate-700 leading-relaxed">{selectedPost.caption}</p>
               </div>
 
               {selectedPost.hashtags && (
@@ -500,7 +500,7 @@ export default function PostsPage() {
               {selectedPost.cta && (
                 <div>
                   <p className="field-label mb-2">CTA</p>
-                  <p className="text-sm text-slate-300 italic">{selectedPost.cta}</p>
+                  <p className="text-sm text-slate-600 italic">{selectedPost.cta}</p>
                 </div>
               )}
 
@@ -555,7 +555,7 @@ export default function PostsPage() {
             </div>
 
             {/* Panel footer — actions */}
-            <div className="p-4 border-t border-[#1E1E2A] space-y-2 flex-shrink-0">
+            <div className="p-4 border-t border-slate-200 space-y-2 flex-shrink-0">
               {selectedPost.status === 'rascunho' && (
                 <button
                   onClick={() => { approvePost.mutate(selectedPost.id); setSelectedPost(null) }}

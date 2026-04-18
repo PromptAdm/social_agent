@@ -16,7 +16,7 @@ type Status =
 
 interface StatusConfig {
   label:     string
-  badge:     string   // pill bg + border
+  badge:     string
   text:      string
   dot:       string
 }
@@ -24,74 +24,74 @@ interface StatusConfig {
 const CONFIG: Record<Status, StatusConfig> = {
   rascunho: {
     label: 'Rascunho',
-    badge: 'bg-slate-800/40 border-slate-700/30',
-    text:  'text-slate-400',
-    dot:   'bg-slate-500',
+    badge: 'bg-slate-100 border-slate-200',
+    text:  'text-slate-500',
+    dot:   'bg-slate-400',
   },
   aprovado: {
     label: 'Aprovado',
-    badge: 'bg-emerald-950/50 border-emerald-900/25',
-    text:  'text-emerald-400',
+    badge: 'bg-emerald-50 border-emerald-200',
+    text:  'text-emerald-700',
     dot:   'bg-emerald-500',
   },
   agendado: {
     label: 'Agendado',
-    badge: 'bg-indigo-950/50 border-indigo-900/25',
-    text:  'text-indigo-400',
+    badge: 'bg-indigo-50 border-indigo-200',
+    text:  'text-indigo-700',
     dot:   'bg-indigo-500',
   },
   publicado: {
     label: 'Publicado',
-    badge: 'bg-teal-950/40 border-teal-900/20',
-    text:  'text-teal-400',
+    badge: 'bg-teal-50 border-teal-200',
+    text:  'text-teal-700',
     dot:   'bg-teal-500',
   },
   arquivado: {
     label: 'Arquivado',
-    badge: 'bg-transparent border-slate-800/40',
-    text:  'text-slate-600',
-    dot:   'bg-slate-700',
+    badge: 'bg-slate-50 border-slate-200',
+    text:  'text-slate-400',
+    dot:   'bg-slate-300',
   },
   rejeitado: {
     label: 'Rejeitado',
-    badge: 'bg-red-950/40 border-red-900/25',
-    text:  'text-red-400',
+    badge: 'bg-red-50 border-red-200',
+    text:  'text-red-600',
     dot:   'bg-red-500',
   },
   novo: {
     label: 'Novo',
-    badge: 'bg-indigo-950/50 border-indigo-900/25',
-    text:  'text-indigo-400',
+    badge: 'bg-indigo-50 border-indigo-200',
+    text:  'text-indigo-700',
     dot:   'bg-indigo-500',
   },
   contatado: {
     label: 'Contatado',
-    badge: 'bg-amber-950/40 border-amber-900/20',
-    text:  'text-amber-400',
+    badge: 'bg-amber-50 border-amber-200',
+    text:  'text-amber-700',
     dot:   'bg-amber-500',
   },
   qualificado: {
     label: 'Qualificado',
-    badge: 'bg-blue-950/40 border-blue-900/20',
-    text:  'text-blue-400',
+    badge: 'bg-blue-50 border-blue-200',
+    text:  'text-blue-700',
     dot:   'bg-blue-500',
   },
   convertido: {
     label: 'Convertido',
-    badge: 'bg-emerald-950/50 border-emerald-900/25',
-    text:  'text-emerald-400',
+    badge: 'bg-emerald-50 border-emerald-200',
+    text:  'text-emerald-700',
     dot:   'bg-emerald-500',
   },
   perdido: {
     label: 'Perdido',
-    badge: 'bg-red-950/40 border-red-900/25',
-    text:  'text-red-400',
+    badge: 'bg-red-50 border-red-200',
+    text:  'text-red-600',
     dot:   'bg-red-500',
   },
   ideia: {
     label: 'Ideia',
-    badge: 'bg-violet-950/40 border-violet-900/20',
-    text:  'text-violet-400',
+    badge: 'bg-violet-50 border-violet-200',
+    text:  'text-violet-700',
     dot:   'bg-violet-500',
   },
 }

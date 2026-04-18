@@ -71,7 +71,7 @@ export function FamilyGrid({
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-[19px] font-semibold text-slate-100 tracking-tight">
+          <h2 className="text-[19px] font-semibold text-slate-900 tracking-tight">
             {project.title ?? 'Famílias Visuais'}
           </h2>
           {direction && (
@@ -96,7 +96,7 @@ export function FamilyGrid({
         </div>
         <button
           onClick={onNewProject}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#27273A] text-[13px] font-medium text-slate-500 hover:text-slate-200 hover:border-[#3A3A50] hover:bg-[#111118] transition-all flex-shrink-0"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-300 text-[13px] font-medium text-slate-500 hover:text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all flex-shrink-0"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           Novo projeto
@@ -115,7 +115,7 @@ export function FamilyGrid({
               <Icon className={cn('w-5 h-5', color)} />
             </div>
             <div>
-              <p className="text-[22px] font-bold text-slate-100 leading-none tabular-nums">{value}</p>
+              <p className="text-[22px] font-bold text-slate-900 leading-none tabular-nums">{value}</p>
               <p className="text-[11px] text-slate-600 mt-0.5 leading-tight">{label}</p>
             </div>
           </div>
@@ -218,13 +218,13 @@ function FamilyAccordion({
   return (
     <div className={cn(
       'rounded-2xl overflow-hidden border transition-all duration-200',
-      isExpanded ? 'border-[#1E1E2A]' : 'border-[#17171F] hover:border-[#27273A]',
+      isExpanded ? 'border-slate-200' : 'border-slate-200 hover:border-slate-300',
     )}>
       <button
         onClick={onToggle}
         className={cn(
           'w-full flex items-center gap-3.5 px-4 py-3.5 text-left transition-colors',
-          isExpanded ? 'bg-[#0F0F17]' : 'bg-[#0A0A10] hover:bg-[#0D0D14]',
+          isExpanded ? 'bg-white' : 'bg-white hover:bg-white',
         )}
       >
         <div className={cn(
@@ -234,7 +234,7 @@ function FamilyAccordion({
           {badgeContent}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-[14px] font-semibold text-slate-200 truncate leading-tight">
+          <p className="text-[14px] font-semibold text-slate-700 truncate leading-tight">
             {family.family_name}
           </p>
           <p className="text-[12px] text-slate-600 truncate mt-0.5 leading-tight">

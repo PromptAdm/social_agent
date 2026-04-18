@@ -94,7 +94,7 @@ export function UploadZone({ onProjectCreated }: UploadZoneProps) {
 
       {/* Header */}
       <div>
-        <h1 className="text-[20px] font-semibold text-slate-100">Legendar Vídeo</h1>
+        <h1 className="text-[20px] font-semibold text-slate-900">Legendar Vídeo</h1>
         <p className="text-[13px] text-slate-500 mt-1">
           Envie um vídeo, transcreva a fala e exporte com legendas embutidas.
         </p>
@@ -109,9 +109,9 @@ export function UploadZone({ onProjectCreated }: UploadZoneProps) {
       )}>
         <Zap className={cn('w-4 h-4 flex-shrink-0', canAfford ? 'text-indigo-400' : 'text-red-400')} />
         <span>
-          Custo: <strong className="text-slate-200">{CREDIT_COST} créditos</strong> por vídeo.
+          Custo: <strong className="text-slate-700">{CREDIT_COST} créditos</strong> por vídeo.
           {credits && (
-            <> Saldo atual: <strong className={canAfford ? 'text-slate-200' : 'text-red-300'}>{credits.balance} créditos</strong>.</>
+            <> Saldo atual: <strong className={canAfford ? 'text-slate-700' : 'text-red-300'}>{credits.balance} créditos</strong>.</>
           )}
         </span>
       </div>
@@ -127,14 +127,14 @@ export function UploadZone({ onProjectCreated }: UploadZoneProps) {
             'relative border-2 border-dashed rounded-2xl p-12 flex flex-col items-center justify-center gap-4 cursor-pointer transition-all',
             isDragging
               ? 'border-indigo-500/60 bg-indigo-600/8'
-              : 'border-[#27273A] hover:border-[#3A3A50] hover:bg-[#111118]',
+              : 'border-slate-300 hover:border-slate-300 hover:bg-slate-50',
           )}
         >
-          <div className="w-14 h-14 bg-[#17171F] border border-[#27273A] rounded-2xl flex items-center justify-center">
+          <div className="w-14 h-14 bg-slate-100 border border-slate-300 rounded-2xl flex items-center justify-center">
             <Upload className="w-6 h-6 text-slate-500" />
           </div>
           <div className="text-center">
-            <p className="text-[15px] font-medium text-slate-300 mb-1">
+            <p className="text-[15px] font-medium text-slate-600 mb-1">
               Arraste o vídeo aqui
             </p>
             <p className="text-[13px] text-slate-600">
@@ -154,18 +154,18 @@ export function UploadZone({ onProjectCreated }: UploadZoneProps) {
         </div>
       ) : (
         /* File selected card */
-        <div className="bg-[#0F0F17] border border-[#1E1E2A] rounded-2xl p-5 flex items-center gap-4">
+        <div className="bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-4">
           <div className="w-10 h-10 bg-indigo-600/12 border border-indigo-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
             <Video className="w-5 h-5 text-indigo-400" />
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-[14px] font-medium text-slate-200 truncate">{file.name}</p>
+            <p className="text-[14px] font-medium text-slate-700 truncate">{file.name}</p>
             <p className="text-[12px] text-slate-600">{formatSize(file.size)}</p>
           </div>
           {!uploading && (
             <button
               onClick={() => setFile(null)}
-              className="p-1.5 rounded-lg text-slate-600 hover:text-slate-300 hover:bg-[#17171F] transition-colors"
+              className="p-1.5 rounded-lg text-slate-600 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             >
               <X className="w-4 h-4" />
             </button>
@@ -196,7 +196,7 @@ export function UploadZone({ onProjectCreated }: UploadZoneProps) {
                   'px-3 py-2 rounded-xl border text-[13px] font-medium transition-all',
                   language === l.code
                     ? 'bg-indigo-600/15 border-indigo-500/30 text-indigo-300'
-                    : 'bg-[#0F0F17] border-[#1E1E2A] text-slate-500 hover:border-[#2A2A38] hover:text-slate-300',
+                    : 'bg-white border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-700',
                 )}
               >
                 {l.label}
@@ -213,7 +213,7 @@ export function UploadZone({ onProjectCreated }: UploadZoneProps) {
             <span>Enviando vídeo...</span>
             <span>{progress}%</span>
           </div>
-          <div className="h-1.5 bg-[#1E1E2A] rounded-full overflow-hidden">
+          <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
             <div
               className="h-full bg-indigo-500 rounded-full transition-all duration-300"
               style={{ width: `${progress}%` }}
@@ -230,7 +230,7 @@ export function UploadZone({ onProjectCreated }: UploadZoneProps) {
           'w-full h-12 rounded-xl text-[15px] font-semibold transition-all flex items-center justify-center gap-2',
           file && canAfford && !uploading
             ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 hover:-translate-y-0.5'
-            : 'bg-[#17171F] text-slate-600 cursor-not-allowed border border-[#27273A]',
+            : 'bg-slate-100 text-slate-600 cursor-not-allowed border border-slate-300',
         )}
       >
         {uploading ? (

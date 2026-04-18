@@ -42,7 +42,7 @@ export function ProcessingView({ phase }: ProcessingViewProps) {
 
       {/* Labels */}
       <div>
-        <h2 className="text-[22px] font-semibold text-slate-100 mb-2">{cfg.label}</h2>
+        <h2 className="text-[22px] font-semibold text-slate-900 mb-2">{cfg.label}</h2>
         <p className="text-[14px] text-slate-500 leading-relaxed">{cfg.detail}</p>
       </div>
 
@@ -54,10 +54,10 @@ export function ProcessingView({ phase }: ProcessingViewProps) {
               {i === 0 ? (
                 <Loader2 className={`w-4 h-4 ${cfg.color} animate-spin`} />
               ) : (
-                <div className="w-2 h-2 bg-[#27273A] rounded-full" />
+                <div className="w-2 h-2 bg-slate-200 rounded-full" />
               )}
             </div>
-            <span className={`text-[13px] ${i === 0 ? 'text-slate-300 font-medium' : 'text-slate-600'}`}>
+            <span className={`text-[13px] ${i === 0 ? 'text-slate-600 font-medium' : 'text-slate-600'}`}>
               {step}
             </span>
           </div>

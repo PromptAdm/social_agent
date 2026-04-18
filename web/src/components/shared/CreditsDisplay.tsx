@@ -14,7 +14,7 @@ export function CreditsDisplay({ className }: CreditsDisplayProps) {
 
   if (isLoading) {
     return (
-      <div className={cn('h-7 w-20 bg-[#17171F] border border-[#1E1E2A] rounded-lg animate-pulse', className)} />
+      <div className={cn('h-7 w-20 bg-slate-100 border border-slate-200 rounded-lg animate-pulse', className)} />
     )
   }
 
@@ -34,7 +34,7 @@ export function CreditsDisplay({ className }: CreditsDisplayProps) {
           ? 'bg-red-500/10 border-red-500/25 text-red-400 hover:bg-red-500/15'
           : isLow
           ? 'bg-amber-500/10 border-amber-500/25 text-amber-400 hover:bg-amber-500/15'
-          : 'bg-[#111118] border-[#1E1E2A] text-slate-400 hover:text-slate-200 hover:border-[#2A2A38]',
+          : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-700 hover:border-slate-300',
         className,
       )}
     >

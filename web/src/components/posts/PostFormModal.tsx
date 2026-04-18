@@ -76,7 +76,7 @@ function RadioGroup<T extends string>({
             'px-3 py-1.5 rounded-lg text-[12px] font-medium border transition-all',
             value === opt.value
               ? 'bg-indigo-600/20 border-indigo-500/40 text-indigo-300'
-              : 'bg-transparent border-[#27273A] text-slate-500 hover:text-slate-300 hover:border-[#3F3F56]',
+              : 'bg-transparent border-slate-300 text-slate-500 hover:text-slate-700 hover:border-slate-300',
           )}
         >
           <span className={value === opt.value ? '' : (opt.color ?? '')}>
@@ -156,17 +156,17 @@ export function PostFormModal({ initial, onClose }: PostFormModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
       <div
-        className="bg-[#111118] border border-[#27273A] rounded-xl w-full max-w-[640px] shadow-modal animate-fade-up max-h-[90vh] flex flex-col"
+        className="bg-slate-50 border border-slate-300 rounded-xl w-full max-w-[640px] shadow-modal animate-fade-up max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E1E2A] flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 flex-shrink-0">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-indigo-600/15 border border-indigo-500/20 flex items-center justify-center">
               <FileText className="w-4 h-4 text-indigo-400" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">
+              <h2 className="text-sm font-semibold text-slate-900">
                 {isEdit ? 'Editar post' : 'Novo post'}
               </h2>
               <p className="text-[11px] text-slate-500">
@@ -176,7 +176,7 @@ export function PostFormModal({ initial, onClose }: PostFormModalProps) {
           </div>
           <button
             onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-300 hover:bg-[#17171F] transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
@@ -274,7 +274,7 @@ export function PostFormModal({ initial, onClose }: PostFormModalProps) {
                 <select
                   value={pillarId ?? ''}
                   onChange={(e) => setPillarId(e.target.value ? Number(e.target.value) : undefined)}
-                  className="input bg-[#0C0C11] cursor-pointer"
+                  className="input bg-white cursor-pointer"
                 >
                   <option value="">Nenhum</option>
                   {pillars.map((p) => (
@@ -287,7 +287,7 @@ export function PostFormModal({ initial, onClose }: PostFormModalProps) {
         </form>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-[#1E1E2A] flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-t border-slate-200 flex-shrink-0">
           <div className="flex items-center gap-1.5 text-[11px] text-slate-600">
             <Sparkles className="w-3 h-3" />
             <span>Rascunho — aguarda aprovação</span>

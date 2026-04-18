@@ -13,31 +13,31 @@ const ICON_MAP = {
 
 const STYLE_MAP = {
   success: {
-    wrap:    'bg-[#0A1812] border-emerald-800/35 shadow-emerald-900/20',
+    wrap:    'bg-emerald-50 border-emerald-200 shadow-emerald-100',
     bar:     'bg-emerald-500',
     icon:    'text-emerald-400',
-    text:    'text-slate-200',
+    text:    'text-slate-700',
     close:   'hover:text-emerald-400',
   },
   error: {
-    wrap:    'bg-[#150C0C] border-red-800/35 shadow-red-900/20',
+    wrap:    'bg-red-50 border-red-200 shadow-red-100',
     bar:     'bg-red-500',
     icon:    'text-red-400',
-    text:    'text-slate-200',
+    text:    'text-slate-700',
     close:   'hover:text-red-400',
   },
   info: {
-    wrap:    'bg-[#0C0C18] border-indigo-800/35 shadow-indigo-900/20',
+    wrap:    'bg-indigo-50 border-indigo-200 shadow-indigo-100',
     bar:     'bg-indigo-500',
     icon:    'text-indigo-400',
-    text:    'text-slate-200',
+    text:    'text-slate-700',
     close:   'hover:text-indigo-400',
   },
   warning: {
-    wrap:    'bg-[#141008] border-amber-800/35 shadow-amber-900/20',
+    wrap:    'bg-amber-50 border-amber-200 shadow-amber-100',
     bar:     'bg-amber-500',
     icon:    'text-amber-400',
-    text:    'text-slate-200',
+    text:    'text-slate-700',
     close:   'hover:text-amber-400',
   },
 }

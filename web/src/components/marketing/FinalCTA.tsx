@@ -58,7 +58,7 @@ export function FinalCTA() {
           </Link>
           <Link
             href="/login"
-            className="px-8 py-4 text-[15px] font-medium text-slate-400 hover:text-slate-200 transition-colors"
+            className="px-8 py-4 text-[15px] font-medium text-slate-400 hover:text-slate-700 transition-colors"
           >
             Já tenho conta — entrar
           </Link>

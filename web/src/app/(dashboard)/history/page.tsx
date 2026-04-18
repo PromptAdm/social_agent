@@ -48,13 +48,13 @@ function ImageRow({ project }: { project: ImageProject }) {
   const dir = project.direction as Record<string, string> | null
 
   return (
-    <div className="flex items-center gap-4 px-5 py-4 hover:bg-[#111118] transition-colors group">
+    <div className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors group">
       <div className="w-8 h-8 bg-violet-600/12 border border-violet-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
         <Image className="w-3.5 h-3.5 text-violet-400" />
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-slate-200 truncate">
+        <p className="text-[13px] font-medium text-slate-700 truncate">
           {project.title ?? `Projeto #${project.id}`}
         </p>
         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
@@ -110,13 +110,13 @@ function VideoRow({ project }: { project: VideoProject }) {
   const del = useDeleteVideoProject()
 
   return (
-    <div className="flex items-center gap-4 px-5 py-4 hover:bg-[#111118] transition-colors group">
+    <div className="flex items-center gap-4 px-5 py-4 hover:bg-slate-50 transition-colors group">
       <div className="w-8 h-8 bg-indigo-600/12 border border-indigo-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
         <Video className="w-3.5 h-3.5 text-indigo-400" />
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className="text-[13px] font-medium text-slate-200 truncate">
+        <p className="text-[13px] font-medium text-slate-700 truncate">
           {project.title ?? project.input_file_name ?? `Vídeo #${project.id}`}
         </p>
         <div className="flex items-center gap-3 mt-0.5">
@@ -143,7 +143,7 @@ function VideoRow({ project }: { project: VideoProject }) {
             href={project.results[0].file_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-300 hover:bg-[#1A1A24] transition-colors"
+            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-700 hover:bg-slate-100 transition-colors"
             title="Baixar legenda"
           >
             <ExternalLink className="w-3.5 h-3.5" />
@@ -179,14 +179,14 @@ export default function HistoryPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-7">
         <div>
-          <h1 className="text-[20px] font-semibold text-slate-100 tracking-tight">Histórico de projetos</h1>
+          <h1 className="text-[20px] font-semibold text-slate-900 tracking-tight">Histórico de projetos</h1>
           <p className="text-[13px] text-slate-500 mt-1">
             Projetos de geração de imagens e legendagem de vídeos.
           </p>
         </div>
         <button
           onClick={() => refetch()}
-          className="p-2 rounded-xl text-slate-600 hover:text-slate-300 hover:bg-[#17171F] transition-colors"
+          className="p-2 rounded-xl text-slate-600 hover:text-slate-700 hover:bg-slate-100 transition-colors"
           title="Atualizar"
         >
           <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
@@ -194,7 +194,7 @@ export default function HistoryPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 bg-[#09090E] border border-[#1A1A24] rounded-xl p-1 mb-6 w-fit">
+      <div className="flex items-center gap-1 bg-[#F5F4FB] border border-slate-200/80 rounded-xl p-1 mb-6 w-fit">
         {([
           { id: 'image', icon: Image,  label: 'Imagens', count: imageCount },
           { id: 'video', icon: Video,  label: 'Vídeos',  count: videoCount },
@@ -205,8 +205,8 @@ export default function HistoryPage() {
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-lg text-[13px] font-medium transition-all',
               tab === id
-                ? 'bg-[#17171F] text-slate-200 shadow-sm border border-[#27273A]'
-                : 'text-slate-500 hover:text-slate-300',
+                ? 'bg-slate-100 text-slate-700 shadow-sm border border-slate-300'
+                : 'text-slate-500 hover:text-slate-700',
             )}
           >
             <Icon className="w-3.5 h-3.5" />
@@ -215,7 +215,7 @@ export default function HistoryPage() {
               'text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none',
               tab === id
                 ? 'bg-indigo-600/20 text-indigo-400'
-                : 'bg-[#17171F] text-slate-600',
+                : 'bg-slate-100 text-slate-600',
             )}>
               {count}
             </span>
@@ -224,7 +224,7 @@ export default function HistoryPage() {
       </div>
 
       {/* List */}
-      <div className="bg-[#09090E] border border-[#1A1A24] rounded-2xl overflow-hidden">
+      <div className="bg-[#F5F4FB] border border-slate-200/80 rounded-2xl overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -255,7 +255,7 @@ function EmptyState({ type }: { type: Tab }) {
   const Icon = type === 'image' ? Image : Video
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center px-8">
-      <div className="w-12 h-12 bg-[#17171F] border border-[#27273A] rounded-xl flex items-center justify-center mb-4">
+      <div className="w-12 h-12 bg-slate-100 border border-slate-300 rounded-xl flex items-center justify-center mb-4">
         <Icon className="w-5 h-5 text-slate-700" />
       </div>
       <p className="text-[14px] font-medium text-slate-400 mb-1">

@@ -71,14 +71,14 @@ function EditBrandModal({ brandId, initial, onClose }: EditBrandModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[520px] shadow-modal animate-fade-up">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E1E2A]">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[520px] shadow-modal animate-fade-up">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <div>
-            <h2 className="text-sm font-semibold text-slate-100">Editar marca</h2>
+            <h2 className="text-sm font-semibold text-slate-900">Editar marca</h2>
             <p className="text-xs text-slate-500 mt-0.5">Atualize as informações editoriais da marca.</p>
           </div>
           <button onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-[#17171F] transition-colors">
+            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-slate-100 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -111,7 +111,7 @@ function EditBrandModal({ brandId, initial, onClose }: EditBrandModalProps) {
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
             <button type="button" onClick={onClose} className="btn-ghost">Cancelar</button>
             <button type="submit" disabled={updateBrand.isPending || !name.trim()}
               className="btn-primary min-w-[120px]">
@@ -165,10 +165,10 @@ function PillarFormModal({ brandId, initial, pillarIdx, onClose }: PillarFormMod
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[460px] shadow-modal animate-fade-up">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E1E2A]">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[460px] shadow-modal animate-fade-up">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <div>
-            <h2 className="text-sm font-semibold text-slate-100">
+            <h2 className="text-sm font-semibold text-slate-900">
               {isEdit ? 'Editar pilar' : 'Novo pilar'}
             </h2>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -176,7 +176,7 @@ function PillarFormModal({ brandId, initial, pillarIdx, onClose }: PillarFormMod
             </p>
           </div>
           <button onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-[#17171F] transition-colors">
+            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-slate-100 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -217,7 +217,7 @@ function PillarFormModal({ brandId, initial, pillarIdx, onClose }: PillarFormMod
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
             <button type="button" onClick={onClose} className="btn-ghost">Cancelar</button>
             <button type="submit" disabled={isPending || !name.trim()}
               className="btn-primary min-w-[120px]">
@@ -252,17 +252,17 @@ function DeletePillarModal({ pillar, brandId, onClose }: DeletePillarModalProps)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[400px] shadow-modal animate-fade-up">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[400px] shadow-modal animate-fade-up">
         <div className="px-6 py-5">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg bg-red-950/40 border border-red-900/30 flex items-center justify-center flex-shrink-0">
               <Trash2 className="w-4 h-4 text-red-400" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">Excluir pilar</h2>
+              <h2 className="text-sm font-semibold text-slate-900">Excluir pilar</h2>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                 Tem certeza que deseja excluir{' '}
-                <span className="text-slate-200 font-medium">{pillar.name}</span>?
+                <span className="text-slate-700 font-medium">{pillar.name}</span>?
                 Os posts e ideias vinculados perderão a associação com esse pilar.
               </p>
             </div>
@@ -271,7 +271,7 @@ function DeletePillarModal({ pillar, brandId, onClose }: DeletePillarModalProps)
             <p className="text-[11px] text-red-400 leading-relaxed">Esta ação não pode ser desfeita.</p>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
           <button onClick={onClose} className="btn-ghost">Cancelar</button>
           <button onClick={handleDelete} disabled={deletePillar.isPending}
             className="btn-danger min-w-[100px]">
@@ -300,17 +300,17 @@ interface DeleteBrandModalProps {
 function DeleteBrandModal({ brandName, onClose, onConfirm, loading }: DeleteBrandModalProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[420px] shadow-modal animate-fade-up">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[420px] shadow-modal animate-fade-up">
         <div className="px-6 py-5">
           <div className="flex items-start gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg bg-red-950/40 border border-red-900/30 flex items-center justify-center flex-shrink-0">
               <Trash2 className="w-4 h-4 text-red-400" />
             </div>
             <div>
-              <h2 className="text-sm font-semibold text-slate-100">Excluir marca</h2>
+              <h2 className="text-sm font-semibold text-slate-900">Excluir marca</h2>
               <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                 Tem certeza que deseja excluir{' '}
-                <span className="text-slate-200 font-medium">{brandName}</span>?
+                <span className="text-slate-700 font-medium">{brandName}</span>?
                 Todos os posts, ideias e pilares vinculados serão permanentemente removidos.
               </p>
             </div>
@@ -319,7 +319,7 @@ function DeleteBrandModal({ brandName, onClose, onConfirm, loading }: DeleteBran
             <p className="text-[11px] text-red-400 leading-relaxed">Esta ação não pode ser desfeita.</p>
           </div>
         </div>
-        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
+        <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
           <button onClick={onClose} className="btn-ghost">Cancelar</button>
           <button onClick={onConfirm} disabled={loading} className="btn-danger min-w-[110px]">
             {loading
@@ -363,7 +363,7 @@ function PillarCard({ pillar, index, brandId: _brandId, onEdit, onDelete }: Pill
   const dotColor = pillar.color ?? defaultColor(index)
 
   return (
-    <div className="card p-5 flex flex-col gap-3 hover:border-[#3F3F56] transition-colors">
+    <div className="card p-5 flex flex-col gap-3 hover:border-slate-300 transition-colors">
       <div className="flex items-start justify-between">
         <div
           className="w-3 h-3 rounded-full mt-0.5 flex-shrink-0"
@@ -372,20 +372,20 @@ function PillarCard({ pillar, index, brandId: _brandId, onEdit, onDelete }: Pill
         <div ref={menuRef} className="relative flex-shrink-0">
           <button
             onClick={() => setMenuOpen((v) => !v)}
-            className="w-6 h-6 flex items-center justify-center rounded hover:bg-[#17171F] text-slate-600 hover:text-slate-400 transition-colors"
+            className="w-6 h-6 flex items-center justify-center rounded hover:bg-slate-100 text-slate-600 hover:text-slate-400 transition-colors"
           >
             <MoreHorizontal className="w-3.5 h-3.5" />
           </button>
           {menuOpen && (
-            <div className="absolute right-0 top-full mt-1 w-36 bg-[#111118] border border-[#27273A] rounded-lg shadow-modal z-10 animate-fade-up overflow-hidden">
+            <div className="absolute right-0 top-full mt-1 w-36 bg-slate-50 border border-slate-300 rounded-lg shadow-modal z-10 animate-fade-up overflow-hidden">
               <button
                 onClick={() => { setMenuOpen(false); onEdit(pillar) }}
-                className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-300 hover:bg-[#17171F] hover:text-slate-100 transition-colors"
+                className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors"
               >
                 <Pencil className="w-3.5 h-3.5 text-slate-500" />
                 Editar
               </button>
-              <div className="border-t border-[#1E1E2A] my-0.5" />
+              <div className="border-t border-slate-200 my-0.5" />
               <button
                 onClick={() => { setMenuOpen(false); onDelete(pillar) }}
                 className="w-full flex items-center gap-2.5 px-3 py-2 text-[13px] text-red-400 hover:bg-red-950/40 transition-colors"
@@ -399,7 +399,7 @@ function PillarCard({ pillar, index, brandId: _brandId, onEdit, onDelete }: Pill
       </div>
 
       <div>
-        <h3 className="text-[13px] font-semibold text-slate-100 mb-1">{pillar.name}</h3>
+        <h3 className="text-[13px] font-semibold text-slate-900 mb-1">{pillar.name}</h3>
         {pillar.description ? (
           <p className="text-[12px] text-slate-500 leading-relaxed line-clamp-2">
             {pillar.description}
@@ -409,7 +409,7 @@ function PillarCard({ pillar, index, brandId: _brandId, onEdit, onDelete }: Pill
         )}
       </div>
 
-      <div className="flex items-center gap-3 pt-3 border-t border-[#1E1E2A]">
+      <div className="flex items-center gap-3 pt-3 border-t border-slate-200">
         <span className="flex items-center gap-1 text-[11px] text-slate-600">
           <FileText className="w-3 h-3" />
           {pillar.post_count ?? 0} posts
@@ -478,11 +478,11 @@ export default function StrategyPage({ params }: { params: { brandId: string } }
     return (
       <div className="p-6">
         <div className="animate-pulse space-y-4 max-w-[900px]">
-          <div className="h-6 bg-[#1E1E2A] rounded w-40" />
-          <div className="h-3 bg-[#1E1E2A] rounded w-64" />
-          <div className="h-0.5 bg-[#1E1E2A] rounded mt-8" />
+          <div className="h-6 bg-slate-200 rounded w-40" />
+          <div className="h-3 bg-slate-200 rounded w-64" />
+          <div className="h-0.5 bg-slate-200 rounded mt-8" />
           <div className="grid grid-cols-3 gap-4 mt-4">
-            {[0,1,2].map((i) => <div key={i} className="h-[140px] bg-[#17171F] rounded-xl" />)}
+            {[0,1,2].map((i) => <div key={i} className="h-[140px] bg-slate-100 rounded-xl" />)}
           </div>
         </div>
       </div>
@@ -540,7 +540,7 @@ export default function StrategyPage({ params }: { params: { brandId: string } }
         {/* Back link */}
         <Link
           href="/brands"
-          className="inline-flex items-center gap-1.5 text-[12px] text-slate-500 hover:text-slate-300 transition-colors mb-4"
+          className="inline-flex items-center gap-1.5 text-[12px] text-slate-500 hover:text-slate-700 transition-colors mb-4"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
           Marcas
@@ -558,7 +558,7 @@ export default function StrategyPage({ params }: { params: { brandId: string } }
         </PageHeader>
 
         {/* Tabs */}
-        <div className="flex items-center gap-0.5 border-b border-[#1E1E2A] mb-6">
+        <div className="flex items-center gap-0.5 border-b border-slate-200 mb-6">
           {TABS.map((tab) => (
             <button
               key={tab}
@@ -566,8 +566,8 @@ export default function StrategyPage({ params }: { params: { brandId: string } }
               className={cn(
                 'relative px-4 py-2.5 text-[13px] font-medium transition-colors',
                 activeTab === tab
-                  ? 'text-slate-100'
-                  : 'text-slate-500 hover:text-slate-300',
+                  ? 'text-slate-900'
+                  : 'text-slate-500 hover:text-slate-700',
               )}
             >
               {tab}
@@ -592,24 +592,24 @@ export default function StrategyPage({ params }: { params: { brandId: string } }
                 <div className="flex-1 grid grid-cols-2 gap-x-8 gap-y-4">
                   <div>
                     <p className="field-label mb-1">Nome</p>
-                    <p className="text-[13px] text-slate-100 font-medium">{brand.name}</p>
+                    <p className="text-[13px] text-slate-900 font-medium">{brand.name}</p>
                   </div>
                   <div>
                     <p className="field-label mb-1">Nicho / Segmento</p>
-                    <p className="text-[13px] text-slate-300">
+                    <p className="text-[13px] text-slate-600">
                       {brand.niche ?? <span className="text-slate-600 italic">Não definido</span>}
                     </p>
                   </div>
                   {brand.description && (
                     <div className="col-span-2">
                       <p className="field-label mb-1">Descrição</p>
-                      <p className="text-[13px] text-slate-300 leading-relaxed">{brand.description}</p>
+                      <p className="text-[13px] text-slate-600 leading-relaxed">{brand.description}</p>
                     </div>
                   )}
                   {brand.tone_of_voice && (
                     <div className="col-span-2">
                       <p className="field-label mb-1">Tom de Voz</p>
-                      <p className="text-[13px] text-slate-300 leading-relaxed">{brand.tone_of_voice}</p>
+                      <p className="text-[13px] text-slate-600 leading-relaxed">{brand.tone_of_voice}</p>
                     </div>
                   )}
                 </div>
@@ -623,7 +623,7 @@ export default function StrategyPage({ params }: { params: { brandId: string } }
                 { label: 'Pilares', value: pillars.length },
               ].map((stat) => (
                 <div key={stat.label} className="card p-4 text-center">
-                  <p className="text-[26px] font-bold text-slate-100 leading-none">{stat.value}</p>
+                  <p className="text-[26px] font-bold text-slate-900 leading-none">{stat.value}</p>
                   <p className="text-[10px] text-slate-500 mt-1.5 uppercase tracking-wider font-semibold">
                     {stat.label}
                   </p>
@@ -651,12 +651,12 @@ export default function StrategyPage({ params }: { params: { brandId: string } }
             {pillarsLoading ? (
               <div className="grid grid-cols-3 gap-4">
                 {[0,1,2].map((i) => (
-                  <div key={i} className="h-[160px] bg-[#17171F] rounded-xl animate-pulse" />
+                  <div key={i} className="h-[160px] bg-slate-100 rounded-xl animate-pulse" />
                 ))}
               </div>
             ) : pillars.length === 0 ? (
               <div className="card p-10 flex flex-col items-center justify-center text-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-[#17171F] border border-[#27273A] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center">
                   <Plus className="w-5 h-5 text-slate-600" />
                 </div>
                 <div>
@@ -730,7 +730,7 @@ export default function StrategyPage({ params }: { params: { brandId: string } }
                   </div>
                 </div>
               ) : brand.tone_of_voice ? (
-                <p className="text-[13px] text-slate-300 leading-relaxed whitespace-pre-wrap">
+                <p className="text-[13px] text-slate-600 leading-relaxed whitespace-pre-wrap">
                   {brand.tone_of_voice}
                 </p>
               ) : (

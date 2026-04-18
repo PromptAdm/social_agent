@@ -18,10 +18,10 @@ function OperationItem({ op }: { op: Operation }) {
   return (
     <div
       className={cn(
-        'flex items-start gap-3 bg-[#111118] border rounded-xl px-4 py-3 shadow-xl min-w-[260px] max-w-[340px]',
+        'flex items-start gap-3 bg-slate-50 border rounded-xl px-4 py-3 shadow-xl min-w-[260px] max-w-[340px]',
         op.status === 'success' ? 'border-emerald-500/25' :
         op.status === 'error'   ? 'border-red-500/25'     :
-                                   'border-[#1E1E2A]',
+                                   'border-slate-200',
       )}
     >
       {/* Status icon */}
@@ -35,12 +35,12 @@ function OperationItem({ op }: { op: Operation }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <Icon className="w-3 h-3 text-slate-600 flex-shrink-0" />
-          <p className="text-[13px] font-medium text-slate-200 truncate">{op.label}</p>
+          <p className="text-[13px] font-medium text-slate-700 truncate">{op.label}</p>
         </div>
 
         {/* Progress bar */}
         {op.status === 'loading' && op.progress !== undefined && (
-          <div className="mt-2 h-1 bg-[#1E1E2A] rounded-full overflow-hidden">
+          <div className="mt-2 h-1 bg-slate-200 rounded-full overflow-hidden">
             <div
               className="h-full bg-indigo-500 rounded-full transition-all duration-300"
               style={{ width: `${op.progress}%` }}

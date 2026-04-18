@@ -25,10 +25,10 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
     fileUrl.startsWith('http') ? fileUrl : `${apiBase}${fileUrl}`
 
   return (
-    <div className="bg-[#0D0D14] border-t border-[#1E1E2A] overflow-hidden">
+    <div className="bg-white border-t border-slate-200 overflow-hidden">
 
       {/* 2×2 image grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-[#151520]">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-slate-100">
         {family.images.map((img, idx) => (
           <div
             key={idx}
@@ -101,7 +101,7 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
 
       {/* Prompt reveal */}
       {showPrompt !== null && family.images[showPrompt] && (
-        <div className="px-4 py-3 bg-[#09090E] border-t border-[#1A1A24]">
+        <div className="px-4 py-3 bg-[#F5F4FB] border-t border-slate-200/80">
           <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-700 mb-1.5">
             Prompt — {VARIANT_LABELS[showPrompt % 4]}
           </p>
@@ -137,14 +137,14 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
       )}
 
       {/* Actions footer */}
-      <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-[#17171F]">
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-slate-200">
         <button
           onClick={onSelect}
           className={cn(
             'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all',
             isSelected
               ? 'bg-indigo-600/18 text-indigo-300 border border-indigo-500/25'
-              : 'bg-[#13131A] text-slate-500 border border-[#1E1E2A] hover:text-slate-300 hover:border-[#2E2E3E]',
+              : 'bg-slate-100/80 text-slate-500 border border-slate-200 hover:text-slate-700 hover:border-slate-300',
           )}
         >
           <CheckCircle2 className="w-3.5 h-3.5" />
@@ -153,7 +153,7 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
 
         <button
           onClick={onRefine}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#13131A] border border-[#1E1E2A] text-[12px] font-medium text-slate-500 hover:text-violet-300 hover:border-violet-500/25 hover:bg-violet-600/8 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100/80 border border-slate-200 text-[12px] font-medium text-slate-500 hover:text-violet-300 hover:border-violet-500/25 hover:bg-violet-600/8 transition-all"
         >
           <Sparkles className="w-3.5 h-3.5" />
           Refinar

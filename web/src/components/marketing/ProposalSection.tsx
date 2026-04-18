@@ -51,7 +51,7 @@ export function ProposalSection() {
                 transition-all duration-300 hover:-translate-y-1"
             >
               {/* Number */}
-              <span className="absolute top-5 right-6 text-[52px] font-black text-slate-100 leading-none select-none">
+              <span className="absolute top-5 right-6 text-[52px] font-black text-slate-900 leading-none select-none">
                 {i + 1}
               </span>
 

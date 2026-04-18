@@ -160,8 +160,8 @@ function BrandDropdown({ brands, selectedIds, onToggle, onSelectAll }: BrandDrop
         className={cn(
           'flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-colors',
           open
-            ? 'bg-[#27273A] border-[#3F3F56] text-slate-200'
-            : 'bg-[#17171F] border-[#27273A] text-slate-400 hover:text-slate-200 hover:border-[#3F3F56]'
+            ? 'bg-slate-200 border-slate-300 text-slate-700'
+            : 'bg-slate-100 border-slate-300 text-slate-400 hover:text-slate-700 hover:border-slate-300'
         )}
       >
         <span className="w-2 h-2 rounded-full bg-indigo-400 flex-shrink-0" />
@@ -172,19 +172,19 @@ function BrandDropdown({ brands, selectedIds, onToggle, onSelectAll }: BrandDrop
       {open && (
         <>
           <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
-          <div className="absolute top-full left-0 mt-1.5 z-40 w-52 bg-[#111118] border border-[#27273A] rounded-xl shadow-2xl overflow-hidden">
+          <div className="absolute top-full left-0 mt-1.5 z-40 w-52 bg-slate-50 border border-slate-300 rounded-xl shadow-2xl overflow-hidden">
             <button
               onClick={() => { onSelectAll(); setOpen(false) }}
-              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-[#17171F] transition-colors border-b border-[#1E1E2A]"
+              className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-100 transition-colors border-b border-slate-200"
             >
-              <span className="text-xs font-medium text-slate-300">Todas as marcas</span>
+              <span className="text-xs font-medium text-slate-600">Todas as marcas</span>
               {allSelected && <Check className="w-3.5 h-3.5 text-indigo-400" />}
             </button>
             {brands.map((brand) => (
               <button
                 key={brand.id}
                 onClick={() => onToggle(brand.id)}
-                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-[#17171F] transition-colors"
+                className="w-full flex items-center justify-between px-3 py-2.5 hover:bg-slate-100 transition-colors"
               >
                 <span className="text-xs text-slate-400">{brand.name}</span>
                 {selectedIds.includes(brand.id) && <Check className="w-3.5 h-3.5 text-indigo-400" />}
@@ -225,15 +225,15 @@ function ScheduleModal({ post, onConfirm, onClose }: ScheduleModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl w-[420px] shadow-2xl animate-fade-in">
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#1E1E2A]">
+      <div className="bg-slate-50 border border-slate-300 rounded-xl w-[420px] shadow-2xl animate-fade-in">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <div>
-            <h3 className="text-sm font-semibold text-slate-100">
+            <h3 className="text-sm font-semibold text-slate-900">
               {post.scheduled_at ? 'Reagendar publicação' : 'Agendar publicação'}
             </h3>
             <p className="text-xs text-slate-500 mt-0.5 line-clamp-1">{post.caption.slice(0, 55)}…</p>
           </div>
-          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-[#17171F] transition-colors">
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-slate-100 transition-colors">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -242,12 +242,12 @@ function ScheduleModal({ post, onConfirm, onClose }: ScheduleModalProps) {
             <div>
               <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Data</label>
               <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
-                className="w-full bg-[#17171F] border border-[#27273A] rounded-md px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors" />
+                className="w-full bg-slate-100 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-indigo-500 transition-colors" />
             </div>
             <div>
               <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Horário</label>
               <input type="time" value={time} onChange={(e) => setTime(e.target.value)}
-                className="w-full bg-[#17171F] border border-[#27273A] rounded-md px-3 py-2 text-sm text-slate-200 focus:outline-none focus:border-indigo-500 transition-colors" />
+                className="w-full bg-slate-100 border border-slate-300 rounded-md px-3 py-2 text-sm text-slate-700 focus:outline-none focus:border-indigo-500 transition-colors" />
             </div>
           </div>
           {label && (
@@ -257,8 +257,8 @@ function ScheduleModal({ post, onConfirm, onClose }: ScheduleModalProps) {
             </div>
           )}
         </div>
-        <div className="flex justify-end gap-2 px-6 py-4 border-t border-[#1E1E2A]">
-          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 transition-colors">
+        <div className="flex justify-end gap-2 px-6 py-4 border-t border-slate-200">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-slate-400 hover:text-slate-700 transition-colors">
             Cancelar
           </button>
           <button
@@ -291,16 +291,16 @@ function PostDetailPanel({ post, brandName, onClose, onReschedule }: PostDetailP
   const fixed     = hasFixedDate(post)
 
   return (
-    <div className="w-[300px] border-l border-[#1E1E2A] flex flex-col flex-shrink-0 bg-[#0C0C11]">
+    <div className="w-[300px] border-l border-slate-200 flex flex-col flex-shrink-0 bg-white">
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-[#1E1E2A]">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-slate-200">
         <div className="flex items-center gap-2 min-w-0">
           <span className={cn('w-2 h-2 rounded-full flex-shrink-0', style.dot)} />
           <span className={cn('text-xs font-semibold truncate', style.text)}>{PLATFORM_LABEL[post.platform]}</span>
           <span className="text-xs text-slate-600">·</span>
           <span className="text-xs text-slate-500 truncate">{FORMAT_LABEL[post.formato]}</span>
         </div>
-        <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-[#17171F] transition-colors flex-shrink-0">
+        <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-md text-slate-600 hover:text-slate-400 hover:bg-slate-100 transition-colors flex-shrink-0">
           <X className="w-3.5 h-3.5" />
         </button>
       </div>
@@ -334,7 +334,7 @@ function PostDetailPanel({ post, brandName, onClose, onReschedule }: PostDetailP
         {/* Caption */}
         <div>
           <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-2">Caption</p>
-          <p className="text-xs text-slate-200 leading-relaxed whitespace-pre-line">{post.caption}</p>
+          <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-line">{post.caption}</p>
         </div>
 
         {/* Hashtags */}
@@ -361,19 +361,19 @@ function PostDetailPanel({ post, brandName, onClose, onReschedule }: PostDetailP
             <p className="text-[10px] font-semibold text-slate-600 uppercase tracking-wider mb-2">
               {post.status === 'publicado' ? 'Publicado em' : 'Agendado para'}
             </p>
-            <p className="text-xs text-slate-300 capitalize">{formatDateTime(ref)}</p>
+            <p className="text-xs text-slate-600 capitalize">{formatDateTime(ref)}</p>
           </div>
         )}
 
         {/* Meta */}
-        <div className="bg-[#0E0E16] border border-[#1E1E2A] rounded-xl p-3 space-y-2">
+        <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 space-y-2">
           {[
             { label: 'Prioridade', value: post.prioridade.charAt(0).toUpperCase() + post.prioridade.slice(1) },
             { label: 'Criado em',  value: new Date(post.created_at).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' }) },
           ].map(({ label, value }) => (
             <div key={label} className="flex items-center justify-between">
               <span className="text-[11px] text-slate-600">{label}</span>
-              <span className="text-[11px] text-slate-300">{value}</span>
+              <span className="text-[11px] text-slate-600">{value}</span>
             </div>
           ))}
         </div>
@@ -381,7 +381,7 @@ function PostDetailPanel({ post, brandName, onClose, onReschedule }: PostDetailP
 
       {/* Footer action */}
       {(post.status === 'agendado' || post.status === 'aprovado' || post.status === 'rascunho') && (
-        <div className="px-5 py-4 border-t border-[#1E1E2A] flex-shrink-0">
+        <div className="px-5 py-4 border-t border-slate-200 flex-shrink-0">
           <button
             onClick={() => onReschedule(post)}
             className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-indigo-600/15 hover:bg-indigo-600/25 border border-indigo-500/25 hover:border-indigo-500/40 text-indigo-400 text-sm font-medium rounded-lg transition-colors"
@@ -550,7 +550,7 @@ export default function CalendarPage() {
         <div className={cn('flex flex-col h-full transition-all duration-200 min-w-0', selectedPost ? 'flex-1' : 'w-full')}>
 
           {/* ── Status bar ─────────────────────────────────────────────────── */}
-          <div className="px-5 py-2 border-b border-[#1E1E2A] bg-[#090910] flex items-center gap-4 flex-shrink-0">
+          <div className="px-5 py-2 border-b border-slate-200 bg-white flex items-center gap-4 flex-shrink-0">
             {(Object.entries(statusCounts) as [PostStatus, number][]).map(([s, count]) => (
               <button
                 key={s}
@@ -574,42 +574,42 @@ export default function CalendarPage() {
           </div>
 
           {/* ── Toolbar ────────────────────────────────────────────────────── */}
-          <div className="px-5 py-2.5 border-b border-[#1E1E2A] flex items-center gap-2.5 flex-shrink-0 flex-wrap">
+          <div className="px-5 py-2.5 border-b border-slate-200 flex items-center gap-2.5 flex-shrink-0 flex-wrap">
 
             {/* Navigation */}
             <div className="flex items-center gap-1">
               <button
                 onClick={view === 'month' ? prevMonth : prevWeek}
-                className="w-7 h-7 flex items-center justify-center rounded hover:bg-[#17171F] border border-[#27273A] text-slate-500 hover:text-slate-200 transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 border border-slate-300 text-slate-500 hover:text-slate-700 transition-colors"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
-              <h2 className="text-sm font-semibold text-slate-100 min-w-[152px] text-center">
+              <h2 className="text-sm font-semibold text-slate-900 min-w-[152px] text-center">
                 {view === 'month' ? `${MONTHS[month]} ${year}` : weekLabel}
               </h2>
               <button
                 onClick={view === 'month' ? nextMonth : nextWeek}
-                className="w-7 h-7 flex items-center justify-center rounded hover:bg-[#17171F] border border-[#27273A] text-slate-500 hover:text-slate-200 transition-colors"
+                className="w-7 h-7 flex items-center justify-center rounded hover:bg-slate-100 border border-slate-300 text-slate-500 hover:text-slate-700 transition-colors"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>
               <button
                 onClick={goToday}
-                className="px-2.5 py-1 text-xs border border-[#27273A] rounded text-slate-500 hover:text-slate-300 hover:bg-[#17171F] transition-colors ml-1"
+                className="px-2.5 py-1 text-xs border border-slate-300 rounded text-slate-500 hover:text-slate-700 hover:bg-slate-100 transition-colors ml-1"
               >
                 Hoje
               </button>
             </div>
 
             {/* View toggle */}
-            <div className="flex items-center bg-[#17171F] border border-[#27273A] rounded-lg p-0.5">
+            <div className="flex items-center bg-slate-100 border border-slate-300 rounded-lg p-0.5">
               {(['month', 'week'] as ViewMode[]).map((v) => (
                 <button
                   key={v}
                   onClick={() => setView(v)}
                   className={cn(
                     'flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs font-medium transition-colors',
-                    view === v ? 'bg-[#27273A] text-slate-200' : 'text-slate-500 hover:text-slate-300'
+                    view === v ? 'bg-slate-200 text-slate-700' : 'text-slate-500 hover:text-slate-700'
                   )}
                 >
                   {v === 'month' ? <LayoutGrid className="w-3 h-3" /> : <Rows3 className="w-3 h-3" />}
@@ -637,8 +637,8 @@ export default function CalendarPage() {
                   className={cn(
                     'px-2 py-1 rounded text-[11px] font-medium transition-colors',
                     platformFilter === f.key
-                      ? 'bg-[#27273A] text-slate-200'
-                      : 'text-slate-600 hover:text-slate-400 hover:bg-[#17171F]'
+                      ? 'bg-slate-200 text-slate-700'
+                      : 'text-slate-600 hover:text-slate-400 hover:bg-slate-100'
                   )}
                 >
                   {f.label}
@@ -652,7 +652,7 @@ export default function CalendarPage() {
 
             {/* Loading overlay */}
             {isLoading && (
-              <div className="absolute inset-0 z-10 flex items-center justify-center bg-[#0A0A0F]/50">
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/5">
                 <div className="flex items-center gap-2 text-xs text-slate-500">
                   <div className="w-4 h-4 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                   Carregando...
@@ -663,7 +663,7 @@ export default function CalendarPage() {
             {/* ── Month view ───────────────────────────────────────────────── */}
             {view === 'month' && (
               <>
-                <div className="grid grid-cols-7 border-b border-[#1E1E2A] flex-shrink-0 bg-[#090910]">
+                <div className="grid grid-cols-7 border-b border-slate-200 flex-shrink-0 bg-white">
                   {WEEKDAYS_SHORT.map((d) => (
                     <div key={d} className="py-2 text-[10px] font-semibold uppercase tracking-widest text-slate-700 text-center">
                       {d}
@@ -675,7 +675,7 @@ export default function CalendarPage() {
                   {weeks.map((week, wi) => (
                     <div
                       key={wi}
-                      className="grid grid-cols-7 border-b border-[#1E1E2A] last:border-0"
+                      className="grid grid-cols-7 border-b border-slate-200 last:border-0"
                       style={{ minHeight: '116px' }}
                     >
                       {week.map((day, di) => {
@@ -687,8 +687,8 @@ export default function CalendarPage() {
                           <div
                             key={di}
                             className={cn(
-                              'border-r border-[#1E1E2A] last:border-r-0 p-1.5 flex flex-col gap-1 min-w-0',
-                              !day ? 'bg-[#07070C]' : isToday ? 'bg-indigo-600/5' : 'hover:bg-[#17171F]/25 transition-colors'
+                              'border-r border-slate-200 last:border-r-0 p-1.5 flex flex-col gap-1 min-w-0',
+                              !day ? 'bg-slate-50' : isToday ? 'bg-indigo-600/5' : 'hover:bg-slate-100/25 transition-colors'
                             )}
                           >
                             {day && (
@@ -737,11 +737,11 @@ export default function CalendarPage() {
             {/* ── Week view ────────────────────────────────────────────────── */}
             {view === 'week' && (
               <>
-                <div className="grid grid-cols-7 border-b border-[#1E1E2A] flex-shrink-0 bg-[#090910]">
+                <div className="grid grid-cols-7 border-b border-slate-200 flex-shrink-0 bg-white">
                   {weekDays.map((day, i) => {
                     const isToday = day.toDateString() === todayStr
                     return (
-                      <div key={i} className="py-2.5 text-center border-r border-[#1E1E2A] last:border-r-0">
+                      <div key={i} className="py-2.5 text-center border-r border-slate-200 last:border-r-0">
                         <p className={cn(
                           'text-[10px] font-semibold uppercase tracking-wider mb-0.5',
                           isToday ? 'text-indigo-400' : 'text-slate-600'
@@ -750,7 +750,7 @@ export default function CalendarPage() {
                         </p>
                         <span className={cn(
                           'text-sm font-bold w-7 h-7 flex items-center justify-center rounded-full mx-auto',
-                          isToday ? 'bg-indigo-600 text-white' : 'text-slate-300'
+                          isToday ? 'bg-indigo-600 text-white' : 'text-slate-600'
                         )}>
                           {day.getDate()}
                         </span>
@@ -770,7 +770,7 @@ export default function CalendarPage() {
                           key={i}
                           className={cn(
                             'p-2 space-y-1.5 min-h-[480px]',
-                            isToday ? 'bg-indigo-600/5' : 'hover:bg-[#17171F]/15 transition-colors'
+                            isToday ? 'bg-indigo-600/5' : 'hover:bg-slate-100/15 transition-colors'
                           )}
                         >
                           {dayPosts.length === 0 ? (
@@ -823,7 +823,7 @@ export default function CalendarPage() {
           </div>
 
           {/* ── Legend ─────────────────────────────────────────────────────── */}
-          <div className="px-5 py-2 border-t border-[#1E1E2A] flex items-center gap-4 flex-shrink-0 bg-[#090910]">
+          <div className="px-5 py-2 border-t border-slate-200 flex items-center gap-4 flex-shrink-0 bg-white">
             <div className="flex items-center gap-3.5">
               {Object.entries(PLATFORM_STYLE).map(([platform, s]) => (
                 <div key={platform} className="flex items-center gap-1.5">

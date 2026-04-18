@@ -46,7 +46,7 @@ function FeatureRow({ label, included }: { label: string; included: boolean }) {
         ? <Check className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
         : <X     className="w-3.5 h-3.5 text-slate-700 flex-shrink-0" />
       }
-      <span className={included ? 'text-slate-300' : 'text-slate-600'}>
+      <span className={included ? 'text-slate-600' : 'text-slate-600'}>
         {label}
       </span>
     </li>
@@ -87,7 +87,7 @@ function PlanCard({
         'relative flex flex-col rounded-xl border p-6 transition-all',
         isPro
           ? 'bg-indigo-600/8 border-indigo-500/30 ring-1 ring-indigo-500/20'
-          : 'bg-[#0F0F17] border-[#1E1E2A]',
+          : 'bg-white border-slate-200',
       )}
     >
       {/* Popular badge */}
@@ -102,12 +102,12 @@ function PlanCard({
       {/* Header */}
       <div className="mb-5">
         <div className="flex items-center justify-between mb-1">
-          <h3 className="text-[15px] font-semibold text-slate-100">{plan.display_name}</h3>
+          <h3 className="text-[15px] font-semibold text-slate-900">{plan.display_name}</h3>
           {isCurrent && <PlanBadge plan={plan.code} />}
         </div>
 
         <div className="flex items-baseline gap-1 mt-3">
-          <span className="text-3xl font-bold text-slate-100">
+          <span className="text-3xl font-bold text-slate-900">
             {formatCents(plan.price_monthly_cents)}
           </span>
           {plan.price_monthly_cents > 0 && (
@@ -147,13 +147,13 @@ function PlanCard({
 
       {/* CTA */}
       {isCurrent ? (
-        <div className="h-9 flex items-center justify-center rounded-lg border border-[#2A2A38] text-[13px] text-slate-500">
+        <div className="h-9 flex items-center justify-center rounded-lg border border-slate-200 text-[13px] text-slate-500">
           Plano atual
         </div>
       ) : isDowngrade ? (
         <button
           disabled
-          className="h-9 rounded-lg border border-[#1E1E2A] text-[13px] text-slate-600 cursor-not-allowed"
+          className="h-9 rounded-lg border border-slate-200 text-[13px] text-slate-600 cursor-not-allowed"
         >
           Fazer downgrade
         </button>
@@ -164,7 +164,7 @@ function PlanCard({
             'h-9 rounded-lg text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5',
             isPro
               ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
-              : 'bg-[#1A1A24] hover:bg-[#22222E] text-slate-300 border border-[#2A2A38]',
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200',
           )}
         >
           {stripeEnabled ? (
@@ -205,14 +205,14 @@ export default function BillingPage() {
 
       {/* ── Cabeçalho ── */}
       <div>
-        <h1 className="text-[20px] font-semibold text-slate-100">Plano & Faturamento</h1>
+        <h1 className="text-[20px] font-semibold text-slate-900">Plano & Faturamento</h1>
         <p className="text-[13px] text-slate-500 mt-1">
           Gerencie seu plano, acompanhe seu uso e faça upgrade quando precisar.
         </p>
       </div>
 
       {/* ── Card do plano atual ── */}
-      <div className="bg-[#0F0F17] border border-[#1E1E2A] rounded-xl p-6">
+      <div className="bg-white border border-slate-200 rounded-xl p-6">
         <div className="flex items-start justify-between flex-wrap gap-4">
 
           {/* Info do plano */}
@@ -221,7 +221,7 @@ export default function BillingPage() {
               Plano atual
             </p>
             <div className="flex items-center gap-2.5">
-              <span className="text-[22px] font-bold text-slate-100">{summary.plan_name}</span>
+              <span className="text-[22px] font-bold text-slate-900">{summary.plan_name}</span>
               <PlanBadge plan={summary.plan_code} />
             </div>
 
@@ -256,7 +256,7 @@ export default function BillingPage() {
         </div>
 
         {/* Uso atual */}
-        <div className="mt-6 pt-5 border-t border-[#1E1E2A] grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="mt-6 pt-5 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UsageMeter
             label="Marcas criadas"
             used={summary.usage.brands}
@@ -280,7 +280,7 @@ export default function BillingPage() {
 
       {/* ── Comparação de planos ── */}
       <div>
-        <h2 className="text-[15px] font-semibold text-slate-200 mb-1">Planos disponíveis</h2>
+        <h2 className="text-[15px] font-semibold text-slate-700 mb-1">Planos disponíveis</h2>
         <p className="text-[13px] text-slate-500 mb-5">
           Compare os planos e escolha o ideal para o seu negócio.
         </p>

@@ -65,7 +65,7 @@ export default function PublishingPage() {
       {/* Upcoming Scheduled */}
       {scheduledPosts.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-slate-600 mb-3 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse" />
             Próximos Agendamentos
           </h2>
@@ -84,7 +84,7 @@ export default function PublishingPage() {
                 {scheduledPosts.map((post) => (
                   <tr key={post.id} className="table-tr">
                     <td className="table-td">
-                      <p className="text-sm text-slate-200 truncate max-w-[400px]">{post.caption}</p>
+                      <p className="text-sm text-slate-700 truncate max-w-[400px]">{post.caption}</p>
                     </td>
                     <td className="table-td">
                       <span className={`text-xs font-medium ${PLATFORM_COLOR[post.platform]}`}>
@@ -106,7 +106,7 @@ export default function PublishingPage() {
 
       {/* Published history */}
       <div>
-        <h2 className="text-sm font-semibold text-slate-300 mb-3">Histórico de Publicações</h2>
+        <h2 className="text-sm font-semibold text-slate-600 mb-3">Histórico de Publicações</h2>
         <div className="card overflow-hidden">
           <table className="w-full">
             <thead>
@@ -133,7 +133,7 @@ export default function PublishingPage() {
               ) : publishedPosts.map((post) => (
                 <tr key={post.id} className="table-tr">
                   <td className="table-td">
-                    <p className="text-sm text-slate-200 truncate max-w-[380px]">{post.caption}</p>
+                    <p className="text-sm text-slate-700 truncate max-w-[380px]">{post.caption}</p>
                   </td>
                   <td className="table-td">
                     <span className={`text-xs font-medium ${PLATFORM_COLOR[post.platform]}`}>
@@ -154,7 +154,7 @@ export default function PublishingPage() {
               ))}
             </tbody>
           </table>
-          <div className="px-4 py-3 border-t border-[#1E1E2A] flex items-center justify-between">
+          <div className="px-4 py-3 border-t border-slate-200 flex items-center justify-between">
             <span className="text-xs text-slate-600">
               Mostrando {publishedPosts.length} publicações
             </span>
