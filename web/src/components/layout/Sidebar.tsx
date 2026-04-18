@@ -20,6 +20,9 @@ import {
   Hexagon,
   LogOut,
   Zap,
+  Image,
+  Video,
+  History,
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { useAuthStore }  from '@/store/authStore'
@@ -45,6 +48,14 @@ const navigation = [
       { label: 'Posts',        href: '/posts',    icon: FileText },
       { label: 'Aprovação',    href: '/approval', icon: CheckSquare, badge: true },
       { label: 'Calendário',   href: '/calendar', icon: CalendarDays },
+    ],
+  },
+  {
+    section: 'Módulos IA',
+    items: [
+      { label: 'Árvore de Imagens', href: '/images',   icon: Image,   highlight: true },
+      { label: 'Legendar Vídeo',    href: '/video',    icon: Video,   highlight: true },
+      { label: 'Histórico',         href: '/history',  icon: History },
     ],
   },
   {

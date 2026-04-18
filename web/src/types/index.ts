@@ -165,3 +165,97 @@ export interface BillingSummary {
   monetization_enabled: boolean
   stripe_enabled: boolean
 }
+
+// ── Créditos ───────────────────────────────────────────────────────────────────
+
+export type CreditOperationType =
+  | 'initial_grant'
+  | 'purchase'
+  | 'refund'
+  | 'image_generation'
+  | 'video_subtitle'
+
+export interface CreditBalance {
+  balance:         number
+  lifetime_earned: number
+  updated_at:      string | null
+}
+
+export interface CreditLog {
+  id:             number
+  amount:         number
+  operation_type: CreditOperationType
+  reference_id:   number | null
+  reference_type: string | null
+  description:    string | null
+  created_at:     string
+}
+
+export interface CreditLogsPage {
+  logs:   CreditLog[]
+  total:  number
+  offset: number
+  limit:  number
+}
+
+// ── Projetos ───────────────────────────────────────────────────────────────────
+
+export type ProjectStatus = 'pending' | 'processing' | 'completed' | 'failed'
+export type ProjectType   = 'image' | 'video'
+
+export interface GenerationResult {
+  id:           number
+  project_type: ProjectType
+  project_id:   number
+  result_type:  string
+  file_path:    string | null
+  file_url:     string | null
+  metadata:     Record<string, unknown> | null
+  created_at:   string
+}
+
+export interface ImageProject {
+  id:            number
+  user_id:       number
+  brand_id:      number | null
+  title:         string | null
+  status:        ProjectStatus
+  input_type:    'text' | 'image'
+  input_prompt:  string | null
+  credits_cost:  number
+  error_message: string | null
+  created_at:    string
+  updated_at:    string
+  results:       GenerationResult[]
+}
+
+export interface VideoProject {
+  id:              number
+  user_id:         number
+  brand_id:        number | null
+  title:           string | null
+  status:          ProjectStatus
+  input_file_name: string | null
+  input_file_size: number | null
+  language:        string
+  credits_cost:    number
+  error_message:   string | null
+  created_at:      string
+  updated_at:      string
+  results:         GenerationResult[]
+}
+
+export interface ProjectHistory {
+  image_projects: ImageProject[]
+  video_projects: VideoProject[]
+  image_total:    number
+  video_total:    number
+}
+
+export interface UploadedFile {
+  file_path:     string
+  file_url:      string
+  original_name: string
+  size_bytes:    number
+  content_type:  string
+}

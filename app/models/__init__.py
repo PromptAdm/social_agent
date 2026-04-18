@@ -16,6 +16,8 @@ from app.models.analytics_snapshot import AnalyticsSnapshot
 from app.models.integration_log import IntegrationLog
 from app.models.scheduler_execution import SchedulerExecution, SchedulerLock, SchedulerPostAttempt
 from app.models.subscription import UserSubscription
+from app.models.credits import UserCredit, CreditLog
+from app.models.projects import ImageProject, VideoProject, GenerationResult
 
 __all__ = [
     "User",
@@ -33,4 +35,9 @@ __all__ = [
     "SchedulerLock",
     "SchedulerPostAttempt",
     "UserSubscription",
+    "UserCredit",
+    "CreditLog",
+    "ImageProject",
+    "VideoProject",
+    "GenerationResult",
 ]

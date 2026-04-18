@@ -49,4 +49,13 @@ export const queryKeys = {
   billing:      () => ['billing', 'summary'] as const,
   billingPlans: () => ['billing', 'plans']   as const,
   billingUsage: () => ['billing', 'usage']   as const,
+
+  // Credits
+  creditBalance: ()               => ['credits', 'balance']              as const,
+  creditLogs:    (offset = 0)     => ['credits', 'logs', offset]         as const,
+
+  // Projects
+  projectHistory: (limit = 20, offset = 0) => ['projects', 'history', limit, offset] as const,
+  imageProject:   (id: number)             => ['projects', 'image', id]  as const,
+  videoProject:   (id: number)             => ['projects', 'video', id]  as const,
 }

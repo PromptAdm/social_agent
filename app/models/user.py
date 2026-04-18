@@ -69,3 +69,10 @@ class User(Base):
     subscription: Mapped["UserSubscription | None"] = relationship(  # type: ignore[name-defined]
         "UserSubscription", back_populates="user", uselist=False, lazy="raise"
     )
+    credits: Mapped["UserCredit | None"] = relationship(  # type: ignore[name-defined]
+        "UserCredit", back_populates="user", uselist=False, lazy="select"
+    )
+    credit_logs: Mapped[list["CreditLog"]] = relationship(  # type: ignore[name-defined]
+        "CreditLog", back_populates="user", lazy="select",
+        order_by="CreditLog.created_at.desc()",
+    )

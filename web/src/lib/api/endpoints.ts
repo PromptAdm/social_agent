@@ -73,4 +73,21 @@ export const API = {
     plans:   '/billing/plans',
     usage:   '/billing/usage',
   },
+
+  credits: {
+    balance: '/credits/balance',
+    logs:    '/credits/logs',
+  },
+
+  projects: {
+    history:     '/projects/history',
+    image:       (id: number) => `/projects/image/${id}`,
+    video:       (id: number) => `/projects/video/${id}`,
+    deleteImage: (id: number) => `/projects/image/${id}`,
+    deleteVideo: (id: number) => `/projects/video/${id}`,
+  },
+
+  upload: {
+    file: '/upload/',
+  },
 } as const

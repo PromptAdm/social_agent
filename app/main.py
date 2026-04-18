@@ -22,15 +22,20 @@ from app.routers import (
     billing,
     brands,
     content_pillars,
+    credits,
     engagement,
     ideas,
+    image_tree,
     integrations,
     leads,
     panel,
     posts,
+    projects,
     publishing,
     scheduler,
+    upload,
     users,
+    video_subtitle,
 )
 
 logger = logging.getLogger("main")
@@ -227,7 +232,20 @@ app.include_router(ai.router, prefix=API_PREFIX)
 app.include_router(panel.router, prefix=API_PREFIX)
 app.include_router(integrations.router, prefix=API_PREFIX)
 app.include_router(scheduler.router, prefix=API_PREFIX)
-app.include_router(billing.router, prefix=API_PREFIX)
+app.include_router(billing.router,  prefix=API_PREFIX)
+app.include_router(credits.router,  prefix=API_PREFIX)
+app.include_router(projects.router, prefix=API_PREFIX)
+app.include_router(upload.router,         prefix=API_PREFIX)
+app.include_router(video_subtitle.router, prefix=API_PREFIX)
+app.include_router(image_tree.router,     prefix=API_PREFIX)
+
+# --- Static files: serve uploads and generated files ---
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path as _Path
+
+_storage_dir = _Path(settings.STORAGE_DIR).resolve()
+_storage_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/storage", StaticFiles(directory=str(_storage_dir)), name="storage")
 
 
 # --- Health check ---

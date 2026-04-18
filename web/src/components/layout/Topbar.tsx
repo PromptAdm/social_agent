@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import { Bell, Search, ChevronRight } from 'lucide-react'
+import { CreditsDisplay } from '@/components/shared/CreditsDisplay'
 
 interface PageMeta {
   title:       string
@@ -21,6 +22,10 @@ const PAGE_MAP: Record<string, PageMeta> = {
   '/analytics':   { title: 'Analytics' },
   '/integrations':{ title: 'Integrações' },
   '/settings':    { title: 'Configurações' },
+  '/images':      { title: 'Árvore de Imagens' },
+  '/video':       { title: 'Legendar Vídeo' },
+  '/history':     { title: 'Histórico de projetos' },
+  '/billing':     { title: 'Plano & Faturamento' },
 }
 
 function getPageMeta(pathname: string): PageMeta {
@@ -53,6 +58,9 @@ export function Topbar() {
           {meta.title}
         </span>
       </div>
+
+      {/* Credits */}
+      <CreditsDisplay />
 
       {/* Search trigger */}
       <button className="hidden md:flex items-center gap-2 bg-[#111118] border border-[#1E1E2A] rounded-lg px-3 py-1.5 w-48 cursor-pointer hover:border-[#27273A] transition-colors">

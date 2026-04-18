@@ -3,7 +3,7 @@ import { queryKeys } from '@/lib/api/queryClient'
 import { postService, type CreatePostPayload, type UpdatePostPayload, type RejectPostPayload, type SchedulePostPayload } from '@/services/postService'
 import { toast } from '@/store/uiStore'
 import { parseApiError } from '@/lib/api/errors'
-import { useUIStore } from '@/store/uiStore'
+
 
 export function usePosts(brandId: number) {
   return useQuery({
@@ -60,7 +60,7 @@ export function useDeletePost() {
 
 export function useApprovePost() {
   const qc = useQueryClient()
-  const setPending = useUIStore((s) => s.setPendingApprovals)
+
   return useMutation({
     mutationFn: (id: number) => postService.approve(id),
     onSuccess: (post) => {

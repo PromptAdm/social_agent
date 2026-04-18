@@ -71,6 +71,23 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = ""          # sk_live_... ou sk_test_...
     STRIPE_WEBHOOK_SECRET: str = ""      # whsec_... — verificação de assinatura do webhook
 
+    # --- Storage (uploads e arquivos gerados) ---
+    STORAGE_DIR: str = "./storage"                        # raiz local de uploads e outputs
+    MAX_UPLOAD_MB: int = 500                              # limite por arquivo (MB)
+
+    # --- Transcrição de vídeo ---
+    TRANSCRIPTION_PROVIDER: str = "mock"                 # mock | openai
+    OPENAI_API_KEY: str = ""                             # sk-... para Whisper API
+    FFMPEG_PATH: str = ""                                # caminho explícito do ffmpeg (opcional)
+
+    # --- Geração de imagens ---
+    IMAGE_PROVIDER: str = "mock"                         # mock | openai (DALL-E 3 / GPT-Image-1)
+
+    # --- Créditos ---
+    CREDITS_INITIAL_GRANT: int = 100                     # créditos concedidos ao criar conta
+    CREDITS_IMAGE_GENERATION: int = 10                   # custo por sessão de geração de imagens
+    CREDITS_VIDEO_SUBTITLE: int = 20                     # custo por transcrição de vídeo
+
     # --- Backup ---
     BACKUP_DIR: str = "./backups"                         # diretório local para arquivos de backup
     BACKUP_RETENTION_DAYS: int = 7                        # dias para manter backups locais (0 = sem limpeza)

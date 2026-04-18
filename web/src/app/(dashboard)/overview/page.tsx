@@ -90,10 +90,7 @@ export default function OverviewPage() {
   }
   const maxCount = Math.max(...Object.values(statusCounts), 1)
 
-  const setPending = useUIStore((s) => s.setPendingApprovals)
-  useEffect(() => {
-    setPending(pendingApproval.length)
-  }, [pendingApproval.length, setPending])
+ const pending = posts.filter((p) => p.status === 'rascunho').length
 
   if (!brandId) {
     return (
