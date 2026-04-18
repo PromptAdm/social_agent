@@ -100,6 +100,48 @@
   background-clip: text;
 }
 
+.gradient-text-shimmer {
+  background: linear-gradient(
+    90deg,
+    #818cf8 0%,
+    #c084fc 30%,
+    #a5b4fc 60%,
+    #818cf8 100%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s linear infinite;
+}
+
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+.animate-marquee { animation: marquee 28s linear infinite; }
+
+/* Glass card */
+.glass {
+  background: rgba(15, 15, 23, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Gradient border via pseudo-element helper */
+.border-gradient {
+  position: relative;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Dot grid pattern */
+.dot-grid {
+  background-image: radial-gradient(rgba(99,102,241,0.18) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
 @layer components {
 
   /* ── Buttons ──────────────────────────────────────────────────────── */

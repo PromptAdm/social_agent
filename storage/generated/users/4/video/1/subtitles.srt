@@ -1,0 +1,27 @@
+1
+00:00:00,000 --> 00:00:02,800
+Olá, bem-vindo a este vídeo.
+
+2
+00:00:03,000 --> 00:00:06,200
+Hoje vamos explorar um assunto muito importante.
+
+3
+00:00:06,500 --> 00:00:09,000
+Fique até o final para não perder nada.
+
+4
+00:00:09,300 --> 00:00:12,500
+Este é um exemplo de legenda automática gerada pelo Nezora.
+
+5
+00:00:13,000 --> 00:00:16,000
+Você pode editar o texto antes de exportar.
+
+6
+00:00:16,300 --> 00:00:19,500
+O vídeo final terá as legendas embutidas.
+
+7
+00:00:20,000 --> 00:00:23,200
+Obrigado por usar o Nezora Vídeo.

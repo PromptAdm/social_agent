@@ -44,18 +44,24 @@ export function ProposalSection() {
           {audiences.map(({ icon: Icon, title, description }, i) => (
             <div
               key={title}
-              className="group relative bg-[#0F0F17] border border-[#1E1E2A] hover:border-indigo-500/30 rounded-2xl p-6 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-600/5"
+              className="group relative bg-[#0D0D14] border border-[#1A1A24]
+                hover:border-indigo-500/25 rounded-2xl p-6 overflow-hidden
+                transition-all duration-300 hover:-translate-y-1
+                hover:shadow-xl hover:shadow-black/50"
             >
-              {/* Icon */}
-              <div className="w-10 h-10 bg-indigo-600/12 border border-indigo-500/20 rounded-xl flex items-center justify-center mb-5 group-hover:bg-indigo-600/20 transition-colors">
+              {/* Number hint */}
+              <span className="absolute top-5 right-5 text-[40px] font-black text-slate-800/30 leading-none select-none">
+                {i + 1}
+              </span>
+
+              <div className="w-11 h-11 bg-indigo-600/12 border border-indigo-500/20 rounded-xl flex items-center justify-center mb-5 group-hover:bg-indigo-600/20 group-hover:border-indigo-500/30 transition-all">
                 <Icon className="w-5 h-5 text-indigo-400" />
               </div>
 
-              <h3 className="text-[16px] font-semibold text-slate-100 mb-2.5">{title}</h3>
-              <p className="text-[14px] text-slate-400 leading-relaxed">{description}</p>
+              <h3 className="text-[16px] font-semibold text-slate-100 mb-2.5 leading-snug">{title}</h3>
+              <p className="text-[13px] text-slate-400 leading-relaxed">{description}</p>
 
-              {/* Hover glow */}
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-600/0 to-violet-600/0 group-hover:from-indigo-600/3 group-hover:to-violet-600/3 transition-all duration-300 pointer-events-none" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-indigo-600/0 to-violet-600/0 group-hover:from-indigo-600/3 group-hover:to-violet-600/2 transition-all duration-300 pointer-events-none" />
             </div>
           ))}
         </div>
