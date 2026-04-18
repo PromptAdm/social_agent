@@ -37,21 +37,21 @@ export function KpiCard({
   return (
     <div
       className={cn(
-        'relative bg-[#111118] border border-[#1E1E2A] rounded-xl p-5',
+        'relative bg-[#0D0D14] border border-[#1A1A24] rounded-2xl p-5',
         'flex flex-col gap-3 overflow-hidden',
         className,
       )}
     >
       {/* Subtle top accent bar */}
-      <span className={cn('absolute top-0 left-5 right-5 h-[2px] rounded-b', ACCENT_BAR[accent])} />
+      <span className={cn('absolute top-0 left-4 right-4 h-[2px] rounded-b opacity-80', ACCENT_BAR[accent])} />
 
       {/* Label */}
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-600 mt-1">
+      <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600 mt-1">
         {label}
       </p>
 
       {/* Value */}
-      <p className="text-[26px] font-bold text-slate-100 leading-none tracking-tight tabular-nums">
+      <p className="text-[28px] font-bold text-slate-100 leading-none tracking-tight tabular-nums">
         {value}
       </p>
 

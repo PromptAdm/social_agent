@@ -222,6 +222,7 @@ export interface ImageProject {
   status:        ProjectStatus
   input_type:    'text' | 'image'
   input_prompt:  string | null
+  direction:     Record<string, unknown> | null
   credits_cost:  number
   error_message: string | null
   created_at:    string

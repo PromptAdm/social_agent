@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Image, Video, Trash2, ExternalLink, Clock, Zap, RefreshCw } from 'lucide-react'
 import { useProjectHistory, useDeleteImageProject, useDeleteVideoProject } from '@/hooks/useProjects'
 import { cn } from '@/lib/utils/cn'
@@ -44,6 +45,7 @@ function formatSize(bytes: number | null): string {
 
 function ImageRow({ project }: { project: ImageProject }) {
   const del = useDeleteImageProject()
+  const dir = project.direction as Record<string, string> | null
 
   return (
     <div className="flex items-center gap-4 px-5 py-4 hover:bg-[#111118] transition-colors group">
@@ -53,9 +55,9 @@ function ImageRow({ project }: { project: ImageProject }) {
 
       <div className="flex-1 min-w-0">
         <p className="text-[13px] font-medium text-slate-200 truncate">
-          {project.title ?? project.input_prompt?.slice(0, 60) ?? `Projeto #${project.id}`}
+          {project.title ?? `Projeto #${project.id}`}
         </p>
-        <div className="flex items-center gap-3 mt-0.5">
+        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
           <span className="text-[11px] text-slate-600 flex items-center gap-1">
             <Clock className="w-3 h-3" />
             {new Date(project.created_at).toLocaleDateString('pt-BR')}
@@ -64,9 +66,14 @@ function ImageRow({ project }: { project: ImageProject }) {
             <Zap className="w-3 h-3 text-indigo-400" />
             {project.credits_cost} créditos
           </span>
-          {project.results.length > 0 && (
-            <span className="text-[11px] text-slate-600">
-              {project.results.length} resultado{project.results.length > 1 ? 's' : ''}
+          {dir?.style && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-violet-500/10 text-violet-400 border border-violet-500/15 capitalize">
+              {dir.style}
+            </span>
+          )}
+          {dir?.mode && (
+            <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-700/40 text-slate-500 border border-slate-700/40 capitalize">
+              {dir.mode}
             </span>
           )}
         </div>
@@ -75,16 +82,14 @@ function ImageRow({ project }: { project: ImageProject }) {
       <StatusBadge status={project.status} />
 
       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-        {project.results[0]?.file_url && (
-          <a
-            href={project.results[0].file_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-1.5 rounded-lg text-slate-600 hover:text-slate-300 hover:bg-[#1A1A24] transition-colors"
-            title="Abrir resultado"
+        {project.status === 'completed' && (
+          <Link
+            href={`/images?project=${project.id}`}
+            className="p-1.5 rounded-lg text-slate-600 hover:text-violet-400 hover:bg-violet-500/8 transition-colors"
+            title="Ver resultado"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-          </a>
+          </Link>
         )}
         <button
           onClick={() => del.mutate(project.id)}
@@ -169,19 +174,19 @@ export default function HistoryPage() {
   const videoCount = data?.video_total ?? 0
 
   return (
-    <div className="px-6 py-6 max-w-4xl mx-auto">
+    <div className="px-6 py-8 max-w-4xl mx-auto">
 
       {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+      <div className="flex items-start justify-between mb-7">
         <div>
-          <h1 className="text-[20px] font-semibold text-slate-100">Histórico de projetos</h1>
+          <h1 className="text-[20px] font-semibold text-slate-100 tracking-tight">Histórico de projetos</h1>
           <p className="text-[13px] text-slate-500 mt-1">
             Projetos de geração de imagens e legendagem de vídeos.
           </p>
         </div>
         <button
           onClick={() => refetch()}
-          className="p-2 rounded-lg text-slate-600 hover:text-slate-300 hover:bg-[#17171F] transition-colors"
+          className="p-2 rounded-xl text-slate-600 hover:text-slate-300 hover:bg-[#17171F] transition-colors"
           title="Atualizar"
         >
           <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin')} />
@@ -189,7 +194,7 @@ export default function HistoryPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-1 bg-[#0C0C11] border border-[#1E1E2A] rounded-xl p-1 mb-6 w-fit">
+      <div className="flex items-center gap-1 bg-[#09090E] border border-[#1A1A24] rounded-xl p-1 mb-6 w-fit">
         {([
           { id: 'image', icon: Image,  label: 'Imagens', count: imageCount },
           { id: 'video', icon: Video,  label: 'Vídeos',  count: videoCount },
@@ -219,7 +224,7 @@ export default function HistoryPage() {
       </div>
 
       {/* List */}
-      <div className="bg-[#0F0F17] border border-[#1E1E2A] rounded-xl overflow-hidden">
+      <div className="bg-[#09090E] border border-[#1A1A24] rounded-2xl overflow-hidden">
         {isLoading ? (
           <div className="flex items-center justify-center py-16">
             <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />

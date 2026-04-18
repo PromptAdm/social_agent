@@ -3,16 +3,22 @@ Router: Árvore de Imagens
 Prefixo: /api/v1/images
 
 Endpoints:
-  POST   /images/               — cria projeto + upload de referências + inicia geração (multipart)
-  GET    /images/{id}           — status completo (fase + famílias + imagens)
-  POST   /images/{id}/refine    — gera nova família como variação de uma existente
-  DELETE /images/{id}           — exclui projeto e arquivos
+  POST   /images/                                — cria projeto + upload de referências + inicia geração (multipart)
+  GET    /images/{id}                            — status completo (fase + famílias + imagens)
+  POST   /images/{id}/refine                     — gera nova família como variação de uma existente
+  GET    /images/{id}/download                   — baixa todas as imagens do projeto (ZIP)
+  GET    /images/{id}/download?family_id=<uuid>  — baixa imagens de uma família específica (ZIP)
+  DELETE /images/{id}                            — exclui projeto e arquivos
 """
 
+import io
 import json
 import logging
+import zipfile
 
-from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi import APIRouter, BackgroundTasks, Depends, File, Form, HTTPException, Query, UploadFile, status
+from fastapi.responses import StreamingResponse
+from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -292,6 +298,58 @@ def refine_family(
     db.refresh(project)
 
     return _build_status(project, _get_results(db, project_id))
+
+
+@router.get(
+    "/{project_id}/download",
+    summary="Baixar imagens do projeto como ZIP (family_id opcional para filtrar por família)",
+)
+def download_images(
+    project_id:   int,
+    family_id:    str | None = Query(default=None, description="UUID da família; omitir para baixar todas"),
+    db:           Session    = Depends(get_db),
+    current_user: User       = Depends(get_current_active_user),
+) -> StreamingResponse:
+    project_service.get_image_project(db, project_id, current_user.id)  # ownership check
+    results = _get_results(db, project_id)
+
+    families_r = next((r for r in results if r.result_type == "families"), None)
+    if not families_r or not families_r.metadata_json:
+        raise HTTPException(404, "Nenhuma imagem gerada para este projeto.")
+
+    data     = json.loads(families_r.metadata_json)
+    families = data.get("families", [])
+
+    if family_id:
+        families = [f for f in families if f.get("family_id") == family_id]
+        if not families:
+            raise HTTPException(404, f"Família '{family_id}' não encontrada.")
+
+    # Build in-memory ZIP
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+        for fam in families:
+            fam_slug = fam.get("family_name", "familia").replace(" ", "_").replace("/", "-")[:30]
+            for img in fam.get("images", []):
+                file_path = img.get("file_path")
+                if not file_path:
+                    continue
+                p = Path(file_path)
+                if not p.exists():
+                    continue
+                arcname = f"{fam_slug}/{p.name}"
+                zf.write(p, arcname=arcname)
+
+    if buf.tell() == 0:
+        raise HTTPException(404, "Nenhum arquivo encontrado para download.")
+
+    buf.seek(0)
+    zip_name = f"imagens_projeto_{project_id}.zip"
+    return StreamingResponse(
+        buf,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{zip_name}"'},
+    )
 
 
 @router.delete(

@@ -40,28 +40,37 @@ const TONES = [
 
 const MODES = [
   {
-    value: 'fast',
-    label: 'Rápido',
-    desc: '1 família · 4 variações',
+    value:   'fast',
+    label:   'Rápido',
+    desc:    '1 família · 4 variações',
     credits: 10,
-    icon: Zap,
-    color: 'indigo',
+    icon:    Zap,
+    active:  'border-indigo-500/40 bg-indigo-600/10 shadow-lg shadow-indigo-500/8',
+    icon_c:  'bg-indigo-600/20 text-indigo-400',
+    text_c:  'text-indigo-300',
+    cred_c:  'text-indigo-400',
   },
   {
-    value: 'creative',
-    label: 'Criativo',
-    desc: '2 famílias · 4 variações cada',
+    value:   'creative',
+    label:   'Criativo',
+    desc:    '2 famílias · 4 variações cada',
     credits: 20,
-    icon: Sparkles,
-    color: 'violet',
+    icon:    Sparkles,
+    active:  'border-violet-500/40 bg-violet-600/10 shadow-lg shadow-violet-500/8',
+    icon_c:  'bg-violet-600/20 text-violet-400',
+    text_c:  'text-violet-300',
+    cred_c:  'text-violet-400',
   },
   {
-    value: 'campaign',
-    label: 'Campanha',
-    desc: '3 famílias · 4 variações cada',
+    value:   'campaign',
+    label:   'Campanha',
+    desc:    '3 famílias · 4 variações cada',
     credits: 30,
-    icon: Megaphone,
-    color: 'pink',
+    icon:    Megaphone,
+    active:  'border-pink-500/40 bg-pink-600/10 shadow-lg shadow-pink-500/8',
+    icon_c:  'bg-pink-600/20 text-pink-400',
+    text_c:  'text-pink-300',
+    cred_c:  'text-pink-400',
   },
 ]
 
@@ -147,36 +156,41 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
     <div className="max-w-2xl mx-auto px-6 py-10 space-y-8">
 
       {/* Header */}
-      <div>
-        <h1 className="text-[20px] font-semibold text-slate-100">Árvore de Imagens</h1>
-        <p className="text-[13px] text-slate-500 mt-1">
-          Envie referências, descreva sua direção criativa e receba famílias visuais para sua marca.
-        </p>
+      <div className="flex items-start gap-4">
+        <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-600/25 to-violet-600/10 border border-indigo-500/25 flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/10">
+          <Sparkles className="w-5 h-5 text-indigo-400" />
+        </div>
+        <div>
+          <h1 className="text-[20px] font-semibold text-slate-100 tracking-tight">Árvore de Imagens</h1>
+          <p className="text-[13px] text-slate-500 mt-0.5 leading-relaxed">
+            Descreva sua direção criativa e receba famílias visuais distintas para sua marca.
+          </p>
+        </div>
       </div>
 
       {/* Credits info */}
       <div className={cn(
-        'flex items-center gap-2.5 px-4 py-3 rounded-xl border text-[13px]',
+        'flex items-center gap-3 px-4 py-3 rounded-xl border text-[13px]',
         canAfford
-          ? 'bg-indigo-600/5 border-indigo-500/20 text-slate-400'
-          : 'bg-red-500/8 border-red-500/20 text-red-400',
+          ? 'bg-[#0C0C11] border-[#1E1E2A] text-slate-500'
+          : 'bg-red-500/5 border-red-500/20 text-red-400',
       )}>
         <Zap className={cn('w-4 h-4 flex-shrink-0', canAfford ? 'text-indigo-400' : 'text-red-400')} />
         <span>
-          Modo selecionado: <strong className="text-slate-200">{selectedMode.credits} créditos</strong>.
+          Modo selecionado: <strong className="text-slate-300">{selectedMode.credits} créditos</strong>.
           {credits && (
-            <> Saldo: <strong className={canAfford ? 'text-slate-200' : 'text-red-300'}>{credits.balance} créditos</strong>.</>
+            <> Saldo disponível: <strong className={canAfford ? 'text-slate-300' : 'text-red-300'}>{credits.balance}</strong>.</>
           )}
         </span>
       </div>
 
       {/* References upload */}
       <div className="space-y-3">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">
-          Imagens de referência <span className="text-slate-700 normal-case font-normal">(opcional, até 5)</span>
+        <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600">
+          Imagens de referência
+          <span className="ml-1.5 normal-case font-normal text-slate-700">opcional · até 5</span>
         </label>
 
-        {/* Thumbnails */}
         {references.length > 0 && (
           <div className="flex flex-wrap gap-2">
             {references.map((f, idx) => (
@@ -191,7 +205,7 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
                 />
                 <button
                   onClick={() => removeRef(idx)}
-                  className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity"
+                  className="absolute inset-0 flex items-center justify-center bg-black/55 opacity-0 group-hover:opacity-100 transition-opacity"
                 >
                   <X className="w-4 h-4 text-white" />
                 </button>
@@ -200,7 +214,7 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
             {references.length < 5 && (
               <button
                 onClick={() => inputRef.current?.click()}
-                className="w-16 h-16 rounded-xl border border-dashed border-[#27273A] hover:border-[#3A3A50] flex items-center justify-center text-slate-700 hover:text-slate-500 transition-colors"
+                className="w-16 h-16 rounded-xl border border-dashed border-[#27273A] hover:border-indigo-500/30 hover:bg-indigo-600/5 flex items-center justify-center text-slate-700 hover:text-indigo-400 transition-all"
               >
                 <ImagePlus className="w-5 h-5" />
               </button>
@@ -208,7 +222,6 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
           </div>
         )}
 
-        {/* Drop zone */}
         {references.length === 0 && (
           <div
             onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
@@ -216,22 +229,18 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
             onDrop={onDrop}
             onClick={() => inputRef.current?.click()}
             className={cn(
-              'relative border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all',
+              'relative border-2 border-dashed rounded-2xl p-8 flex flex-col items-center justify-center gap-3 cursor-pointer transition-all duration-200',
               isDragging
-                ? 'border-indigo-500/60 bg-indigo-600/8'
-                : 'border-[#27273A] hover:border-[#3A3A50] hover:bg-[#111118]',
+                ? 'border-indigo-500/50 bg-indigo-600/6'
+                : 'border-[#1E1E2A] hover:border-[#2E2E3E] hover:bg-[#0F0F17]',
             )}
           >
-            <div className="w-12 h-12 bg-[#17171F] border border-[#27273A] rounded-2xl flex items-center justify-center">
-              <Upload className="w-5 h-5 text-slate-500" />
+            <div className="w-11 h-11 bg-[#17171F] border border-[#27273A] rounded-2xl flex items-center justify-center">
+              <Upload className="w-4.5 h-4.5 text-slate-600" />
             </div>
             <div className="text-center">
-              <p className="text-[14px] font-medium text-slate-400">
-                Arraste imagens de referência
-              </p>
-              <p className="text-[12px] text-slate-700 mt-1">
-                JPG, PNG, WebP · Até 5 arquivos · 10 MB cada
-              </p>
+              <p className="text-[13px] font-medium text-slate-400">Arraste imagens de referência</p>
+              <p className="text-[12px] text-slate-700 mt-0.5">JPG, PNG, WebP · até 5 arquivos · 10 MB cada</p>
             </div>
           </div>
         )}
@@ -248,23 +257,22 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
 
       {/* Description */}
       <div className="space-y-2">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">
-          Descrição criativa <span className="text-red-400">*</span>
+        <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600">
+          Descrição criativa <span className="text-red-400 ml-0.5">*</span>
         </label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Descreva a marca, o produto ou campanha. Quanto mais contexto, melhor o resultado..."
           rows={3}
-          className="w-full bg-[#0F0F17] border border-[#1E1E2A] focus:border-indigo-500/40 rounded-xl px-4 py-3 text-[14px] text-slate-200 placeholder:text-slate-700 outline-none resize-none transition-colors leading-relaxed"
+          className="w-full bg-[#0B0B12] border border-[#1E1E2A] focus:border-indigo-500/40 focus:bg-[#0D0D16] rounded-xl px-4 py-3 text-[14px] text-slate-200 placeholder:text-slate-700 outline-none resize-none transition-all leading-relaxed"
         />
       </div>
 
-      {/* Creative direction row */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Objetivo */}
+      {/* Creative direction */}
+      <div className="grid grid-cols-2 gap-5">
         <div className="space-y-2">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">Objetivo</label>
+          <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600">Objetivo</label>
           <div className="space-y-1">
             {OBJECTIVES.map((o) => (
               <button
@@ -273,8 +281,8 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
                 className={cn(
                   'w-full px-3 py-2 rounded-lg border text-[13px] font-medium text-left transition-all',
                   objective === o.value
-                    ? 'bg-indigo-600/12 border-indigo-500/30 text-indigo-300'
-                    : 'bg-[#0F0F17] border-[#1E1E2A] text-slate-500 hover:border-[#2A2A38] hover:text-slate-300',
+                    ? 'bg-indigo-600/10 border-indigo-500/30 text-indigo-300'
+                    : 'bg-[#0B0B12] border-[#1A1A24] text-slate-500 hover:border-[#27273A] hover:text-slate-300',
                 )}
               >
                 {o.label}
@@ -283,9 +291,8 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
           </div>
         </div>
 
-        {/* Estilo */}
         <div className="space-y-2">
-          <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">Estilo Visual</label>
+          <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600">Estilo Visual</label>
           <div className="space-y-1">
             {STYLES.map((s) => (
               <button
@@ -294,8 +301,8 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
                 className={cn(
                   'w-full px-3 py-2 rounded-lg border text-[13px] font-medium text-left transition-all',
                   style === s.value
-                    ? 'bg-indigo-600/12 border-indigo-500/30 text-indigo-300'
-                    : 'bg-[#0F0F17] border-[#1E1E2A] text-slate-500 hover:border-[#2A2A38] hover:text-slate-300',
+                    ? 'bg-indigo-600/10 border-indigo-500/30 text-indigo-300'
+                    : 'bg-[#0B0B12] border-[#1A1A24] text-slate-500 hover:border-[#27273A] hover:text-slate-300',
                 )}
               >
                 {s.label}
@@ -307,7 +314,7 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
 
       {/* Tom */}
       <div className="space-y-2">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">Tom</label>
+        <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600">Tom</label>
         <div className="grid grid-cols-3 gap-2">
           {TONES.map((t) => (
             <button
@@ -316,8 +323,8 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
               className={cn(
                 'px-3 py-2 rounded-xl border text-[13px] font-medium transition-all',
                 tone === t.value
-                  ? 'bg-indigo-600/12 border-indigo-500/30 text-indigo-300'
-                  : 'bg-[#0F0F17] border-[#1E1E2A] text-slate-500 hover:border-[#2A2A38] hover:text-slate-300',
+                  ? 'bg-indigo-600/10 border-indigo-500/30 text-indigo-300'
+                  : 'bg-[#0B0B12] border-[#1A1A24] text-slate-500 hover:border-[#27273A] hover:text-slate-300',
               )}
             >
               {t.label}
@@ -328,9 +335,7 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
 
       {/* Generation mode */}
       <div className="space-y-2">
-        <label className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">
-          Modo de Geração
-        </label>
+        <label className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600">Modo de Geração</label>
         <div className="grid grid-cols-3 gap-3">
           {MODES.map((m) => {
             const Icon = m.icon
@@ -340,32 +345,34 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
                 key={m.value}
                 onClick={() => setMode(m.value)}
                 className={cn(
-                  'flex flex-col items-center gap-2 px-3 py-4 rounded-2xl border text-center transition-all',
+                  'relative flex flex-col items-center gap-2.5 px-3 py-5 rounded-2xl border text-center transition-all duration-200',
                   isSelected
-                    ? 'bg-indigo-600/10 border-indigo-500/30'
-                    : 'bg-[#0F0F17] border-[#1E1E2A] hover:border-[#2A2A38]',
+                    ? m.active
+                    : 'bg-[#0B0B12] border-[#1A1A24] hover:border-[#27273A] hover:bg-[#0F0F17]',
                 )}
               >
+                {isSelected && (
+                  <span className="absolute top-2.5 right-2.5 w-1.5 h-1.5 rounded-full bg-current opacity-60"
+                    style={{ color: 'inherit' }}
+                  />
+                )}
                 <div className={cn(
-                  'w-8 h-8 rounded-xl flex items-center justify-center',
-                  isSelected ? 'bg-indigo-600/20' : 'bg-[#17171F]',
+                  'w-9 h-9 rounded-xl flex items-center justify-center transition-colors',
+                  isSelected ? m.icon_c : 'bg-[#17171F] text-slate-600',
                 )}>
-                  <Icon className={cn(
-                    'w-4 h-4',
-                    isSelected ? 'text-indigo-400' : 'text-slate-600',
-                  )} />
+                  <Icon className="w-4 h-4" />
                 </div>
-                <div>
+                <div className="space-y-0.5">
                   <p className={cn(
-                    'text-[13px] font-semibold',
-                    isSelected ? 'text-indigo-300' : 'text-slate-400',
+                    'text-[13px] font-semibold leading-tight',
+                    isSelected ? m.text_c : 'text-slate-400',
                   )}>
                     {m.label}
                   </p>
-                  <p className="text-[10px] text-slate-600 mt-0.5 leading-tight">{m.desc}</p>
+                  <p className="text-[10px] text-slate-600 leading-tight">{m.desc}</p>
                   <p className={cn(
-                    'text-[11px] font-bold mt-1',
-                    isSelected ? 'text-indigo-400' : 'text-slate-600',
+                    'text-[12px] font-bold mt-1 leading-none',
+                    isSelected ? m.cred_c : 'text-slate-700',
                   )}>
                     {m.credits} créditos
                   </p>
@@ -378,7 +385,7 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
 
       {/* Error */}
       {error && (
-        <div className="flex items-start gap-2.5 px-4 py-3 bg-red-500/8 border border-red-500/20 rounded-xl text-[13px] text-red-400">
+        <div className="flex items-start gap-2.5 px-4 py-3 bg-red-500/6 border border-red-500/20 rounded-xl text-[13px] text-red-400">
           <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
           {error}
         </div>
@@ -389,10 +396,10 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
         onClick={handleSubmit}
         disabled={isLoading || !canAfford || !description.trim()}
         className={cn(
-          'w-full h-12 rounded-xl text-[15px] font-semibold transition-all flex items-center justify-center gap-2',
+          'w-full h-12 rounded-xl text-[14px] font-semibold transition-all duration-200 flex items-center justify-center gap-2',
           !isLoading && canAfford && description.trim()
-            ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg shadow-indigo-600/20 hover:-translate-y-0.5'
-            : 'bg-[#17171F] text-slate-600 cursor-not-allowed border border-[#27273A]',
+            ? 'bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white shadow-lg shadow-indigo-600/25 hover:-translate-y-[1px] hover:shadow-indigo-600/35'
+            : 'bg-[#111118] text-slate-600 cursor-not-allowed border border-[#1E1E2A]',
         )}
       >
         {isLoading ? (
@@ -404,7 +411,7 @@ export function StudioForm({ onProjectCreated }: StudioFormProps) {
           <>
             <Sparkles className="w-4 h-4" />
             Gerar Famílias Visuais — {selectedMode.credits} créditos
-            <ChevronRight className="w-4 h-4 ml-auto opacity-60" />
+            <ChevronRight className="w-4 h-4 ml-auto opacity-50" />
           </>
         )}
       </button>

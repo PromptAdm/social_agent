@@ -38,6 +38,7 @@ class ImageProjectOut(BaseModel):
     status:          str
     input_type:      str
     input_prompt:    str | None = None
+    direction:       dict[str, Any] | None = None  # input_prompt parsed as JSON
     credits_cost:    int
     error_message:   str | None = None
     created_at:      datetime
@@ -45,6 +46,21 @@ class ImageProjectOut(BaseModel):
     results:         list[GenerationResultOut] = []
 
     model_config = {"from_attributes": True}
+
+    @model_validator(mode="before")
+    @classmethod
+    def parse_direction(cls, values: Any) -> Any:
+        import json
+        if hasattr(values, "__dict__"):
+            raw = getattr(values, "input_prompt", None)
+            if raw and isinstance(raw, str):
+                try:
+                    parsed = json.loads(raw)
+                    if isinstance(parsed, dict):
+                        object.__setattr__(values, "direction", parsed)
+                except Exception:
+                    pass
+        return values
 
 
 class VideoProjectOut(BaseModel):

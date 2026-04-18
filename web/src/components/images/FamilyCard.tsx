@@ -21,15 +21,14 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
   const [showPrompt,    setShowPrompt]    = useState<number | null>(null)
 
   const apiBase = process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') ?? 'http://localhost:8000'
-
   const fullUrl = (fileUrl: string) =>
     fileUrl.startsWith('http') ? fileUrl : `${apiBase}${fileUrl}`
 
   return (
-    <div className="bg-[#0F0F17] border border-[#1E1E2A] border-t-0 rounded-b-2xl overflow-hidden">
+    <div className="bg-[#0D0D14] border-t border-[#1E1E2A] overflow-hidden">
 
-      {/* Image grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-0.5 p-0.5 bg-[#0A0A10]">
+      {/* 2×2 image grid */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-px bg-[#151520]">
         {family.images.map((img, idx) => (
           <div
             key={idx}
@@ -38,33 +37,38 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
             onMouseLeave={() => setHoveredIdx(null)}
             onClick={() => setSelectedImage(selectedImage?.variant_index === idx ? null : img)}
           >
-            {/* Image */}
             <img
               src={fullUrl(img.file_url)}
               alt={`${family.family_name} — ${VARIANT_LABELS[idx % 4]}`}
-              className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+              className="w-full h-full object-cover transition-all duration-300 group-hover:scale-[1.04]"
               loading="lazy"
             />
 
-            {/* Hover overlay */}
+            {/* Gradient overlay always present, darkens on hover */}
             <div className={cn(
-              'absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-1.5 transition-opacity',
+              'absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent transition-opacity duration-200',
+              hoveredIdx === idx ? 'opacity-100' : 'opacity-0',
+            )} />
+
+            {/* Hover controls */}
+            <div className={cn(
+              'absolute inset-0 flex flex-col items-center justify-end pb-3 gap-1 transition-opacity duration-200',
               hoveredIdx === idx ? 'opacity-100' : 'opacity-0',
             )}>
-              <span className="text-[11px] font-semibold text-white/90 px-2 text-center leading-tight">
+              <span className="text-[10px] font-semibold text-white/80 px-2 text-center leading-tight">
                 {VARIANT_LABELS[idx % 4]}
               </span>
-              <div className="flex items-center gap-1.5 mt-1">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={(e) => { e.stopPropagation(); onDownload(fullUrl(img.file_url), family.family_name, idx) }}
-                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  className="p-1.5 rounded-lg bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-colors"
                   title="Download"
                 >
                   <Download className="w-3.5 h-3.5 text-white" />
                 </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); setShowPrompt(showPrompt === idx ? null : idx) }}
-                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  className="p-1.5 rounded-lg bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-colors"
                   title="Ver prompt"
                 >
                   <Info className="w-3.5 h-3.5 text-white" />
@@ -74,7 +78,7 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 transition-colors"
+                  className="p-1.5 rounded-lg bg-black/40 hover:bg-black/60 backdrop-blur-sm transition-colors"
                   title="Abrir em nova aba"
                 >
                   <ExternalLink className="w-3.5 h-3.5 text-white" />
@@ -82,9 +86,12 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
               </div>
             </div>
 
-            {/* Selected indicator */}
+            {/* Selected ring */}
             {selectedImage?.variant_index === idx && (
-              <div className="absolute top-1.5 right-1.5 w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center">
+              <div className="absolute inset-0 ring-2 ring-indigo-500 ring-inset pointer-events-none" />
+            )}
+            {selectedImage?.variant_index === idx && (
+              <div className="absolute top-2 right-2 w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center shadow-md">
                 <CheckCircle2 className="w-3.5 h-3.5 text-white" />
               </div>
             )}
@@ -92,10 +99,10 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
         ))}
       </div>
 
-      {/* Prompt tooltip */}
+      {/* Prompt reveal */}
       {showPrompt !== null && family.images[showPrompt] && (
-        <div className="px-4 py-3 bg-[#0A0A10] border-t border-[#1E1E2A]">
-          <p className="text-[11px] font-semibold text-slate-600 uppercase tracking-wider mb-1">
+        <div className="px-4 py-3 bg-[#09090E] border-t border-[#1A1A24]">
+          <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-700 mb-1.5">
             Prompt — {VARIANT_LABELS[showPrompt % 4]}
           </p>
           <p className="text-[12px] text-slate-400 leading-relaxed">
@@ -104,14 +111,14 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
         </div>
       )}
 
-      {/* Selected image detail */}
+      {/* Selected image row */}
       {selectedImage && (
-        <div className="px-4 py-3 bg-indigo-600/5 border-t border-indigo-500/15">
+        <div className="px-4 py-3 bg-indigo-600/6 border-t border-indigo-500/12">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-              <span className="text-[13px] text-indigo-300 font-medium">
-                {family.family_name} — {VARIANT_LABELS[selectedImage.variant_index % 4]} selecionado
+              <span className="text-[13px] text-indigo-300 font-medium leading-tight">
+                {family.family_name} — {VARIANT_LABELS[selectedImage.variant_index % 4]}
               </span>
             </div>
             <button
@@ -120,7 +127,7 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
                 family.family_name,
                 selectedImage.variant_index,
               )}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 text-[12px] font-medium transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600/18 hover:bg-indigo-600/28 text-indigo-300 text-[12px] font-medium transition-colors"
             >
               <Download className="w-3.5 h-3.5" />
               Baixar
@@ -130,25 +137,23 @@ export function FamilyCard({ family, isSelected, onSelect, onRefine, onDownload 
       )}
 
       {/* Actions footer */}
-      <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-[#1E1E2A]">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={onSelect}
-            className={cn(
-              'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all',
-              isSelected
-                ? 'bg-indigo-600/20 text-indigo-300 border border-indigo-500/30'
-                : 'bg-[#17171F] text-slate-500 border border-[#27273A] hover:text-slate-300 hover:border-[#3A3A50]',
-            )}
-          >
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            {isSelected ? 'Selecionada' : 'Selecionar família'}
-          </button>
-        </div>
+      <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-[#17171F]">
+        <button
+          onClick={onSelect}
+          className={cn(
+            'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium transition-all',
+            isSelected
+              ? 'bg-indigo-600/18 text-indigo-300 border border-indigo-500/25'
+              : 'bg-[#13131A] text-slate-500 border border-[#1E1E2A] hover:text-slate-300 hover:border-[#2E2E3E]',
+          )}
+        >
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          {isSelected ? 'Selecionada' : 'Selecionar família'}
+        </button>
 
         <button
           onClick={onRefine}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#17171F] border border-[#27273A] text-[12px] font-medium text-slate-500 hover:text-violet-300 hover:border-violet-500/30 hover:bg-violet-600/8 transition-all"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#13131A] border border-[#1E1E2A] text-[12px] font-medium text-slate-500 hover:text-violet-300 hover:border-violet-500/25 hover:bg-violet-600/8 transition-all"
         >
           <Sparkles className="w-3.5 h-3.5" />
           Refinar

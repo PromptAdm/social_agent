@@ -1,16 +1,16 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, CalendarClock, CheckCheck } from 'lucide-react'
+import { ArrowRight, CalendarClock, CheckCheck, ImageIcon, Video, Sparkles } from 'lucide-react'
 import { KpiCard }     from '@/components/shared/KpiCard'
 import { StatusBadge } from '@/components/shared/StatusBadge'
 import { useBrandStore } from '@/store/brandStore'
 import { usePosts }       from '@/hooks/usePosts'
 import { useIdeas }       from '@/hooks/useIdeas'
 import { useAnalyticsSummary } from '@/hooks/useAnalytics'
-import { useUIStore }    from '@/store/uiStore'
-import { useEffect }     from 'react'
+import { useProjectHistory } from '@/hooks/useProjects'
 import { cn } from '@/lib/utils/cn'
+import type { ProjectStatus } from '@/types'
 
 // ── helpers ────────────────────────────────────────────────────────────────────
 
@@ -44,6 +44,20 @@ const PIPELINE_ROWS = [
   { status: 'publicado' as const, color: 'bg-teal-500',    label: 'Publicado' },
 ]
 
+const AI_STATUS_COLOR: Record<ProjectStatus, string> = {
+  pending:    'text-amber-400',
+  processing: 'text-indigo-400',
+  completed:  'text-emerald-400',
+  failed:     'text-red-400',
+}
+
+const AI_STATUS_LABEL: Record<ProjectStatus, string> = {
+  pending:    'Na fila',
+  processing: 'Processando',
+  completed:  'Concluído',
+  failed:     'Falhou',
+}
+
 function Skeleton({ className }: { className?: string }) {
   return <div className={cn('animate-pulse bg-[#17171F] rounded-lg', className)} />
 }
@@ -74,6 +88,7 @@ export default function OverviewPage() {
   const { data: posts   = [], isLoading: postsLoading   } = usePosts(brandId)
   const { data: ideas   = [], isLoading: ideasLoading   } = useIdeas(brandId)
   const { data: summary,      isLoading: summaryLoading } = useAnalyticsSummary(brandId)
+  const { data: history,      isLoading: historyLoading } = useProjectHistory()
 
   const pendingApproval = posts.filter((p) => p.status === 'rascunho')
   const upcomingPosts   = posts
@@ -213,7 +228,90 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      {/* ── Row 3: Ideas + Approval queue ───────────────────────────── */}
+      {/* ── Row 3: Módulos IA ───────────────────────────────────────── */}
+      <div className="grid grid-cols-[1fr_320px] gap-3">
+
+        {/* Quick-access cards */}
+        <div className="card p-5">
+          <SectionHeader title="Módulos IA" href="/history" linkLabel="Ver histórico" />
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              href="/images"
+              className="group flex items-center gap-3 p-4 rounded-xl bg-[#0C0C11] border border-[#1E1E2A] hover:border-violet-500/30 hover:bg-violet-500/5 transition-all"
+            >
+              <div className="w-9 h-9 rounded-lg bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-violet-500/20 transition-colors">
+                <ImageIcon className="w-4 h-4 text-violet-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-medium text-slate-200 group-hover:text-slate-100 truncate">Árvore de Imagens</p>
+                <p className="text-[11px] text-slate-600 mt-0.5">Gerar famílias visuais</p>
+              </div>
+              <Sparkles className="w-3.5 h-3.5 text-slate-700 group-hover:text-violet-400 transition-colors ml-auto flex-shrink-0" />
+            </Link>
+            <Link
+              href="/video"
+              className="group flex items-center gap-3 p-4 rounded-xl bg-[#0C0C11] border border-[#1E1E2A] hover:border-indigo-500/30 hover:bg-indigo-500/5 transition-all"
+            >
+              <div className="w-9 h-9 rounded-lg bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center flex-shrink-0 group-hover:bg-indigo-500/20 transition-colors">
+                <Video className="w-4 h-4 text-indigo-400" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[13px] font-medium text-slate-200 group-hover:text-slate-100 truncate">Legendar Vídeo</p>
+                <p className="text-[11px] text-slate-600 mt-0.5">Transcrição + legendas</p>
+              </div>
+              <Sparkles className="w-3.5 h-3.5 text-slate-700 group-hover:text-indigo-400 transition-colors ml-auto flex-shrink-0" />
+            </Link>
+          </div>
+        </div>
+
+        {/* Recent AI projects */}
+        <div className="card p-5">
+          <SectionHeader title="Projetos Recentes" href="/history" linkLabel="Ver todos" />
+          {historyLoading ? (
+            <div className="space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-9" />)}
+            </div>
+          ) : (
+            (() => {
+              const recent = [
+                ...(history?.image_projects ?? []).map((p) => ({ ...p, kind: 'image' as const })),
+                ...(history?.video_projects ?? []).map((p) => ({ ...p, kind: 'video' as const })),
+              ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 4)
+
+              return recent.length === 0 ? (
+                <p className="text-xs text-slate-600 py-6 text-center">Nenhum projeto ainda.</p>
+              ) : (
+                <div className="space-y-px">
+                  {recent.map((p) => (
+                    <Link
+                      key={`${p.kind}-${p.id}`}
+                      href={p.kind === 'image' && p.status === 'completed' ? `/images?project=${p.id}` : `/${p.kind === 'image' ? 'images' : 'video'}`}
+                      className="flex items-center gap-2.5 px-2 py-2 rounded-lg hover:bg-[#17171F] transition-colors group"
+                    >
+                      <div className={cn(
+                        'w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0',
+                        p.kind === 'image' ? 'bg-violet-500/10' : 'bg-indigo-500/10',
+                      )}>
+                        {p.kind === 'image'
+                          ? <ImageIcon className="w-3 h-3 text-violet-400" />
+                          : <Video className="w-3 h-3 text-indigo-400" />}
+                      </div>
+                      <p className="flex-1 text-[12px] text-slate-400 truncate group-hover:text-slate-200 transition-colors">
+                        {p.title ?? `Projeto #${p.id}`}
+                      </p>
+                      <span className={cn('text-[10px] font-medium flex-shrink-0', AI_STATUS_COLOR[p.status])}>
+                        {AI_STATUS_LABEL[p.status]}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )
+            })()
+          )}
+        </div>
+      </div>
+
+      {/* ── Row 4: Ideas + Approval queue ───────────────────────────── */}
       <div className="grid grid-cols-2 gap-3">
 
         {/* Recent ideas */}

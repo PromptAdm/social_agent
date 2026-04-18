@@ -107,11 +107,11 @@ export function Sidebar() {
       {/* Logo */}
       <div className="h-14 px-5 flex items-center border-b border-[#1A1A24] flex-shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Hexagon className="w-[15px] h-[15px] text-white" strokeWidth={2} />
+          <div className="w-7 h-7 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-md shadow-indigo-500/25">
+            <Hexagon className="w-[15px] h-[15px] text-white" strokeWidth={2.5} />
           </div>
           <span className="text-[13px] font-semibold text-slate-100 tracking-tight">
-            Social Agent
+            Nezora
           </span>
         </div>
       </div>
@@ -186,17 +186,17 @@ export function Sidebar() {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      'relative flex items-center gap-2.5 px-2.5 py-[6px] rounded-lg text-[13px] transition-all group',
+                      'relative flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] transition-all group',
                       isActive
-                        ? 'bg-indigo-600/12 text-indigo-300'
+                        ? 'bg-indigo-600/14 text-indigo-300 shadow-sm'
                         : isHighlight
-                        ? 'text-indigo-400 bg-indigo-600/8 hover:bg-indigo-600/14 border border-indigo-500/15 hover:border-indigo-500/30'
-                        : 'text-slate-400 hover:text-slate-200 hover:bg-[#17171F]',
+                        ? 'text-indigo-400 bg-indigo-600/8 hover:bg-indigo-600/14 border border-indigo-500/15 hover:border-indigo-500/25'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-[#13131A]',
                     )}
                   >
                     {/* Active indicator */}
                     {isActive && (
-                      <span className="absolute left-0 inset-y-2 w-0.5 bg-indigo-500 rounded-r" />
+                      <span className="absolute left-0 inset-y-1.5 w-[3px] bg-gradient-to-b from-indigo-400 to-violet-500 rounded-r-full" />
                     )}
 
                     <item.icon

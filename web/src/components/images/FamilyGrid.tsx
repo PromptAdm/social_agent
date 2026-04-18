@@ -1,7 +1,7 @@
 'use client'
 
-import { useState } from 'react'
-import { RotateCcw, Sparkles, Download, ChevronDown, ChevronUp } from 'lucide-react'
+import { type ReactNode, useState } from 'react'
+import { RotateCcw, Sparkles, ChevronDown, ChevronUp, Images, Layers, Zap } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
 import { FamilyCard } from '@/components/images/FamilyCard'
 import { RefinementModal } from '@/components/images/RefinementModal'
@@ -60,31 +60,43 @@ export function FamilyGrid({
     document.body.removeChild(a)
   }
 
-  // Split original vs refinements
-  const originalFamilies  = families.filter((f) => !f.refined_from)
-  const refinedFamilies   = families.filter((f) => !!f.refined_from)
+  const originalFamilies = families.filter((f) => !f.refined_from)
+  const refinedFamilies  = families.filter((f) => !!f.refined_from)
+
+  const totalImages = families.reduce((acc, f) => acc + f.images.length, 0)
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
+    <div className="max-w-5xl mx-auto px-6 py-8 space-y-7">
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
-          <h2 className="text-[18px] font-semibold text-slate-100">
+          <h2 className="text-[19px] font-semibold text-slate-100 tracking-tight">
             {project.title ?? 'Famílias Visuais'}
           </h2>
-          <p className="text-[13px] text-slate-500 mt-1">
-            {families.length} família{families.length !== 1 ? 's' : ''} gerada{families.length !== 1 ? 's' : ''}.
-            {direction && (
-              <span className="ml-1.5 text-slate-600">
-                Estilo: {direction.style} · Tom: {direction.tone} · Modo: {direction.mode}
-              </span>
-            )}
-          </p>
+          {direction && (
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              {direction.style && (
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 border border-indigo-500/15 capitalize">
+                  {direction.style}
+                </span>
+              )}
+              {direction.tone && (
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-700/30 text-slate-500 border border-slate-700/30 capitalize">
+                  {direction.tone}
+                </span>
+              )}
+              {direction.mode && (
+                <span className="text-[11px] px-2 py-0.5 rounded-full bg-violet-500/8 text-violet-500 border border-violet-500/15 capitalize">
+                  {direction.mode}
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <button
           onClick={onNewProject}
-          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#27273A] text-[13px] font-medium text-slate-400 hover:text-slate-200 hover:border-[#3A3A50] transition-all flex-shrink-0"
+          className="flex items-center gap-2 px-4 py-2 rounded-xl border border-[#27273A] text-[13px] font-medium text-slate-500 hover:text-slate-200 hover:border-[#3A3A50] hover:bg-[#111118] transition-all flex-shrink-0"
         >
           <RotateCcw className="w-3.5 h-3.5" />
           Novo projeto
@@ -94,131 +106,73 @@ export function FamilyGrid({
       {/* Stats bar */}
       <div className="grid grid-cols-3 gap-3">
         {[
-          { label: 'Famílias',   value: String(originalFamilies.length) },
-          { label: 'Variações',  value: String(families.reduce((acc, f) => acc + f.images.length, 0)) },
-          { label: 'Créditos',   value: String(project.credits_cost) },
-        ].map(({ label, value }) => (
-          <div key={label} className="bg-[#0F0F17] border border-[#1E1E2A] rounded-xl py-3 px-4 text-center">
-            <p className="text-[20px] font-bold text-slate-100">{value}</p>
-            <p className="text-[11px] text-slate-600 mt-0.5">{label}</p>
+          { label: 'Famílias geradas',     value: originalFamilies.length, Icon: Images,  color: 'text-indigo-400', bg: 'bg-indigo-500/8  border-indigo-500/15' },
+          { label: 'Variações visuais',     value: totalImages,              Icon: Layers,  color: 'text-violet-400', bg: 'bg-violet-500/8  border-violet-500/15' },
+          { label: 'Créditos utilizados',  value: project.credits_cost,     Icon: Zap,     color: 'text-amber-400',  bg: 'bg-amber-500/8   border-amber-500/15' },
+        ].map(({ label, value, Icon, color, bg }) => (
+          <div key={label} className={cn('border rounded-2xl py-4 px-5 flex items-center gap-4', bg)}>
+            <div className="flex-shrink-0">
+              <Icon className={cn('w-5 h-5', color)} />
+            </div>
+            <div>
+              <p className="text-[22px] font-bold text-slate-100 leading-none tabular-nums">{value}</p>
+              <p className="text-[11px] text-slate-600 mt-0.5 leading-tight">{label}</p>
+            </div>
           </div>
         ))}
       </div>
 
       {/* Original families */}
-      <div className="space-y-4">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">
+      <div className="space-y-3">
+        <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600 px-1">
           Famílias geradas
         </p>
         {originalFamilies.map((family, idx) => (
-          <div key={family.family_id} className="space-y-0">
-            {/* Family header / toggle */}
-            <button
-              onClick={() =>
-                setExpandedFamily(
-                  expandedFamily === family.family_id ? null : family.family_id,
-                )
-              }
-              className={cn(
-                'w-full flex items-center gap-3 px-4 py-3.5 rounded-t-2xl border border-b-0 text-left transition-all',
-                expandedFamily === family.family_id
-                  ? 'bg-[#0F0F17] border-[#1E1E2A]'
-                  : 'bg-[#0A0A10] border-[#1A1A25] hover:border-[#27273A] rounded-b-2xl border-b',
-              )}
-            >
-              <div className="w-7 h-7 rounded-lg bg-indigo-600/15 border border-indigo-500/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-[12px] font-bold text-indigo-400">{idx + 1}</span>
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[14px] font-semibold text-slate-200 truncate">{family.family_name}</p>
-                <p className="text-[12px] text-slate-600 truncate">{family.description}</p>
-              </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-[11px] text-slate-700">{family.images.length} imagens</span>
-                {expandedFamily === family.family_id ? (
-                  <ChevronUp className="w-4 h-4 text-slate-600" />
-                ) : (
-                  <ChevronDown className="w-4 h-4 text-slate-600" />
-                )}
-              </div>
-            </button>
-
-            {/* Expanded family card */}
-            {expandedFamily === family.family_id && (
-              <FamilyCard
-                family={family}
-                isSelected={selectedFamilyId === family.family_id}
-                onSelect={() =>
-                  setSelectedFamilyId(
-                    selectedFamilyId === family.family_id ? null : family.family_id,
-                  )
-                }
-                onRefine={() => setRefineTarget(family)}
-                onDownload={handleDownloadImage}
-              />
-            )}
-          </div>
+          <FamilyAccordion
+            key={family.family_id}
+            family={family}
+            isExpanded={expandedFamily === family.family_id}
+            onToggle={() =>
+              setExpandedFamily(expandedFamily === family.family_id ? null : family.family_id)
+            }
+            isSelected={selectedFamilyId === family.family_id}
+            onSelect={() =>
+              setSelectedFamilyId(selectedFamilyId === family.family_id ? null : family.family_id)
+            }
+            onRefine={() => setRefineTarget(family)}
+            onDownload={handleDownloadImage}
+            badgeVariant="indigo"
+            badgeContent={<span className="text-[12px] font-bold text-indigo-400">{idx + 1}</span>}
+          />
         ))}
       </div>
 
       {/* Refined families */}
       {refinedFamilies.length > 0 && (
-        <div className="space-y-4">
-          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">
+        <div className="space-y-3">
+          <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600 px-1">
             Variações refinadas
           </p>
           {refinedFamilies.map((family) => {
             const origin = originalFamilies.find((f) => f.family_id === family.refined_from)
             return (
-              <div key={family.family_id} className="space-y-0">
-                <button
-                  onClick={() =>
-                    setExpandedFamily(
-                      expandedFamily === family.family_id ? null : family.family_id,
-                    )
-                  }
-                  className={cn(
-                    'w-full flex items-center gap-3 px-4 py-3.5 rounded-t-2xl border border-b-0 text-left transition-all',
-                    expandedFamily === family.family_id
-                      ? 'bg-[#0F0F17] border-[#1E1E2A]'
-                      : 'bg-[#0A0A10] border-[#1A1A25] hover:border-[#27273A] rounded-b-2xl border-b',
-                  )}
-                >
-                  <div className="w-7 h-7 rounded-lg bg-violet-600/15 border border-violet-500/20 flex items-center justify-center flex-shrink-0">
-                    <Sparkles className="w-3.5 h-3.5 text-violet-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[14px] font-semibold text-slate-200 truncate">{family.family_name}</p>
-                    {origin && (
-                      <p className="text-[11px] text-slate-700 truncate">
-                        Refinamento de: {origin.family_name}
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-[11px] text-slate-700">{family.images.length} imagens</span>
-                    {expandedFamily === family.family_id ? (
-                      <ChevronUp className="w-4 h-4 text-slate-600" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-slate-600" />
-                    )}
-                  </div>
-                </button>
-
-                {expandedFamily === family.family_id && (
-                  <FamilyCard
-                    family={family}
-                    isSelected={selectedFamilyId === family.family_id}
-                    onSelect={() =>
-                      setSelectedFamilyId(
-                        selectedFamilyId === family.family_id ? null : family.family_id,
-                      )
-                    }
-                    onRefine={() => setRefineTarget(family)}
-                    onDownload={handleDownloadImage}
-                  />
-                )}
-              </div>
+              <FamilyAccordion
+                key={family.family_id}
+                family={family}
+                isExpanded={expandedFamily === family.family_id}
+                onToggle={() =>
+                  setExpandedFamily(expandedFamily === family.family_id ? null : family.family_id)
+                }
+                isSelected={selectedFamilyId === family.family_id}
+                onSelect={() =>
+                  setSelectedFamilyId(selectedFamilyId === family.family_id ? null : family.family_id)
+                }
+                onRefine={() => setRefineTarget(family)}
+                onDownload={handleDownloadImage}
+                badgeVariant="violet"
+                badgeContent={<Sparkles className="w-3.5 h-3.5 text-violet-400" />}
+                subtitle={origin ? `Refinamento de: ${origin.family_name}` : undefined}
+              />
             )
           })}
         </div>
@@ -231,6 +185,79 @@ export function FamilyGrid({
           isLoading={isRefining}
           onConfirm={(instruction) => handleRefine(refineTarget, instruction)}
           onClose={() => setRefineTarget(null)}
+        />
+      )}
+    </div>
+  )
+}
+
+// ── Family accordion sub-component ───────────────────────────────────────────
+
+interface FamilyAccordionProps {
+  family:        ImageFamily
+  isExpanded:    boolean
+  onToggle:      () => void
+  isSelected:    boolean
+  onSelect:      () => void
+  onRefine:      () => void
+  onDownload:    (url: string, name: string, idx: number) => void
+  badgeVariant:  'indigo' | 'violet'
+  badgeContent:  ReactNode
+  subtitle?:     string
+}
+
+function FamilyAccordion({
+  family, isExpanded, onToggle,
+  isSelected, onSelect, onRefine, onDownload,
+  badgeVariant, badgeContent, subtitle,
+}: FamilyAccordionProps) {
+  const badgeCls = badgeVariant === 'indigo'
+    ? 'bg-indigo-600/15 border-indigo-500/20'
+    : 'bg-violet-600/15 border-violet-500/20'
+
+  return (
+    <div className={cn(
+      'rounded-2xl overflow-hidden border transition-all duration-200',
+      isExpanded ? 'border-[#1E1E2A]' : 'border-[#17171F] hover:border-[#27273A]',
+    )}>
+      <button
+        onClick={onToggle}
+        className={cn(
+          'w-full flex items-center gap-3.5 px-4 py-3.5 text-left transition-colors',
+          isExpanded ? 'bg-[#0F0F17]' : 'bg-[#0A0A10] hover:bg-[#0D0D14]',
+        )}
+      >
+        <div className={cn(
+          'w-7 h-7 rounded-lg border flex items-center justify-center flex-shrink-0',
+          badgeCls,
+        )}>
+          {badgeContent}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-[14px] font-semibold text-slate-200 truncate leading-tight">
+            {family.family_name}
+          </p>
+          <p className="text-[12px] text-slate-600 truncate mt-0.5 leading-tight">
+            {subtitle ?? family.description}
+          </p>
+        </div>
+        <div className="flex items-center gap-2.5 flex-shrink-0">
+          <span className="text-[11px] text-slate-700 tabular-nums">
+            {family.images.length} variações
+          </span>
+          {isExpanded
+            ? <ChevronUp   className="w-4 h-4 text-slate-600" />
+            : <ChevronDown className="w-4 h-4 text-slate-600" />}
+        </div>
+      </button>
+
+      {isExpanded && (
+        <FamilyCard
+          family={family}
+          isSelected={isSelected}
+          onSelect={onSelect}
+          onRefine={onRefine}
+          onDownload={onDownload}
         />
       )}
     </div>

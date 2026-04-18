@@ -33,7 +33,12 @@ export const useUIStore = create<UIState>((set) => ({
     set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 
   pendingApprovals: 0,
-  setPendingApprovals: (n) => set({ pendingApprovals: n }),
+
+setPendingApprovals: (n) =>
+  set((state) => {
+    if (state.pendingApprovals === n) return state
+    return { pendingApprovals: n }
+  }),
 }))
 
 // ── Helpers de conveniência ───────────────────────────────────────────────────
