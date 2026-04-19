@@ -30,9 +30,18 @@ export function useConnectedAccounts(brandId?: number) {
 export function useConnectProvider(brandId?: number) {
   return useMutation({
     mutationFn: async (provider: Provider) => {
-      const { redirect_url } = await integrationService.getConnectUrl(provider, brandId)
-      // Redirect the browser to the OAuth provider
-      window.location.href = redirect_url
+      console.log('[useConnectProvider] provider clicked:', provider)
+
+      const data = await integrationService.getConnectUrl(provider, brandId)
+      console.log('[useConnectProvider] API response:', data)
+      console.log('[useConnectProvider] redirect_url:', data.redirect_url)
+
+      window.location.href = data.redirect_url
+    },
+    onError: (error: unknown) => {
+      const message = error instanceof Error ? error.message : String(error)
+      console.error('[useConnectProvider] failed:', message)
+      alert(`Erro ao iniciar conexão: ${message}`)
     },
   })
 }
