@@ -100,7 +100,6 @@ export function HeroSection() {
       <div
         className="absolute inset-0 z-[1]"
         aria-hidden="true"
-        style={{ outline: '2px solid red' }}
       >
         <motion.div
           style={{ y: videoY, scale: 1.12 }}

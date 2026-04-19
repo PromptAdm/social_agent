@@ -327,7 +327,7 @@ class MockAIProvider(AIProvider):
             filtered = [t for t in pool if t["formato"] == request.formato_sugerido]
             pool = filtered if filtered else _IDEA_TEMPLATES
 
-        selected = random.sample(pool, min(request.count, len(pool)))
+        selected = random.sample(pool, min(request.quantidade, len(pool)))
 
         ideas = []
         for tpl in selected:

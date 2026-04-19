@@ -543,8 +543,8 @@ export default function GeneratePage() {
               value={form.contexto}
               onChange={(e) => patch({ contexto: e.target.value })}
               placeholder="Informações extras para a IA: público-alvo, tom de voz, restrições, exemplos…"
-              rows={3}
-              className="input w-full resize-none text-sm leading-relaxed"
+              rows={5}
+              className="input w-full resize-y text-sm leading-relaxed min-h-[100px]"
               maxLength={500}
             />
             {form.contexto.length > 0 && (

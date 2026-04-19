@@ -2,10 +2,10 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Rotas que não precisam de autenticação
-const PUBLIC_PATHS = ['/login', '/register']
+const PUBLIC_PATHS = ['/', '/login', '/register']
 
 // Rotas que o Next.js não deve interceptar
-const STATIC_PREFIXES = ['/_next', '/favicon', '/api']
+const STATIC_PREFIXES = ['/_next', '/favicon', '/api', '/videos', '/images']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
@@ -22,8 +22,9 @@ export function middleware(request: NextRequest) {
   // Presença do cookie de refresh token indica sessão ativa
   const hasRefreshToken = request.cookies.has('sa_refresh_token')
 
-  // Usuário autenticado tentando acessar /login → redireciona para dashboard
-  if (isPublic && hasRefreshToken) {
+  // Usuário autenticado tentando acessar /login ou /register → redireciona para dashboard
+  // A landing page (/) fica acessível mesmo para usuários autenticados.
+  if (isPublic && hasRefreshToken && pathname !== '/') {
     return NextResponse.redirect(new URL('/overview', request.url))
   }
 

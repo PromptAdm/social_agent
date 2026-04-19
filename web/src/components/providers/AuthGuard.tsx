@@ -1,18 +1,29 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 
 /**
- * Bloqueia a renderização do dashboard enquanto o SessionProvider
- * ainda está hidratando o store (isLoading = true).
+ * Bloqueia o dashboard enquanto a sessão está sendo hidratada.
+ * Se após a hidratação o usuário não estiver autenticado, redireciona para /login.
  *
  * O middleware já garante que apenas usuários com cookie sa_refresh_token
- * chegam aqui, então a hidratação é sempre esperada ter sucesso.
+ * chegam aqui — este componente é a segunda linha de defesa para casos onde
+ * o cookie existe mas a sessão expirou ou foi revogada.
  */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-  const isLoading = useAuthStore((s) => s.isLoading)
+  const isLoading       = useAuthStore((s) => s.isLoading)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const router          = useRouter()
 
-  if (isLoading) {
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.replace('/login')
+    }
+  }, [isLoading, isAuthenticated, router])
+
+  if (isLoading || !isAuthenticated) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#F5F4FB]">
         <div className="flex flex-col items-center gap-3">
