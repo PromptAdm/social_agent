@@ -56,6 +56,22 @@ class Settings(BaseSettings):
     # --- n8n ---
     N8N_WEBHOOK_BASE_URL: str = "https://n8n.yourdomain.com/webhook"  # base URL dos webhooks n8n
 
+    # --- OAuth / Redirect ---
+    FRONTEND_URL: str = "http://localhost:3000"   # used to build post-OAuth redirect URLs
+    ENCRYPTION_KEY: str = ""                      # optional Fernet key; derived from SECRET_KEY if empty
+
+    # --- Meta OAuth (Instagram + Facebook) ---
+    # META_APP_ID and META_APP_SECRET already declared above
+    META_REDIRECT_URI: str = ""  # e.g. http://localhost:8000/api/v1/integrations/meta/callback
+
+    # --- X (Twitter) OAuth 2.0 PKCE ---
+    TWITTER_CLIENT_ID: str = ""
+    TWITTER_CLIENT_SECRET: str = ""
+    TWITTER_REDIRECT_URI: str = ""   # e.g. http://localhost:8000/api/v1/integrations/twitter/callback
+
+    # --- WhatsApp Business (Phase 2 — disabled by default) ---
+    WHATSAPP_ENABLED: bool = False
+
     # --- Analytics (PostHog) ---
     POSTHOG_API_KEY: str = ""                          # phc_xxxx — obtido em app.posthog.com
     POSTHOG_HOST: str = "https://us.i.posthog.com"    # us.i.posthog.com | eu.i.posthog.com

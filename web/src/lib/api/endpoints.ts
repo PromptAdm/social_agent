@@ -90,4 +90,11 @@ export const API = {
   upload: {
     file: '/upload/',
   },
+
+  integrations: {
+    status:     '/integrations/status',
+    accounts:   '/integrations/accounts',
+    connect:    (provider: string) => `/integrations/connect/${provider}`,
+    disconnect: (accountId: number) => `/integrations/accounts/${accountId}`,
+  },
 } as const

@@ -18,6 +18,7 @@ from app.models.scheduler_execution import SchedulerExecution, SchedulerLock, Sc
 from app.models.subscription import UserSubscription
 from app.models.credits import UserCredit, CreditLog
 from app.models.projects import ImageProject, VideoProject, GenerationResult
+from app.models.connected_account import ConnectedAccount
 
 __all__ = [
     "User",
@@ -40,4 +41,5 @@ __all__ = [
     "ImageProject",
     "VideoProject",
     "GenerationResult",
+    "ConnectedAccount",
 ]

@@ -27,6 +27,7 @@ from app.routers import (
     ideas,
     image_tree,
     integrations,
+    integrations_oauth,
     leads,
     panel,
     posts,
@@ -230,7 +231,8 @@ app.include_router(leads.router, prefix=API_PREFIX)
 app.include_router(analytics.router, prefix=API_PREFIX)
 app.include_router(ai.router, prefix=API_PREFIX)
 app.include_router(panel.router, prefix=API_PREFIX)
-app.include_router(integrations.router, prefix=API_PREFIX)
+app.include_router(integrations.router,       prefix=API_PREFIX)
+app.include_router(integrations_oauth.router, prefix=API_PREFIX)
 app.include_router(scheduler.router, prefix=API_PREFIX)
 app.include_router(billing.router,  prefix=API_PREFIX)
 app.include_router(credits.router,  prefix=API_PREFIX)
