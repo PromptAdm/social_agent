@@ -2,9 +2,12 @@ import { apiClient as api } from '@/lib/api/client'
 import { API } from '@/lib/api/endpoints'
 import type { BillingSummary, PlanDetail, PlanUsage } from '@/types'
 
+export type PaymentMethodPreference = 'card' | 'pix'
+
 export interface CheckoutRequest {
-  plan_code:     string
-  billing_cycle: 'monthly' | 'yearly'
+  plan_code:                  string
+  billing_cycle:              'monthly' | 'yearly'
+  payment_method_preference?: PaymentMethodPreference  // defaults to 'card'
 }
 
 export interface CheckoutResponse {

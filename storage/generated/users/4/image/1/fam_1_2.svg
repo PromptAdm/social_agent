@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1080" viewBox="0 0 1080 1080">
+  <defs>
+    <linearGradient id="bg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F0F0F" />
+      <stop offset="100%" stop-color="#0A0A0A" />
+    </linearGradient>
+    <linearGradient id="ac2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#E2E8F0" />
+    </linearGradient>
+  </defs>
+  <rect width="1080" height="1080" fill="url(#bg2)" />
+  <rect x="80" y="80" width="920" height="920" fill="none" stroke="#6366F1" stroke-width="1" opacity="0.25" />
+  <circle cx="980" cy="140" r="180" fill="#6366F1" opacity="0.08" />
+  <circle cx="980" cy="140" r="80"  fill="#6366F1" opacity="0.12" />
+  <rect x="0" y="820" width="1080" height="260" fill="#E2E8F0" opacity="0.05" />
+  <rect x="80" y="500" width="240" height="3" fill="url(#ac2)" />
+  <text x="80" y="460" font-family="system-ui,-apple-system,sans-serif" font-size="54" font-weight="700" fill="#E2E8F0" opacity="0.92">Minimalista Premium</text>
+  <text x="80" y="530" font-family="system-ui,-apple-system,sans-serif" font-size="22" font-weight="400" fill="#E2E8F0" opacity="0.45">Variação B &middot; MINIMALIST</text>
+  <text x="80" y="940" font-family="system-ui,-apple-system,sans-serif" font-size="16" fill="#6366F1" opacity="0.6">NEZORA STUDIO &middot; PROFESSIONAL</text>
+</svg>

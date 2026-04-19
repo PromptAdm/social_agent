@@ -112,11 +112,15 @@ class TrialStartResponse(BaseModel):
     status:           str
 
 
-# ── Stripe Checkout ───────────────────────────────────────────────────────────
+# ── Checkout ─────────────────────────────────────────────────────────────────
 
 class CheckoutRequest(BaseModel):
-    plan_code:     str = Field(description="starter | professional | premium")
-    billing_cycle: str = Field(default="monthly", description="monthly | yearly")
+    plan_code:                 str = Field(description="starter | professional | premium")
+    billing_cycle:             str = Field(default="monthly", description="monthly | yearly")
+    payment_method_preference: str = Field(
+        default="card",
+        description="card (Stripe) | pix (not yet available)",
+    )
 
 
 class CheckoutResponse(BaseModel):

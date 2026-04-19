@@ -251,22 +251,44 @@ def sync_subscription_from_stripe(
             "[stripe] sync — no price in subscription items stripe_sub_id=%s", stripe_subscription_id
         )
 
-    # Write all fields from the live Stripe object
+    # ── Write all fields from the live Stripe object ──────────────────────────
+    mapped_status = _map_stripe_status(stripe_sub.status)
+
     sub.stripe_subscription_id = stripe_subscription_id
     sub.stripe_customer_id     = stripe_sub.customer
     sub.plan_code              = plan_code
-    sub.status                 = _map_stripe_status(stripe_sub.status)
+    sub.status                 = mapped_status
     sub.billing_cycle          = _detect_billing_cycle(stripe_sub)
     sub.current_period_start   = _dt(stripe_sub.current_period_start)
     sub.current_period_end     = _dt(stripe_sub.current_period_end)
     sub.cancel_at_period_end   = bool(stripe_sub.cancel_at_period_end)
 
+    # ── Trial fields ───────────────────────────────────────────────────────────
+    # Stripe is the authority: if the subscription has a trial window, record it.
+    # has_used_trial is only set to True — never cleared back to False.
+    stripe_trial_start = getattr(stripe_sub, "trial_start", None)
+    stripe_trial_end   = getattr(stripe_sub, "trial_end",   None)
+
+    if stripe_trial_start is not None:
+        sub.trial_started_at = _dt(stripe_trial_start)
+        sub.trial_ends_at    = _dt(stripe_trial_end)
+        if not sub.has_used_trial:
+            sub.has_used_trial = True
+            logger.info(
+                "[stripe] sync — trial detected stripe_sub_id=%s user=%s "
+                "trial_start=%s trial_end=%s",
+                stripe_subscription_id, sub.user_id,
+                sub.trial_started_at, sub.trial_ends_at,
+            )
+
     logger.info(
-        "[stripe] sync done stripe_sub_id=%s user=%s plan=%s status=%s period_end=%s",
+        "[stripe] sync done stripe_sub_id=%s user=%s plan=%s status=%s "
+        "trial_active=%s period_end=%s",
         stripe_subscription_id,
         sub.user_id,
         plan_code,
-        sub.status,
+        mapped_status,
+        mapped_status == SubscriptionStatus.TRIALING.value,
         sub.current_period_end,
     )
     return sub
@@ -541,7 +563,13 @@ def create_checkout_session(
     billing_cycle: str,
     db: Session,
 ) -> str:
-    """Creates a Stripe Checkout Session and returns the redirect URL."""
+    """Creates a Stripe Checkout Session and returns the redirect URL.
+
+    A 7-day trial is attached to the subscription when the user has never used
+    a trial before (has_used_trial=False).  The backend is the sole authority
+    on this — the frontend never passes a trial flag.
+    """
+    from app.billing.trial import TRIAL_DAYS
     from app.services.subscription_service import get_or_create as _get_sub
 
     sub         = _get_sub(db, user_id)
@@ -551,8 +579,19 @@ def create_checkout_session(
         sub.stripe_customer_id = customer_id
         db.commit()
 
-    price_id = _resolve_price_id(plan_code, billing_cycle)
-    client   = _client()
+    apply_trial = not sub.has_used_trial
+    price_id    = _resolve_price_id(plan_code, billing_cycle)
+    client      = _client()
+
+    subscription_data: dict = {
+        "metadata": {
+            "user_id":       str(user_id),
+            "plan_code":     plan_code,
+            "billing_cycle": billing_cycle,
+        },
+    }
+    if apply_trial:
+        subscription_data["trial_period_days"] = TRIAL_DAYS
 
     session = client.v1.checkout.sessions.create(params={
         "customer":   customer_id,
@@ -568,18 +607,12 @@ def create_checkout_session(
             "plan_code":     plan_code,
             "billing_cycle": billing_cycle,
         },
-        "subscription_data": {
-            "metadata": {
-                "user_id":       str(user_id),
-                "plan_code":     plan_code,
-                "billing_cycle": billing_cycle,
-            },
-        },
+        "subscription_data": subscription_data,
     })
 
     logger.info(
-        "[stripe] checkout session created user=%s plan=%s/%s session=%s",
-        user_id, plan_code, billing_cycle, session.id,
+        "[stripe] checkout session created user=%s plan=%s/%s trial=%s session=%s",
+        user_id, plan_code, billing_cycle, apply_trial, session.id,
     )
     return session.url  # type: ignore[return-value]
 

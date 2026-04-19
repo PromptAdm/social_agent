@@ -6,7 +6,12 @@ Design principles:
      Raw sub.plan_code is never used directly for limit decisions.
   2. MONETIZATION_ENABLED=false → check_limit() always passes (feature flag).
   3. Limits of -1 → unlimited, never blocked.
-  4. Post count uses the calendar month (UTC).
+  4. Post count resets automatically:
+       - active / past_due  → billing-cycle boundary (current_period_start).
+         The reset advances when Stripe fires invoice.paid, which updates
+         current_period_start via sync_subscription_from_stripe().
+       - free / trialing / expired / cancelled → calendar-month boundary.
+         No billing anchor exists for these states, so UTC month-start is used.
   5. check_limit() never raises — returns (bool, msg) so the caller decides.
   6. Usage counts are clamped to ≥ 0; negative values are a data invariant
      violation and should never reach limit checks.
@@ -55,6 +60,30 @@ settings = get_settings()
 def _start_of_month() -> datetime:
     now = datetime.now(timezone.utc)
     return now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+
+def _usage_reset_boundary(sub: UserSubscription | None) -> datetime:
+    """
+    Returns the datetime from which posts are counted for the current usage window.
+
+    Paid users (active / past_due) with a Stripe billing anchor use
+    current_period_start so their counter aligns with their invoice cycle.
+    Every time Stripe renews the subscription it fires invoice.paid →
+    sync_subscription_from_stripe() advances current_period_start → the
+    window moves forward and usage resets automatically — no cron needed.
+
+    All other states (free, trialing, expired, cancelled) use the first
+    instant of the current UTC calendar month as a safe default.
+    """
+    if sub is not None and sub.current_period_start is not None:
+        paid_states = {SubscriptionStatus.ACTIVE.value, SubscriptionStatus.PAST_DUE.value}
+        if sub.status in paid_states:
+            # Ensure timezone-aware before returning.
+            ts = sub.current_period_start
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            return ts
+    return _start_of_month()
 
 
 def _features_schema(plan_code: str) -> PlanFeatures:
@@ -108,8 +137,30 @@ def get_or_create(db: Session, user_id: int) -> UserSubscription:
 
 # ── Usage ──────────────────────────────────────────────────────────────────────
 
-def get_usage(db: Session, user_id: int) -> dict[str, int]:
-    """Current resource usage. Always available regardless of billing flag."""
+def get_usage(
+    db: Session,
+    user_id: int,
+    *,
+    sub: UserSubscription | None = None,
+) -> dict[str, int]:
+    """
+    Current resource usage. Always available regardless of billing flag.
+
+    Pass `sub` when it is already loaded to avoid a redundant DB query and
+    to get the correct billing-cycle-aligned reset boundary for paid users.
+    When `sub` is None, the function attempts to load it from the DB so that
+    paid users still receive the correct window; if the row does not exist yet
+    it falls back to the calendar-month boundary.
+    """
+    if sub is None:
+        sub = (
+            db.query(UserSubscription)
+            .filter(UserSubscription.user_id == user_id)
+            .first()
+        )
+
+    boundary = _usage_reset_boundary(sub)
+
     brand_count: int = (
         db.query(func.count(Brand.id))
         .filter(Brand.owner_id == user_id)
@@ -121,13 +172,13 @@ def get_usage(db: Session, user_id: int) -> dict[str, int]:
         .join(Brand, Post.brand_id == Brand.id)
         .filter(
             Brand.owner_id == user_id,
-            Post.created_at >= _start_of_month(),
+            Post.created_at >= boundary,
         )
         .scalar()
         or 0
     )
     return {
-        "brands":         max(0, brand_count),
+        "brands":          max(0, brand_count),
         "posts_per_month": max(0, post_count),
     }
 
@@ -197,7 +248,7 @@ def check_limit(db: Session, user_id: int, resource: str) -> tuple[bool, str | N
             return (True, None)
 
         limit   = get_limit(plan_code, resource)
-        usage   = get_usage(db, user_id)
+        usage   = get_usage(db, user_id, sub=sub)
         current = usage.get(resource, 0)
 
         if current >= limit:
@@ -237,7 +288,7 @@ def get_remaining_posts(db: Session, user_id: int) -> int:
         return -1
 
     limit      = get_limit(plan_code, "posts_per_month")
-    usage      = get_usage(db, user_id)
+    usage      = get_usage(db, user_id, sub=sub)
     posts_used = max(0, usage.get("posts_per_month", 0))
     return max(0, limit - posts_used)
 
@@ -252,7 +303,7 @@ def get_billing_summary(db: Session, user_id: int) -> BillingSummary:
     state     = resolve(sub)
     plan      = get_plan(state.effective_plan_code)
     limits    = plan["limits"]
-    usage     = get_usage(db, user_id)
+    usage     = get_usage(db, user_id, sub=sub)
 
     return BillingSummary(
         plan_code            = sub.plan_code,
@@ -286,7 +337,7 @@ def get_user_billing_status_svc(db: Session, user_id: int) -> UserBillingStatus:
     """Lightweight billing status — use for quick checks, not full summaries."""
     sub   = get_or_create(db, user_id)
     _flush_expired_trial(db, sub)
-    usage = get_usage(db, user_id)
+    usage = get_usage(db, user_id, sub=sub)
     return _sm_billing_status(sub, usage)
 
 

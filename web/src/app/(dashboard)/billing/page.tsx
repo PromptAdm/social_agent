@@ -39,17 +39,21 @@ function formatLimit(n: number, singular: string, plural: string): string {
 }
 
 const STATUS_LABEL: Record<string, string> = {
+  free:      'Gratuito',
   active:    'Ativo',
   trialing:  'Trial',
   past_due:  'Pagamento pendente',
   cancelled: 'Cancelado',
+  expired:   'Expirado',
 }
 
 const STATUS_COLOR: Record<string, string> = {
+  free:      'text-slate-400 bg-slate-400/10 border-slate-400/20',
   active:    'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
   trialing:  'text-blue-400 bg-blue-400/10 border-blue-400/20',
   past_due:  'text-amber-400 bg-amber-400/10 border-amber-400/20',
   cancelled: 'text-red-400 bg-red-400/10 border-red-400/20',
+  expired:   'text-slate-400 bg-slate-400/10 border-slate-400/20',
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
@@ -176,9 +180,13 @@ function PlanCard({
 
       {/* CTA */}
       {isCurrent ? (
-        <div className="h-9 flex items-center justify-center rounded-lg border border-slate-200 text-[13px] text-slate-500">
+        <button
+          disabled
+          aria-disabled
+          className="h-9 flex items-center justify-center rounded-lg border border-slate-200 text-[13px] text-slate-400 cursor-not-allowed opacity-70 w-full"
+        >
           Plano atual
-        </div>
+        </button>
       ) : isDowngrade ? (
         <button
           disabled
@@ -331,21 +339,31 @@ export default function BillingPage() {
               )}
               {summary.is_trial_active && trialDaysLeft !== null && (
                 <span className="text-[11px] text-blue-500 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-medium">
-                  {trialDaysLeft}d restantes no trial
+                  Trial · {trialDaysLeft}d restantes
                 </span>
               )}
             </div>
 
-            {summary.current_period_end && (
+            {summary.is_trial_active && summary.trial_ends_at && (
+              <p className="text-[12px] text-slate-500 mt-2">
+                Trial até{' '}
+                <span className="font-medium text-blue-500">
+                  {new Date(summary.trial_ends_at).toLocaleDateString('pt-BR')}
+                </span>
+              </p>
+            )}
+            {!summary.is_trial_active && summary.current_period_end && (
               <p className="text-[12px] text-slate-500 mt-2">
                 {summary.cancel_at_period_end ? 'Cancela em' : 'Renova em'}{' '}
-                {new Date(summary.current_period_end).toLocaleDateString('pt-BR')}
+                <span className="font-medium text-slate-700">
+                  {new Date(summary.current_period_end).toLocaleDateString('pt-BR')}
+                </span>
               </p>
             )}
           </div>
 
           <div className="flex items-center gap-2">
-            {summary.stripe_enabled && summary.status === 'active' && (
+            {summary.stripe_enabled && (summary.status === 'active' || summary.status === 'trialing') && (
               <button
                 onClick={() => portalMutation.mutate()}
                 disabled={portalMutation.isPending}
@@ -378,6 +396,21 @@ export default function BillingPage() {
           />
         </div>
 
+        {summary.cancel_at_period_end && summary.status === 'active' && (
+          <div className="mt-4 flex items-center gap-2 text-[12px] text-orange-600 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            Assinatura cancelada — acesso mantido até{' '}
+            {summary.current_period_end
+              ? new Date(summary.current_period_end).toLocaleDateString('pt-BR')
+              : 'o fim do período'}.
+          </div>
+        )}
+        {summary.status === 'past_due' && (
+          <div className="mt-4 flex items-center gap-2 text-[12px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
+            Pagamento pendente. Atualize seu método de pagamento para evitar interrupção do serviço.
+          </div>
+        )}
         {!summary.monetization_enabled && (
           <div className="mt-4 flex items-center gap-2 text-[12px] text-amber-400/80 bg-amber-400/5 border border-amber-400/15 rounded-lg px-3 py-2">
             <Zap className="w-3.5 h-3.5 flex-shrink-0" />

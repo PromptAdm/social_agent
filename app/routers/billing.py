@@ -31,7 +31,7 @@ from app.schemas.billing import (
     TrialStartResponse,
     UsageSet,
 )
-from app.services import subscription_service
+from app.services import payment_provider_service, subscription_service
 
 logger   = logging.getLogger(__name__)
 settings = get_settings()
@@ -145,20 +145,19 @@ def create_checkout_session(
             detail="Pagamentos ainda não estão disponíveis. Entre em contato com o suporte.",
         )
 
-    from app.services.stripe_service import create_checkout_session as svc_checkout
-
     try:
-        url = svc_checkout(
+        url = payment_provider_service.create_checkout(
             user_id=current_user.id,
             email=current_user.email,
             plan_code=body.plan_code,
             billing_cycle=body.billing_cycle,
+            payment_method_preference=body.payment_method_preference,
             db=db,
         )
-    except ValueError as exc:
+    except (ValueError, NotImplementedError) as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except Exception:
-        logger.exception("[billing] create_checkout_session failed user=%s", current_user.id)
+        logger.exception("[billing] create_checkout failed user=%s", current_user.id)
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
             detail="Erro ao criar sessão de pagamento. Tente novamente.",
@@ -192,10 +191,13 @@ def create_portal_session(
             detail="Nenhuma assinatura Stripe encontrada para este usuário.",
         )
 
-    from app.services.stripe_service import create_portal_session as svc_portal
-
     try:
-        url = svc_portal(sub.stripe_customer_id)
+        url = payment_provider_service.create_portal_session(
+            sub.stripe_customer_id,
+            provider_name="card",
+        )
+    except NotImplementedError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
     except Exception:
         logger.exception("[billing] create_portal_session failed user=%s", current_user.id)
         raise HTTPException(
@@ -230,10 +232,13 @@ async def stripe_webhook(
     if not stripe_signature:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing Stripe-Signature header")
 
-    from app.services.stripe_service import handle_webhook
-
     try:
-        return handle_webhook(payload, stripe_signature, db)
+        return payment_provider_service.handle_webhook(
+            payload,
+            stripe_signature,
+            db,
+            provider_name="card",
+        )
     except stripe.SignatureVerificationError:
         logger.warning("[stripe_webhook] invalid signature")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Stripe signature")
