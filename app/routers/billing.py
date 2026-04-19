@@ -3,6 +3,7 @@ Router: Billing — plan summary, usage, plan list, Stripe checkout, and webhook
 
 Endpoints:
     GET  /billing/summary                — current plan + usage + limits + features
+    GET  /billing/status                 — lightweight resolved billing state
     GET  /billing/plans                  — list public plans (with is_current)
     GET  /billing/usage                  — current usage only
     POST /billing/trial/start            — activate 7-day Professional trial
@@ -21,6 +22,7 @@ from app.core.config import get_settings
 from app.core.dependencies import get_current_active_user, get_db
 from app.models.user import User
 from app.schemas.billing import (
+    BillingStatus,
     BillingSummary,
     CheckoutRequest,
     CheckoutResponse,
@@ -44,6 +46,33 @@ def get_billing_summary(
     current_user: User = Depends(get_current_active_user),
 ) -> BillingSummary:
     return subscription_service.get_billing_summary(db, current_user.id)
+
+
+@router.get(
+    "/status",
+    response_model=BillingStatus,
+    summary="Estado de billing resolvido (leve)",
+)
+def get_billing_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> BillingStatus:
+    """
+    Lightweight endpoint that returns the resolved billing state without the
+    full plan comparison table.  Use this for sidebar badges, post-limit
+    warnings, and other frequent reads.
+
+    Returns the *effective* plan (what limits actually apply), not just what
+    is stored in the DB.
+    """
+    bs = subscription_service.get_user_billing_status_svc(db, current_user.id)
+    return BillingStatus(
+        plan            = bs.plan,
+        plan_code       = bs.plan_code,
+        status          = bs.status,
+        remaining_posts = bs.remaining_posts,
+        trial_days_left = bs.trial_days_left,
+    )
 
 
 @router.get("/plans", response_model=list[PlanDetail], summary="Lista os planos disponíveis")

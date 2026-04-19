@@ -23,30 +23,50 @@ class PlanLimits(TypedDict):
 
 
 class PlanFeatures(TypedDict):
-    scheduling: bool        # agendamento de posts
-    analytics: bool         # relatórios e analytics avançados
-    approval: bool          # fluxo de aprovação de conteúdo
-    priority_support: bool  # suporte prioritário
+    scheduling: bool
+    analytics: bool
+    approval: bool
+    priority_support: bool
 
 
 class PlanDefinition(TypedDict):
     display_name: str
-    price_monthly_cents: int   # preço mensal em centavos (0 = gratuito)
-    price_yearly_cents: int    # preço por mês quando pago anualmente
+    price_monthly_cents: int
+    price_yearly_cents: int
     limits: PlanLimits
     features: PlanFeatures
-    is_public: bool            # exibido na página de pricing
+    is_public: bool
 
 
 # ── Catálogo ───────────────────────────────────────────────────────────────────
 
 PLANS: dict[str, PlanDefinition] = {
+
+    # ── Free tier — fallback after trial expiry, no payment ───────────────────
+    # Restrictive by design: incentive to upgrade, but product still usable.
+    "free": {
+        "display_name": "Grátis",
+        "price_monthly_cents": 0,
+        "price_yearly_cents":  0,
+        "limits": {
+            "brands": 1,
+            "posts_per_month": 10,
+        },
+        "features": {
+            "scheduling":       False,
+            "analytics":        False,
+            "approval":         False,
+            "priority_support": False,
+        },
+        "is_public": False,
+    },
+
     # ── Planos vendidos ────────────────────────────────────────────────────────
 
     "starter": {
         "display_name": "Starter",
         "price_monthly_cents": 4900,   # R$49/mês
-        "price_yearly_cents":  3900,   # R$39/mês se pago anualmente
+        "price_yearly_cents":  3900,   # R$39/mês anual
         "limits": {
             "brands": 3,
             "posts_per_month": 100,
@@ -94,8 +114,7 @@ PLANS: dict[str, PlanDefinition] = {
         "is_public": True,
     },
 
-    # ── Plano especial: usuários existentes antes do billing ───────────────────
-    # Acesso irrestrito preservado — nunca bloqueado por limites ou features.
+    # ── Plano especial: usuários pré-billing — acesso irrestrito preservado ────
     "legacy": {
         "display_name": "Legacy",
         "price_monthly_cents": 0,
@@ -113,24 +132,8 @@ PLANS: dict[str, PlanDefinition] = {
         "is_public": False,
     },
 
-    # ── Aliases de backward compatibility (códigos antigos no banco) ───────────
-    # Usuários com plan_code="free" ou "basic" recebem o mesmo acesso que "starter".
-    "free": {
-        "display_name": "Starter",
-        "price_monthly_cents": 4900,
-        "price_yearly_cents":  3900,
-        "limits": {
-            "brands": 3,
-            "posts_per_month": 100,
-        },
-        "features": {
-            "scheduling":       True,
-            "analytics":        False,
-            "approval":         False,
-            "priority_support": False,
-        },
-        "is_public": False,  # alias — não exibido na pricing page
-    },
+    # ── Backward-compat aliases ────────────────────────────────────────────────
+    # Resolve to Starter — for rows written before plan codes were standardised.
     "basic": {
         "display_name": "Starter",
         "price_monthly_cents": 4900,
@@ -145,22 +148,27 @@ PLANS: dict[str, PlanDefinition] = {
             "approval":         False,
             "priority_support": False,
         },
-        "is_public": False,  # alias — não exibido na pricing page
+        "is_public": False,
     },
 }
 
-# Plano fallback quando o código não é reconhecido
-_FALLBACK_PLAN = "legacy"
+# All plan codes the system recognises.  Anything else is invalid and will
+# be coerced to FREE_PLAN_CODE by the state machine.
+VALID_PLAN_CODES: frozenset[str] = frozenset(PLANS.keys())
 
-# Ordem de exibição na pricing page
+# Fallback for plan catalog lookups (unknown code → safe, unrestricted).
+# Note: the state machine has its own fallback (→ "free").
+_CATALOG_FALLBACK = "legacy"
+
+# Display order on the pricing page.
 PUBLIC_PLAN_ORDER = ["starter", "professional", "premium"]
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 
 def get_plan(plan_code: str) -> PlanDefinition:
-    """Retorna a definição do plano; cai no legacy se código desconhecido."""
-    return PLANS.get(plan_code, PLANS[_FALLBACK_PLAN])
+    """Returns plan definition; falls back to legacy for unknown codes."""
+    return PLANS.get(plan_code, PLANS[_CATALOG_FALLBACK])
 
 
 def get_limit(plan_code: str, resource: str) -> int:
@@ -173,10 +181,8 @@ def is_unlimited(plan_code: str, resource: str) -> bool:
 
 
 def has_feature(plan_code: str, feature: str) -> bool:
-    """Retorna True se o plano inclui a feature. Desconhecido → False."""
     return bool(get_plan(plan_code)["features"].get(feature, False))
 
 
 def public_plans() -> list[tuple[str, PlanDefinition]]:
-    """Retorna os planos públicos na ordem de exibição."""
     return [(code, PLANS[code]) for code in PUBLIC_PLAN_ORDER]

@@ -19,6 +19,7 @@ from app.models.subscription import UserSubscription
 from app.models.credits import UserCredit, CreditLog
 from app.models.projects import ImageProject, VideoProject, GenerationResult
 from app.models.connected_account import ConnectedAccount
+from app.models.stripe_event import StripeWebhookEvent
 
 __all__ = [
     "User",
@@ -42,4 +43,5 @@ __all__ = [
     "VideoProject",
     "GenerationResult",
     "ConnectedAccount",
+    "StripeWebhookEvent",
 ]

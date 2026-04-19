@@ -19,10 +19,12 @@ from app.core.database import Base
 
 
 class SubscriptionStatus(str, enum.Enum):
-    ACTIVE    = "active"
-    TRIALING  = "trialing"
-    PAST_DUE  = "past_due"
-    CANCELLED = "cancelled"
+    FREE      = "free"       # no subscription, trial not started or not available
+    ACTIVE    = "active"     # paid, within billing period
+    TRIALING  = "trialing"   # inside active trial window
+    PAST_DUE  = "past_due"   # payment failed — grace period, still full access
+    CANCELLED = "cancelled"  # subscription cancelled (may still be within period)
+    EXPIRED   = "expired"    # trial ended with no paid subscription
 
 
 class UserSubscription(Base):
@@ -46,7 +48,7 @@ class UserSubscription(Base):
         String(30), nullable=False, default="free"
     )
     status: Mapped[str] = mapped_column(
-        String(20), nullable=False, default=SubscriptionStatus.ACTIVE.value
+        String(20), nullable=False, default=SubscriptionStatus.FREE.value
     )
 
     # ── Ciclo de cobrança ──────────────────────────────────────────────────────
@@ -76,16 +78,10 @@ class UserSubscription(Base):
         Boolean, nullable=False, default=False
     )
 
-    # ── Stripe (preparado, sem lógica ativa) ───────────────────────────────────
-    stripe_customer_id: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
-    )
-    stripe_subscription_id: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
-    )
-    stripe_price_id: Mapped[str | None] = mapped_column(
-        String(100), nullable=True
-    )
+    # ── Stripe ─────────────────────────────────────────────────────────────────
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    stripe_subscription_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
+    stripe_price_id: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     # ── Timestamps ─────────────────────────────────────────────────────────────
     created_at: Mapped[datetime] = mapped_column(
@@ -100,10 +96,12 @@ class UserSubscription(Base):
         onupdate=lambda: datetime.now(timezone.utc),
     )
 
-    # ── Relacionamento ORM (não carregado por default) ─────────────────────────
+    # ── Relacionamento ORM ─────────────────────────────────────────────────────
     user: Mapped["User"] = relationship(  # type: ignore[name-defined]
         "User", back_populates="subscription", lazy="raise"
     )
+
+    # ── Computed properties ────────────────────────────────────────────────────
 
     @property
     def plan_name(self) -> str:
@@ -112,6 +110,7 @@ class UserSubscription(Base):
 
     @property
     def is_trial_active(self) -> bool:
+        """True only when status is TRIALING *and* the window has not expired."""
         if self.status != SubscriptionStatus.TRIALING.value:
             return False
         if self.trial_ends_at is None:
