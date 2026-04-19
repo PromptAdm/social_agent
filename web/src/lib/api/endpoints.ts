@@ -69,9 +69,12 @@ export const API = {
   },
 
   billing: {
-    summary: '/billing/summary',
-    plans:   '/billing/plans',
-    usage:   '/billing/usage',
+    summary:         '/billing/summary',
+    plans:           '/billing/plans',
+    usage:           '/billing/usage',
+    trialStart:      '/billing/trial/start',
+    checkout:        '/billing/create-checkout-session',
+    portal:          '/billing/portal',
   },
 
   credits: {

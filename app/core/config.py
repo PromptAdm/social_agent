@@ -87,6 +87,14 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str = ""          # sk_live_... ou sk_test_...
     STRIPE_WEBHOOK_SECRET: str = ""      # whsec_... — verificação de assinatura do webhook
 
+    # Stripe Price IDs — criar em dashboard.stripe.com → Produtos → Preços
+    STRIPE_PRICE_STARTER_MONTHLY:      str = ""
+    STRIPE_PRICE_STARTER_YEARLY:       str = ""
+    STRIPE_PRICE_PROFESSIONAL_MONTHLY: str = ""
+    STRIPE_PRICE_PROFESSIONAL_YEARLY:  str = ""
+    STRIPE_PRICE_PREMIUM_MONTHLY:      str = ""
+    STRIPE_PRICE_PREMIUM_YEARLY:       str = ""
+
     # --- Storage (uploads e arquivos gerados) ---
     STORAGE_DIR: str = "./storage"                        # raiz local de uploads e outputs
     MAX_UPLOAD_MB: int = 500                              # limite por arquivo (MB)

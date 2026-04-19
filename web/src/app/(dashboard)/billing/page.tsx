@@ -1,9 +1,24 @@
 'use client'
 
-import { Check, X, Zap, ExternalLink, TrendingUp } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import {
+  Check,
+  X,
+  Zap,
+  ExternalLink,
+  TrendingUp,
+  CheckCircle2,
+  AlertCircle,
+  Loader2,
+  Settings,
+} from 'lucide-react'
 import { usePlan, usePlans } from '@/hooks/usePlan'
 import { UsageMeter }  from '@/components/billing/UsageMeter'
 import { PlanBadge }   from '@/components/billing/PlanBadge'
+import { billingService } from '@/services/billingService'
+import { queryKeys }   from '@/lib/api/queryClient'
 import { cn }          from '@/lib/utils/cn'
 import type { PlanDetail, PlanCode } from '@/types'
 
@@ -37,7 +52,30 @@ const STATUS_COLOR: Record<string, string> = {
   cancelled: 'text-red-400 bg-red-400/10 border-red-400/20',
 }
 
-// ── Componente de feature row ──────────────────────────────────────────────────
+// ── Toast ─────────────────────────────────────────────────────────────────────
+
+type Toast = { type: 'success' | 'error'; message: string }
+
+function ToastBanner({ toast }: { toast: Toast }) {
+  return (
+    <div
+      className={cn(
+        'fixed top-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border shadow-lg text-sm font-medium transition-all',
+        toast.type === 'success'
+          ? 'bg-emerald-50 border-emerald-200 text-emerald-700'
+          : 'bg-red-50 border-red-200 text-red-700',
+      )}
+    >
+      {toast.type === 'success'
+        ? <CheckCircle2 className="w-4 h-4 flex-shrink-0 text-emerald-500" />
+        : <AlertCircle  className="w-4 h-4 flex-shrink-0 text-red-500" />
+      }
+      {toast.message}
+    </div>
+  )
+}
+
+// ── Feature row ───────────────────────────────────────────────────────────────
 
 function FeatureRow({ label, included }: { label: string; included: boolean }) {
   return (
@@ -46,40 +84,33 @@ function FeatureRow({ label, included }: { label: string; included: boolean }) {
         ? <Check className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
         : <X     className="w-3.5 h-3.5 text-slate-700 flex-shrink-0" />
       }
-      <span className={included ? 'text-slate-600' : 'text-slate-600'}>
-        {label}
-      </span>
+      <span className="text-slate-600">{label}</span>
     </li>
   )
 }
 
-// ── Plano card ─────────────────────────────────────────────────────────────────
+// ── Plan card ─────────────────────────────────────────────────────────────────
+
+const PLAN_ORDER: PlanCode[] = ['starter', 'professional', 'premium']
 
 function PlanCard({
   plan,
   stripeEnabled,
   currentPlanCode,
+  onUpgrade,
+  isUpgrading,
 }: {
   plan: PlanDetail
   stripeEnabled: boolean
-  currentPlanCode: PlanCode
+  currentPlanCode: string
+  onUpgrade: (planCode: string) => void
+  isUpgrading: boolean
 }) {
-  const isPro      = plan.code === 'professional'
-  const isCurrent  = plan.is_current
-  const isUpgrade  = !isCurrent  // simplified — all non-current are "upgrade"
-
-  const PLAN_ORDER: PlanCode[] = ['starter', 'professional', 'premium']
+  const isPro       = plan.code === 'professional'
+  const isCurrent   = plan.is_current
   const currentIdx  = PLAN_ORDER.indexOf(currentPlanCode as PlanCode) ?? 0
   const planIdx     = PLAN_ORDER.indexOf(plan.code as PlanCode)
   const isDowngrade = planIdx < currentIdx
-
-  function handleCTA() {
-    if (!stripeEnabled) {
-      alert('Upgrade em breve! Entre em contato para mais informações.')
-      return
-    }
-    // TODO: redirecionar para checkout Stripe
-  }
 
   return (
     <div
@@ -90,7 +121,6 @@ function PlanCard({
           : 'bg-white border-slate-200',
       )}
     >
-      {/* Popular badge */}
       {isPro && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2">
           <span className="px-3 py-1 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-full">
@@ -105,7 +135,6 @@ function PlanCard({
           <h3 className="text-[15px] font-semibold text-slate-900">{plan.display_name}</h3>
           {isCurrent && <PlanBadge plan={plan.code} />}
         </div>
-
         <div className="flex items-baseline gap-1 mt-3">
           <span className="text-3xl font-bold text-slate-900">
             {formatCents(plan.price_monthly_cents)}
@@ -139,10 +168,10 @@ function PlanCard({
         <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-2">
           Recursos
         </p>
-        <FeatureRow label="Agendamento de posts"   included={plan.features.scheduling} />
-        <FeatureRow label="Analytics avançado"     included={plan.features.analytics} />
-        <FeatureRow label="Fluxo de aprovação"     included={plan.features.approval} />
-        <FeatureRow label="Suporte prioritário"    included={plan.features.priority_support} />
+        <FeatureRow label="Agendamento de posts" included={plan.features.scheduling} />
+        <FeatureRow label="Analytics avançado"   included={plan.features.analytics} />
+        <FeatureRow label="Fluxo de aprovação"   included={plan.features.approval} />
+        <FeatureRow label="Suporte prioritário"  included={plan.features.priority_support} />
       </ul>
 
       {/* CTA */}
@@ -159,18 +188,19 @@ function PlanCard({
         </button>
       ) : (
         <button
-          onClick={handleCTA}
+          onClick={() => onUpgrade(plan.code)}
+          disabled={isUpgrading || !stripeEnabled}
           className={cn(
             'h-9 rounded-lg text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5',
             isPro
-              ? 'bg-indigo-600 hover:bg-indigo-500 text-white'
-              : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200',
+              ? 'bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 disabled:opacity-60',
           )}
         >
-          {stripeEnabled ? (
-            <>Fazer upgrade <ExternalLink className="w-3.5 h-3.5" /></>
+          {isUpgrading ? (
+            <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Aguarde…</>
           ) : (
-            <>Fazer upgrade <span className="text-[10px] opacity-60">(em breve)</span></>
+            <>Fazer upgrade <ExternalLink className="w-3.5 h-3.5" /></>
           )}
         </button>
       )}
@@ -178,9 +208,64 @@ function PlanCard({
   )
 }
 
-// ── Página principal ──────────────────────────────────────────────────────────
+// ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function BillingPage() {
+  const searchParams  = useSearchParams()
+  const queryClient   = useQueryClient()
+  const [toast, setToast] = useState<Toast | null>(null)
+  const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null)
+
+  // Handle Stripe redirect-back params
+  useEffect(() => {
+    const success  = searchParams.get('success')
+    const canceled = searchParams.get('canceled')
+
+    if (success === 'true') {
+      setToast({ type: 'success', message: 'Plano ativado com sucesso!' })
+      queryClient.invalidateQueries({ queryKey: queryKeys.billing() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.billingPlans() })
+      window.history.replaceState({}, '', '/billing')
+    } else if (canceled === 'true') {
+      window.history.replaceState({}, '', '/billing')
+    }
+  }, [searchParams, queryClient])
+
+  // Auto-dismiss toast
+  useEffect(() => {
+    if (!toast) return
+    const t = setTimeout(() => setToast(null), 5000)
+    return () => clearTimeout(t)
+  }, [toast])
+
+  const checkoutMutation = useMutation({
+    mutationFn: (planCode: string) =>
+      billingService.createCheckoutSession({ plan_code: planCode, billing_cycle: 'monthly' }),
+    onSuccess: (data) => {
+      window.location.href = data.checkout_url
+    },
+    onError: (err: unknown) => {
+      const msg = err instanceof Error ? err.message : 'Erro ao iniciar pagamento. Tente novamente.'
+      setToast({ type: 'error', message: msg })
+      setUpgradingPlan(null)
+    },
+  })
+
+  const portalMutation = useMutation({
+    mutationFn: billingService.createPortalSession,
+    onSuccess: (data) => {
+      window.location.href = data.portal_url
+    },
+    onError: () => {
+      setToast({ type: 'error', message: 'Erro ao abrir portal de faturamento.' })
+    },
+  })
+
+  function handleUpgrade(planCode: string) {
+    setUpgradingPlan(planCode)
+    checkoutMutation.mutate(planCode)
+  }
+
   const { data: summary, isLoading: summaryLoading } = usePlan()
   const { data: plans,   isLoading: plansLoading   } = usePlans()
 
@@ -200,10 +285,18 @@ export default function BillingPage() {
     )
   }
 
+  const trialDaysLeft = summary.trial_ends_at
+    ? Math.max(0, Math.ceil(
+        (new Date(summary.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+      ))
+    : null
+
   return (
     <div className="px-6 py-6 max-w-5xl mx-auto space-y-8">
 
-      {/* ── Cabeçalho ── */}
+      {toast && <ToastBanner toast={toast} />}
+
+      {/* Header */}
       <div>
         <h1 className="text-[20px] font-semibold text-slate-900">Plano & Faturamento</h1>
         <p className="text-[13px] text-slate-500 mt-1">
@@ -211,11 +304,10 @@ export default function BillingPage() {
         </p>
       </div>
 
-      {/* ── Card do plano atual ── */}
+      {/* Current plan card */}
       <div className="bg-white border border-slate-200 rounded-xl p-6">
         <div className="flex items-start justify-between flex-wrap gap-4">
 
-          {/* Info do plano */}
           <div>
             <p className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold mb-2">
               Plano atual
@@ -225,7 +317,6 @@ export default function BillingPage() {
               <PlanBadge plan={summary.plan_code} />
             </div>
 
-            {/* Status */}
             <div className="flex items-center gap-2 mt-2">
               <span className={cn(
                 'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border',
@@ -238,9 +329,13 @@ export default function BillingPage() {
                   Anual
                 </span>
               )}
+              {summary.is_trial_active && trialDaysLeft !== null && (
+                <span className="text-[11px] text-blue-500 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-medium">
+                  {trialDaysLeft}d restantes no trial
+                </span>
+              )}
             </div>
 
-            {/* Período */}
             {summary.current_period_end && (
               <p className="text-[12px] text-slate-500 mt-2">
                 {summary.cancel_at_period_end ? 'Cancela em' : 'Renova em'}{' '}
@@ -249,13 +344,27 @@ export default function BillingPage() {
             )}
           </div>
 
-          {/* Ícone */}
-          <div className="w-12 h-12 bg-indigo-600/15 border border-indigo-500/20 rounded-xl flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-indigo-400" />
+          <div className="flex items-center gap-2">
+            {summary.stripe_enabled && summary.status === 'active' && (
+              <button
+                onClick={() => portalMutation.mutate()}
+                disabled={portalMutation.isPending}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-[12px] text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-60"
+              >
+                {portalMutation.isPending
+                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  : <Settings className="w-3.5 h-3.5" />
+                }
+                Gerenciar assinatura
+              </button>
+            )}
+            <div className="w-12 h-12 bg-indigo-600/15 border border-indigo-500/20 rounded-xl flex items-center justify-center">
+              <TrendingUp className="w-6 h-6 text-indigo-400" />
+            </div>
           </div>
         </div>
 
-        {/* Uso atual */}
+        {/* Usage meters */}
         <div className="mt-6 pt-5 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
           <UsageMeter
             label="Marcas criadas"
@@ -269,7 +378,6 @@ export default function BillingPage() {
           />
         </div>
 
-        {/* Aviso quando monetização está desabilitada */}
         {!summary.monetization_enabled && (
           <div className="mt-4 flex items-center gap-2 text-[12px] text-amber-400/80 bg-amber-400/5 border border-amber-400/15 rounded-lg px-3 py-2">
             <Zap className="w-3.5 h-3.5 flex-shrink-0" />
@@ -278,7 +386,7 @@ export default function BillingPage() {
         )}
       </div>
 
-      {/* ── Comparação de planos ── */}
+      {/* Plan comparison */}
       <div>
         <h2 className="text-[15px] font-semibold text-slate-700 mb-1">Planos disponíveis</h2>
         <p className="text-[13px] text-slate-500 mb-5">
@@ -293,6 +401,8 @@ export default function BillingPage() {
                 plan={plan}
                 stripeEnabled={summary.stripe_enabled}
                 currentPlanCode={summary.plan_code}
+                onUpgrade={handleUpgrade}
+                isUpgrading={checkoutMutation.isPending && upgradingPlan === plan.code}
               />
             ))}
           </div>
@@ -303,7 +413,7 @@ export default function BillingPage() {
         )}
       </div>
 
-      {/* ── Rodapé ── */}
+      {/* Footer */}
       <p className="text-[12px] text-slate-600 text-center pb-4">
         Precisa de ajuda?{' '}
         <a href="mailto:suporte@nezora.com.br" className="text-indigo-400 hover:text-indigo-300 transition-colors">

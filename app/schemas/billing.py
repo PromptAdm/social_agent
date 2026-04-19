@@ -82,3 +82,21 @@ class TrialStartResponse(BaseModel):
     trial_ends_at:    datetime
     plan_code:        str
     status:           str
+
+
+# ── Stripe Checkout ───────────────────────────────────────────────────────────
+
+class CheckoutRequest(BaseModel):
+    """Body de POST /billing/create-checkout-session."""
+    plan_code:     str = Field(description="Código do plano: starter | professional | premium")
+    billing_cycle: str = Field(default="monthly", description="monthly | yearly")
+
+
+class CheckoutResponse(BaseModel):
+    """Resposta de POST /billing/create-checkout-session."""
+    checkout_url: str
+
+
+class PortalResponse(BaseModel):
+    """Resposta de POST /billing/portal."""
+    portal_url: str

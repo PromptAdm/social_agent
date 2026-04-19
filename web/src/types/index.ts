@@ -155,7 +155,10 @@ export interface BillingSummary {
   plan_name: string
   status: SubscriptionStatus
   billing_cycle: BillingCycle
+  trial_started_at: string | null
   trial_ends_at: string | null
+  has_used_trial: boolean
+  is_trial_active: boolean
   current_period_start: string | null
   current_period_end: string | null
   cancel_at_period_end: boolean

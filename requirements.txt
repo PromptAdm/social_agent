@@ -24,6 +24,9 @@ anthropic>=0.40.0
 # ── Servidor de Produção ──────────────────────────────────────────────────────
 gunicorn>=23.0.0                  # process manager para produção
 
+# ── Billing ────────────────────────────────────────────────────────────────────
+stripe>=7.0.0                     # Stripe SDK para pagamentos e webhooks
+
 # ── Monitoramento ─────────────────────────────────────────────────────────────
 sentry-sdk[fastapi]>=2.0.0        # instrumentação automática FastAPI/ASGI/SQLAlchemy
 

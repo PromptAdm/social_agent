@@ -1,78 +1,73 @@
 """
-Router: Billing — plano atual, uso, limites e listagem de planos.
+Router: Billing — plan summary, usage, plan list, Stripe checkout, and webhooks.
 
 Endpoints:
-    GET /billing/summary  — plano atual + uso + limites + features
-    GET /billing/plans    — lista todos os planos públicos (com is_current)
-    GET /billing/usage    — só o uso atual (brands e posts do mês)
-
-Não altera estado. Não processa pagamentos.
+    GET  /billing/summary                — current plan + usage + limits + features
+    GET  /billing/plans                  — list public plans (with is_current)
+    GET  /billing/usage                  — current usage only
+    POST /billing/trial/start            — activate 7-day Professional trial
+    POST /billing/create-checkout-session — create Stripe Checkout and return URL
+    POST /billing/portal                 — Stripe Customer Portal session URL
+    POST /billing/webhook                — Stripe webhook receiver (no auth)
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+import logging
+
+import stripe
+from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.core.dependencies import get_current_active_user, get_db
 from app.models.user import User
-from app.schemas.billing import BillingSummary, PlanDetail, TrialStartResponse, UsageSet
+from app.schemas.billing import (
+    BillingSummary,
+    CheckoutRequest,
+    CheckoutResponse,
+    PlanDetail,
+    PortalResponse,
+    TrialStartResponse,
+    UsageSet,
+)
 from app.services import subscription_service
 
-router = APIRouter(prefix="/billing", tags=["Billing"])
+logger   = logging.getLogger(__name__)
+settings = get_settings()
+router   = APIRouter(prefix="/billing", tags=["Billing"])
 
 
-@router.get(
-    "/summary",
-    response_model=BillingSummary,
-    summary="Plano atual, uso, limites e features",
-)
+# ── Read-only endpoints ────────────────────────────────────────────────────────
+
+@router.get("/summary", response_model=BillingSummary, summary="Plano atual, uso, limites e features")
 def get_billing_summary(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> BillingSummary:
-    """
-    Retorna o plano do usuário autenticado, uso atual de recursos,
-    limites máximos e features disponíveis.
-    Quando monetization_enabled=false, os limites são exibidos mas não aplicados.
-    """
     return subscription_service.get_billing_summary(db, current_user.id)
 
 
-@router.get(
-    "/plans",
-    response_model=list[PlanDetail],
-    summary="Lista os planos disponíveis",
-)
+@router.get("/plans", response_model=list[PlanDetail], summary="Lista os planos disponíveis")
 def list_plans(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> list[PlanDetail]:
-    """
-    Retorna os planos públicos (Starter, Professional, Premium)
-    com preços, limites e features. O plano atual do usuário é marcado com is_current=true.
-    """
     summary = subscription_service.get_billing_summary(db, current_user.id)
     return subscription_service.list_public_plans(summary.plan_code)
 
 
-@router.get(
-    "/usage",
-    response_model=UsageSet,
-    summary="Uso atual de recursos",
-)
+@router.get("/usage", response_model=UsageSet, summary="Uso atual de recursos")
 def get_usage(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> UsageSet:
-    """
-    Retorna apenas o uso atual: brands criadas e posts criados no mês.
-    Útil para polling leve sem recarregar o plano completo.
-    """
     usage = subscription_service.get_usage(db, current_user.id)
     return UsageSet(
         brands=usage["brands"],
         posts_per_month=usage["posts_per_month"],
     )
 
+
+# ── Trial ──────────────────────────────────────────────────────────────────────
 
 @router.post(
     "/trial/start",
@@ -84,18 +79,11 @@ def start_trial(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> TrialStartResponse:
-    """
-    Ativa o período de avaliação gratuita de 7 dias com limites Professional.
-    Cada usuário pode usar o trial uma única vez.
-    Retorna 409 se o trial já foi utilizado ou está ativo.
-    """
+    """Each user may activate the 7-day trial once. Returns 409 if already used."""
     try:
         sub = subscription_service.start_trial(db, current_user.id)
     except ValueError as exc:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=str(exc),
-        ) from exc
+        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(exc)) from exc
 
     return TrialStartResponse(
         trial_started_at=sub.trial_started_at,
@@ -103,3 +91,123 @@ def start_trial(
         plan_code=sub.plan_code,
         status=sub.status,
     )
+
+
+# ── Stripe Checkout ────────────────────────────────────────────────────────────
+
+@router.post(
+    "/create-checkout-session",
+    response_model=CheckoutResponse,
+    summary="Cria sessão Stripe Checkout e retorna a URL",
+)
+def create_checkout_session(
+    body: CheckoutRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> CheckoutResponse:
+    """
+    Creates a Stripe Checkout Session for the given plan + billing cycle.
+    Returns `{"checkout_url": "https://checkout.stripe.com/..."}`.
+    Returns 503 when STRIPE_ENABLED=false.
+    """
+    if not settings.STRIPE_ENABLED:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Pagamentos ainda não estão disponíveis. Entre em contato com o suporte.",
+        )
+
+    from app.services.stripe_service import create_checkout_session as svc_checkout
+
+    try:
+        url = svc_checkout(
+            user_id=current_user.id,
+            email=current_user.email,
+            plan_code=body.plan_code,
+            billing_cycle=body.billing_cycle,
+            db=db,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception:
+        logger.exception("[billing] create_checkout_session failed user=%s", current_user.id)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Erro ao criar sessão de pagamento. Tente novamente.",
+        )
+
+    return CheckoutResponse(checkout_url=url)
+
+
+# ── Customer Portal ────────────────────────────────────────────────────────────
+
+@router.post(
+    "/portal",
+    response_model=PortalResponse,
+    summary="Cria sessão do Customer Portal Stripe",
+)
+def create_portal_session(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> PortalResponse:
+    """Opens the Stripe Customer Portal for subscription management."""
+    if not settings.STRIPE_ENABLED:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Portal de faturamento não disponível.",
+        )
+
+    sub = subscription_service.get_or_create(db, current_user.id)
+    if not sub.stripe_customer_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Nenhuma assinatura Stripe encontrada para este usuário.",
+        )
+
+    from app.services.stripe_service import create_portal_session as svc_portal
+
+    try:
+        url = svc_portal(sub.stripe_customer_id)
+    except Exception:
+        logger.exception("[billing] create_portal_session failed user=%s", current_user.id)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Erro ao abrir portal de faturamento.",
+        )
+
+    return PortalResponse(portal_url=url)
+
+
+# ── Webhook ────────────────────────────────────────────────────────────────────
+
+@router.post(
+    "/webhook",
+    status_code=status.HTTP_200_OK,
+    include_in_schema=False,  # not exposed in Swagger — Stripe-only endpoint
+)
+async def stripe_webhook(
+    request: Request,
+    db: Session = Depends(get_db),
+    stripe_signature: str = Header(None, alias="stripe-signature"),
+) -> dict:
+    """
+    Receives and validates Stripe webhook events.
+    No user auth — identity comes from the Stripe signature.
+    """
+    if not settings.STRIPE_ENABLED:
+        return {"ignored": True}
+
+    payload = await request.body()
+
+    if not stripe_signature:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing Stripe-Signature header")
+
+    from app.services.stripe_service import handle_webhook
+
+    try:
+        return handle_webhook(payload, stripe_signature, db)
+    except stripe.SignatureVerificationError:
+        logger.warning("[stripe_webhook] invalid signature")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Stripe signature")
+    except Exception:
+        logger.exception("[stripe_webhook] unhandled error")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Webhook processing error")
