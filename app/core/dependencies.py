@@ -166,7 +166,7 @@ def plan_limit(resource: str) -> Callable:
         if not allowed:
             raise HTTPException(
                 status_code=status.HTTP_402_PAYMENT_REQUIRED,
-                detail=msg,
+                detail={"code": "PLAN_LIMIT_REACHED", "message": msg},
             )
 
     # Nome único evita que o FastAPI deduplique dependências com o mesmo nome

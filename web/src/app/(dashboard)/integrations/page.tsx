@@ -27,6 +27,13 @@ export default function IntegrationsPage() {
     const account    = searchParams.get('account')
     const oauthError = searchParams.get('oauth_error')
 
+    console.log('[integrations] OAuth return params:', {
+      connected,
+      account,
+      oauth_error: oauthError,
+      full_search: window.location.search,
+    })
+
     if (connected) {
       const names = connected.split(',').map(p => PROVIDER_META[p as Provider]?.label ?? p)
       setToast({
@@ -36,7 +43,8 @@ export default function IntegrationsPage() {
       // Clean the URL without refresh
       window.history.replaceState({}, '', '/integrations')
     } else if (oauthError) {
-      setToast({ type: 'error', message: `Erro ao conectar: ${oauthError}` })
+      console.error('[integrations] OAuth error received:', oauthError)
+      setToast({ type: 'error', message: `Erro ao conectar: ${decodeURIComponent(oauthError)}` })
       window.history.replaceState({}, '', '/integrations')
     }
   }, [searchParams])

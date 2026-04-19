@@ -9,12 +9,12 @@ Endpoints:
 Não altera estado. Não processa pagamentos.
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.core.dependencies import get_current_active_user, get_db
 from app.models.user import User
-from app.schemas.billing import BillingSummary, PlanDetail, UsageSet
+from app.schemas.billing import BillingSummary, PlanDetail, TrialStartResponse, UsageSet
 from app.services import subscription_service
 
 router = APIRouter(prefix="/billing", tags=["Billing"])
@@ -71,4 +71,35 @@ def get_usage(
     return UsageSet(
         brands=usage["brands"],
         posts_per_month=usage["posts_per_month"],
+    )
+
+
+@router.post(
+    "/trial/start",
+    response_model=TrialStartResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Ativa o trial de 7 dias (Professional)",
+)
+def start_trial(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> TrialStartResponse:
+    """
+    Ativa o período de avaliação gratuita de 7 dias com limites Professional.
+    Cada usuário pode usar o trial uma única vez.
+    Retorna 409 se o trial já foi utilizado ou está ativo.
+    """
+    try:
+        sub = subscription_service.start_trial(db, current_user.id)
+    except ValueError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(exc),
+        ) from exc
+
+    return TrialStartResponse(
+        trial_started_at=sub.trial_started_at,
+        trial_ends_at=sub.trial_ends_at,
+        plan_code=sub.plan_code,
+        status=sub.status,
     )

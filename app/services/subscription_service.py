@@ -23,10 +23,11 @@ from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.billing.plans import get_limit, get_plan, is_unlimited, public_plans
+from app.billing.trial import effective_plan_code, trial_end_date
 from app.core.config import get_settings
 from app.models.brand import Brand
 from app.models.post import Post
-from app.models.subscription import UserSubscription
+from app.models.subscription import SubscriptionStatus, UserSubscription
 from app.schemas.billing import (
     BillingSummary,
     LimitSet,
@@ -73,6 +74,8 @@ def get_or_create(db: Session, user_id: int) -> UserSubscription:
         .first()
     )
     if sub is None:
+        # Legacy plan for users who existed before billing was introduced.
+        # New users created via register() already get "starter" + trial.
         sub = UserSubscription(
             user_id=user_id,
             plan_code="legacy",
@@ -143,7 +146,9 @@ def check_limit(db: Session, user_id: int, resource: str) -> tuple[bool, str | N
 
     try:
         sub = get_or_create(db, user_id)
-        plan_code = sub.plan_code
+        _expire_trial_if_needed(db, sub)
+
+        plan_code = effective_plan_code(sub.plan_code, sub.status, sub.trial_ends_at)
 
         if is_unlimited(plan_code, resource):
             return (True, None)
@@ -172,21 +177,88 @@ def check_limit(db: Session, user_id: int, resource: str) -> tuple[bool, str | N
         return (True, None)  # fail-open
 
 
+# ── Trial ─────────────────────────────────────────────────────────────────────
+
+def _expire_trial_if_needed(db: Session, sub: UserSubscription) -> None:
+    """Passively expire trial when the period is over. No-op if not trialing."""
+    if sub.status != SubscriptionStatus.TRIALING.value:
+        return
+    if sub.trial_ends_at is None or datetime.now(timezone.utc) < sub.trial_ends_at:
+        return
+    sub.status = SubscriptionStatus.ACTIVE.value
+    db.commit()
+
+
+def start_trial(db: Session, user_id: int) -> UserSubscription:
+    """
+    Activates the 7-day Professional trial for a user.
+
+    Raises ValueError if:
+      - The user has already used their trial.
+      - The user is currently trialing.
+    """
+    sub = get_or_create(db, user_id)
+
+    if sub.has_used_trial:
+        raise ValueError("Trial já utilizado. Cada usuário tem direito a um único trial.")
+
+    if sub.status == SubscriptionStatus.TRIALING.value:
+        raise ValueError("Trial já está ativo.")
+
+    now = datetime.now(timezone.utc)
+    sub.status = SubscriptionStatus.TRIALING.value
+    sub.trial_started_at = now
+    sub.trial_ends_at = trial_end_date()
+    sub.has_used_trial = True
+    db.commit()
+    db.refresh(sub)
+    return sub
+
+
+# ── Convenience wrappers ───────────────────────────────────────────────────────
+
+def can_create_brand(db: Session, user_id: int) -> tuple[bool, str | None]:
+    return check_limit(db, user_id, "brands")
+
+
+def can_create_post(db: Session, user_id: int) -> tuple[bool, str | None]:
+    return check_limit(db, user_id, "posts_per_month")
+
+
+def get_remaining_posts(db: Session, user_id: int) -> int:
+    """Returns remaining posts for the month. -1 = unlimited."""
+    if not settings.MONETIZATION_ENABLED:
+        return -1
+    sub = get_or_create(db, user_id)
+    plan_code = effective_plan_code(sub.plan_code, sub.status, sub.trial_ends_at)
+    if is_unlimited(plan_code, "posts_per_month"):
+        return -1
+    limit = get_limit(plan_code, "posts_per_month")
+    usage = get_usage(db, user_id)
+    return max(0, limit - usage.get("posts_per_month", 0))
+
+
 # ── Resumo completo ────────────────────────────────────────────────────────────
 
 def get_billing_summary(db: Session, user_id: int) -> BillingSummary:
     """Retorna plano + uso + limites + features do usuário."""
     sub = get_or_create(db, user_id)
-    plan = get_plan(sub.plan_code)
+    _expire_trial_if_needed(db, sub)
+
+    active_plan_code = effective_plan_code(sub.plan_code, sub.status, sub.trial_ends_at)
+    plan = get_plan(active_plan_code)
     limits = plan["limits"]
     usage = get_usage(db, user_id)
 
     return BillingSummary(
         plan_code=sub.plan_code,
-        plan_name=plan["display_name"],
+        plan_name=get_plan(sub.plan_code)["display_name"],
         status=sub.status,
         billing_cycle=getattr(sub, "billing_cycle", "monthly"),
+        trial_started_at=sub.trial_started_at,
         trial_ends_at=sub.trial_ends_at,
+        has_used_trial=sub.has_used_trial,
+        is_trial_active=sub.is_trial_active,
         current_period_start=getattr(sub, "current_period_start", None),
         current_period_end=sub.current_period_end,
         cancel_at_period_end=getattr(sub, "cancel_at_period_end", False),
@@ -198,7 +270,7 @@ def get_billing_summary(db: Session, user_id: int) -> BillingSummary:
             brands=usage["brands"],
             posts_per_month=usage["posts_per_month"],
         ),
-        features=_features_schema(sub.plan_code),
+        features=_features_schema(active_plan_code),
         monetization_enabled=settings.MONETIZATION_ENABLED,
         stripe_enabled=settings.STRIPE_ENABLED,
     )

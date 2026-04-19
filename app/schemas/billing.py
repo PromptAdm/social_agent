@@ -55,7 +55,10 @@ class BillingSummary(BaseModel):
     plan_name:            str
     status:               str
     billing_cycle:        str = "monthly"          # monthly | yearly
+    trial_started_at:     datetime | None = None
     trial_ends_at:        datetime | None = None
+    has_used_trial:       bool = False
+    is_trial_active:      bool = False
     current_period_start: datetime | None = None
     current_period_end:   datetime | None = None
     cancel_at_period_end: bool = False
@@ -71,3 +74,11 @@ class BillingSummary(BaseModel):
     )
 
     model_config = {"from_attributes": True}
+
+
+class TrialStartResponse(BaseModel):
+    """Resposta de POST /billing/trial/start."""
+    trial_started_at: datetime
+    trial_ends_at:    datetime
+    plan_code:        str
+    status:           str

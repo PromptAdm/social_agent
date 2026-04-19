@@ -254,14 +254,20 @@ def meta_callback(
     )
 
     try:
+        logger.info("[meta_callback] user_id=%s provider=%s redirect_uri=%s", user_id, provider, redirect_uri)
+
         # 1. Exchange code for short-lived token
         short = meta_oauth.exchange_code_for_short_lived_token(
             code, settings.META_APP_ID, settings.META_APP_SECRET, redirect_uri
         )
+        logger.info("[meta_callback] short-lived token OK, keys=%s", list(short.keys()))
+
         # 2. Exchange for long-lived user token (60 days)
         long = meta_oauth.exchange_for_long_lived_token(
             short["access_token"], settings.META_APP_ID, settings.META_APP_SECRET
         )
+        logger.info("[meta_callback] long-lived token OK, expires_in=%s", long.get("expires_in"))
+
         user_token = long["access_token"]
         token_expires_seconds = long.get("expires_in")
         expires_at = (
@@ -271,8 +277,10 @@ def meta_callback(
 
         # 3. Fetch user's Facebook Pages
         pages = meta_oauth.get_user_pages(user_token)
+        logger.info("[meta_callback] pages found: %d — names=%s", len(pages), [p.get("name") for p in pages])
 
         if not pages:
+            logger.warning("[meta_callback] no pages found for user_id=%s", user_id)
             return RedirectResponse(
                 _frontend_redirect("/integrations?oauth_error=no_pages_found"),
                 status_code=302,
@@ -300,14 +308,16 @@ def meta_callback(
                     scopes              = meta_oauth.SCOPES,
                     metadata            = {"page_id": page_id, "user_token_expires_at": expires_at.isoformat() if expires_at else None},
                 )
+                logger.info("[meta_callback] facebook persisted page_id=%s page_name=%s", page_id, page_name)
                 if "facebook" not in connected_providers:
                     connected_providers.append("facebook")
 
             # Check for linked Instagram Business Account
             try:
                 ig_account = meta_oauth.get_instagram_account_for_page(page_id, page_token)
+                logger.info("[meta_callback] ig_account for page %s: %s", page_id, ig_account)
             except Exception as exc:
-                logger.warning("Could not fetch IG account for page %s: %s", page_id, exc)
+                logger.warning("[meta_callback] could not fetch IG account for page %s: %s", page_id, exc)
                 ig_account = None
 
             if ig_account:
@@ -328,11 +338,15 @@ def meta_callback(
                         "followers_count":  ig_account.get("followers_count"),
                     },
                 )
+                logger.info("[meta_callback] instagram persisted ig_id=%s username=%s", ig_account["id"], ig_account.get("username"))
                 if "instagram" not in connected_providers:
                     connected_providers.append("instagram")
+            else:
+                logger.warning("[meta_callback] no IG business account linked to page %s", page_id)
 
         connected_str = ",".join(connected_providers) or "facebook"
         first_name    = pages[0]["name"] if pages else "conta"
+        logger.info("[meta_callback] SUCCESS connected_providers=%s redirecting to frontend", connected_providers)
         return RedirectResponse(
             _frontend_redirect(
                 f"/integrations?connected={connected_str}&account={first_name}"
@@ -341,7 +355,7 @@ def meta_callback(
         )
 
     except Exception as exc:
-        logger.exception("Meta OAuth callback failed")
+        logger.exception("[meta_callback] FAILED — %s", exc)
         safe = str(exc)[:120].replace("&", "%26")
         return RedirectResponse(
             _frontend_redirect(f"/integrations?oauth_error={safe}"),

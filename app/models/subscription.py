@@ -54,6 +54,14 @@ class UserSubscription(Base):
         String(10), nullable=False, default="monthly"  # monthly | yearly
     )
 
+    # ── Trial ──────────────────────────────────────────────────────────────────
+    trial_started_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    has_used_trial: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False
+    )
+
     # ── Datas de ciclo ─────────────────────────────────────────────────────────
     trial_ends_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
@@ -96,6 +104,19 @@ class UserSubscription(Base):
     user: Mapped["User"] = relationship(  # type: ignore[name-defined]
         "User", back_populates="subscription", lazy="raise"
     )
+
+    @property
+    def plan_name(self) -> str:
+        from app.billing.plans import get_plan
+        return get_plan(self.plan_code)["display_name"]
+
+    @property
+    def is_trial_active(self) -> bool:
+        if self.status != SubscriptionStatus.TRIALING.value:
+            return False
+        if self.trial_ends_at is None:
+            return False
+        return datetime.now(timezone.utc) < self.trial_ends_at
 
     def __repr__(self) -> str:
         return (

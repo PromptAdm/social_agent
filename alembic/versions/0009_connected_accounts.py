@@ -32,15 +32,11 @@ def upgrade() -> None:
         sa.Column("is_active",           sa.Boolean(),               nullable=False, server_default="1"),
         sa.Column("created_at",          sa.DateTime(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP")),
         sa.Column("updated_at",          sa.DateTime(timezone=True), server_default=sa.text("CURRENT_TIMESTAMP")),
+        sa.UniqueConstraint("user_id", "provider", "external_account_id", name="uq_connected_account"),
     )
     op.create_index("ix_connected_accounts_user_id",  "connected_accounts", ["user_id"])
     op.create_index("ix_connected_accounts_brand_id", "connected_accounts", ["brand_id"])
     op.create_index("ix_connected_accounts_provider", "connected_accounts", ["provider"])
-    op.create_unique_constraint(
-        "uq_connected_account",
-        "connected_accounts",
-        ["user_id", "provider", "external_account_id"],
-    )
 
 
 def downgrade() -> None:

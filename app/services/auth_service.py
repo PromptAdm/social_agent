@@ -149,6 +149,29 @@ def register(db: Session, payload: UserCreate) -> User:
 
     db.refresh(user)
 
+    # ── Bootstrap subscription + trial ────────────────────────────────────────
+    try:
+        from app.models.subscription import SubscriptionStatus, UserSubscription
+        from app.billing.trial import trial_end_date
+        from datetime import datetime, timezone
+
+        now = datetime.now(timezone.utc)
+        sub = UserSubscription(
+            user_id=user.id,
+            plan_code="starter",
+            status=SubscriptionStatus.TRIALING.value,
+            billing_cycle="monthly",
+            trial_started_at=now,
+            trial_ends_at=trial_end_date(),
+            has_used_trial=True,
+            cancel_at_period_end=False,
+        )
+        db.add(sub)
+        db.commit()
+    except Exception:
+        # Never fail registration because of billing bootstrap
+        db.rollback()
+
     # ── Analytics (fire-and-forget, never raises) ──────────────────────────────
     try:
         from app.core import analytics
