@@ -17,13 +17,13 @@ import {
   Settings,
   ChevronDown,
   ChevronUp,
-  Hexagon,
   LogOut,
   Zap,
   Image,
   Video,
   History,
 } from 'lucide-react'
+import NextImage from 'next/image'
 import { cn } from '@/lib/utils/cn'
 import { useAuthStore }  from '@/store/authStore'
 import { useBrandStore } from '@/store/brandStore'
@@ -94,7 +94,7 @@ export function Sidebar() {
   async function handleLogout() {
     try { await fetch('/api/auth/logout', { method: 'POST' }) } finally {
       logout()
-      router.replace('/login')
+      router.replace('/')
     }
   }
 
@@ -107,8 +107,8 @@ export function Sidebar() {
       {/* Logo */}
       <div className="h-14 px-5 flex items-center border-b border-slate-200 flex-shrink-0">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
-            <Hexagon className="w-[15px] h-[15px] text-white" strokeWidth={2.5} />
+          <div className="relative w-7 h-7 flex-shrink-0">
+            <NextImage src="/videos/logo.png" alt="Nezora" fill sizes="28px" className="object-contain rounded-md" />
           </div>
           <span className="text-[13px] font-semibold text-slate-900 tracking-tight">
             Nezora

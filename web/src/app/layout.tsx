@@ -12,8 +12,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'Social Agent',
-  description: 'Plataforma de gestão de conteúdo social para marcas',
+  title: 'Nezora',
+  description: 'Plataforma de marketing com inteligência artificial para marcas',
 }
 
 export default function RootLayout({

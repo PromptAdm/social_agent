@@ -2,8 +2,13 @@
 
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { Hexagon, Eye, EyeOff, AlertCircle } from 'lucide-react'
+import Link from 'next/link'
+import Image from 'next/image'
+import { Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { motion } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
+
+/* ─────────────────────────────────────────────────────────────────────────── */
 
 function LoginForm() {
   const router       = useRouter()
@@ -59,112 +64,205 @@ function LoginForm() {
   }
 
   return (
-    <div className="w-full max-w-[400px] animate-fade-in">
-      {/* Logo */}
-      <div className="flex items-center gap-2.5 justify-center mb-8">
-        <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center">
-          <Hexagon className="w-5 h-5 text-white fill-white/20" />
-        </div>
-        <span className="text-lg font-semibold text-slate-100 tracking-tight">
-          Social Agent
-        </span>
-      </div>
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full max-w-[820px]"
+    >
+      {/* Split card */}
+      <div className="flex flex-col md:flex-row rounded-2xl overflow-hidden
+        shadow-[0_32px_96px_rgba(0,0,0,0.60),0_0_0_1px_rgba(255,255,255,0.04)]">
 
-      {/* Card */}
-      <div className="bg-[#111118] border border-[#27273A] rounded-xl p-8 shadow-2xl">
-        <div className="mb-6">
-          <h1 className="text-xl font-semibold text-slate-100">Acesse sua conta</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Bem-vindo de volta — insira seus dados para continuar.
-          </p>
-        </div>
+        {/* ── Left: brand panel ───────────────────────────────────────────── */}
+        <div className="md:w-[320px] flex-shrink-0 relative flex flex-col bg-[#0F1016]
+          p-7 md:p-10 overflow-hidden">
 
-        {error && (
-          <div className="mb-4 flex items-center gap-2.5 px-3 py-2.5 bg-red-950/60 border border-red-900/40 rounded-md">
-            <AlertCircle className="w-4 h-4 text-red-400 flex-shrink-0" />
-            <p className="text-sm text-red-400">{error}</p>
-          </div>
-        )}
+          {/* Ambient glow */}
+          <div
+            className="absolute bottom-0 left-0 w-full h-[340px] pointer-events-none"
+            aria-hidden="true"
+            style={{
+              background:
+                'radial-gradient(ellipse 80% 60% at 20% 100%, rgba(99,102,241,0.13) 0%, transparent 65%)',
+            }}
+          />
+          <div
+            className="absolute top-0 right-0 w-[200px] h-[200px] pointer-events-none"
+            aria-hidden="true"
+            style={{
+              background:
+                'radial-gradient(circle at 100% 0%, rgba(99,102,241,0.07) 0%, transparent 65%)',
+            }}
+          />
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Email */}
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wide">
-              E-mail
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seu@email.com"
-              className="input"
-              autoComplete="email"
-              autoFocus
-            />
-          </div>
-
-          {/* Senha */}
-          <div>
-            <label className="block text-xs font-medium text-slate-400 mb-1.5 uppercase tracking-wide">
-              Senha
-            </label>
-            <div className="relative">
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="input pr-10"
-                autoComplete="current-password"
+          {/* Logo — links to landing */}
+          <Link href="/" className="relative z-10 inline-flex items-center gap-2.5 group mb-8">
+            <div className="relative w-8 h-8 flex-shrink-0">
+              <Image
+                src="/videos/logo.png"
+                alt="Nezora"
+                fill
+                sizes="32px"
+                className="object-contain rounded-lg"
               />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-400 transition-colors"
+            </div>
+            <span className="text-[15px] font-semibold text-slate-100 tracking-tight group-hover:text-white transition-colors">
+              Nezora
+            </span>
+          </Link>
+
+          {/* Copy — desktop only */}
+          <div className="relative z-10 hidden md:flex flex-col flex-1 justify-between">
+            <div>
+              <p className="text-[10.5px] font-bold tracking-[0.12em] uppercase text-slate-600 mb-4">
+                Bem-vindo de volta
+              </p>
+              <h2 className="text-[22px] font-bold text-slate-100 leading-[1.22] tracking-[-0.02em] mb-4">
+                Sua operação de marketing, com IA.
+              </h2>
+              <p className="text-[13.5px] text-slate-500 leading-relaxed">
+                Organize, crie e publique conteúdo de forma inteligente — sem esforço.
+              </p>
+            </div>
+
+            <div className="border-t border-white/[0.07] pt-7 mt-10">
+              <p className="text-[12px] text-slate-600 mb-3">
+                Não tem uma conta?
+              </p>
+              <Link
+                href="/register"
+                className="group inline-flex items-center gap-1.5
+                  text-[13px] font-semibold text-slate-400
+                  hover:text-white transition-colors duration-200"
               >
-                {showPassword ? (
-                  <EyeOff className="w-4 h-4" />
-                ) : (
-                  <Eye className="w-4 h-4" />
-                )}
-              </button>
+                Criar conta grátis
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform duration-200" />
+              </Link>
             </div>
           </div>
 
-          {/* Submit */}
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full h-10 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed text-white text-sm font-medium rounded-md transition-colors mt-2 flex items-center justify-center gap-2"
-          >
-            {loading ? (
-              <>
-                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                Entrando...
-              </>
-            ) : (
-              'Entrar'
-            )}
-          </button>
-        </form>
-
-        <div className="mt-5 text-center space-y-2">
-          <button className="text-sm text-slate-500 hover:text-slate-400 transition-colors block mx-auto">
-            Esqueci minha senha
-          </button>
-          <p className="text-sm text-slate-500">
-            Novo por aqui?{' '}
-            <a href="/register" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
-              Criar conta
-            </a>
+          {/* Mobile: brief tagline */}
+          <p className="relative z-10 md:hidden text-[13px] text-slate-500 mt-1">
+            Acesse sua conta Nezora.
           </p>
         </div>
+
+        {/* ── Right: form panel ───────────────────────────────────────────── */}
+        <div className="flex-1 bg-[#F7F7F9] flex flex-col justify-center p-7 md:p-10 lg:p-12">
+          <div className="max-w-[340px] w-full mx-auto">
+
+            <div className="mb-7">
+              <h1 className="text-[22px] font-bold text-slate-900 tracking-tight mb-1.5">
+                Acesse sua conta
+              </h1>
+              <p className="text-[13.5px] text-slate-500">
+                Insira suas credenciais para continuar.
+              </p>
+            </div>
+
+            {/* Error banner */}
+            {error && (
+              <div className="mb-5 flex items-start gap-2.5 px-3.5 py-3
+                bg-red-50 border border-red-200/80 rounded-xl">
+                <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-px" />
+                <p className="text-[13px] text-red-600 leading-snug">{error}</p>
+              </div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-4">
+
+              {/* Email */}
+              <div>
+                <label className="block text-[10.5px] font-bold uppercase tracking-[0.08em] text-slate-400 mb-1.5">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  className="input h-10"
+                  autoComplete="email"
+                  autoFocus
+                />
+              </div>
+
+              {/* Password */}
+              <div>
+                <label className="block text-[10.5px] font-bold uppercase tracking-[0.08em] text-slate-400 mb-1.5">
+                  Senha
+                </label>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="input h-10 pr-10"
+                    autoComplete="current-password"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2
+                      text-slate-400 hover:text-slate-600 transition-colors"
+                  >
+                    {showPassword
+                      ? <EyeOff className="w-4 h-4" />
+                      : <Eye className="w-4 h-4" />
+                    }
+                  </button>
+                </div>
+              </div>
+
+              {/* Submit */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full h-11 mt-1 rounded-xl
+                  bg-[#18181B] hover:bg-[#27272A]
+                  disabled:opacity-50 disabled:cursor-not-allowed
+                  text-white text-[14px] font-semibold
+                  shadow-[0_2px_8px_rgba(0,0,0,0.18)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.24)]
+                  transition-all duration-200
+                  flex items-center justify-center gap-2"
+              >
+                {loading ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Entrando...
+                  </>
+                ) : 'Entrar'}
+              </button>
+            </form>
+
+            <div className="mt-5 flex flex-col items-center gap-2.5">
+              <button className="text-[12.5px] text-slate-400 hover:text-slate-600 transition-colors">
+                Esqueci minha senha
+              </button>
+              {/* Mobile-only — on desktop it's on the left panel */}
+              <p className="md:hidden text-[13px] text-slate-500">
+                Não tem conta?{' '}
+                <Link
+                  href="/register"
+                  className="font-semibold text-slate-700 hover:text-slate-900 transition-colors"
+                >
+                  Criar conta
+                </Link>
+              </p>
+            </div>
+
+          </div>
+        </div>
+
       </div>
 
-      <p className="text-center text-xs text-slate-700 mt-6">
-        © 2026 Social Agent · Todos os direitos reservados
+      {/* Footer */}
+      <p className="text-center text-[11px] text-slate-700 mt-5">
+        © {new Date().getFullYear()} Nezora · Todos os direitos reservados
       </p>
-    </div>
+    </motion.div>
   )
 }
 

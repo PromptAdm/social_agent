@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2, Hexagon } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowRight, CheckCircle2 } from 'lucide-react'
 
 export function FinalCTA() {
   return (
@@ -20,11 +21,8 @@ export function FinalCTA() {
       <div className="relative max-w-3xl mx-auto text-center">
 
         {/* Logo icon */}
-        <div className="inline-flex w-16 h-16 rounded-2xl items-center justify-center mb-8
-          bg-gradient-to-br from-indigo-500/25 to-violet-600/15
-          border border-indigo-400/25 shadow-xl shadow-indigo-500/15
-          animate-float">
-          <Hexagon className="w-7 h-7 text-indigo-300" />
+        <div className="relative w-16 h-16 mx-auto mb-8 animate-float">
+          <Image src="/videos/logo.png" alt="Nezora" fill sizes="64px" className="object-contain" />
         </div>
 
         {/* Headline */}

@@ -1,280 +1,170 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { ArrowRight, CheckCircle2, LayoutDashboard } from 'lucide-react'
-import { useRef } from 'react'
-import {
-  motion,
-  useScroll,
-  useTransform,
-  useSpring,
-} from 'framer-motion'
+import { motion, useScroll, useTransform, useSpring } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
 
-/* ── Spring presets ──────────────────────────────────────────────────── */
-const DRIFT  = { stiffness: 22, damping: 50, restDelta: 0.001 } as const
-const FOLLOW = { stiffness: 28, damping: 60, restDelta: 0.001 } as const
-
-const EASE_OUT = [0.16, 1, 0.3, 1] as const
-
-const fadeUp = {
-  hidden:  { opacity: 0, y: 14 },
-  visible: (d: number) => ({
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.8, ease: EASE_OUT, delay: d },
-  }),
-}
-
-/* ── Gradient "z" brand mark ─────────────────────────────────────────── */
-function NezoraMark({ className }: { className?: string }) {
-  return (
-    <span className={className}>
-      Ne
-      <span
-        style={{
-          background: 'linear-gradient(135deg, #7C3AED 0%, #3B82F6 52%, #10B981 100%)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-          backgroundClip: 'text',
-        }}
-      >
-        z
-      </span>
-      ora
-    </span>
-  )
-}
-
-/* ── HeroSection ─────────────────────────────────────────────────────── */
 export function HeroSection() {
-  const sectionRef      = useRef<HTMLElement>(null)
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const isLoading        = useAuthStore((s) => s.isLoading)
+  const isAuthenticated  = useAuthStore((s) => s.isAuthenticated)
+  const showDashboardCTA = !isLoading && isAuthenticated
 
-  const { scrollYProgress } = useScroll({
-    target: sectionRef,
-    offset: ['start start', 'end start'],
-  })
+  // Scroll-driven motion — gentle fade + drift, no heavy parallax
+  const { scrollY } = useScroll()
+  const rawOpacity  = useTransform(scrollY, [0, 500], [1, 0])
+  const rawY        = useTransform(scrollY, [0, 500], [0, -36])
+  const rawBgScale  = useTransform(scrollY, [0, 800], [1, 1.04])
 
-  /*
-   * Keep Y as pixel-independent percentage of the motion.div itself.
-   * scale(1.12) gives the video ~12% bleed on every edge so a 10%
-   * downward translateY never reveals empty section background.
-   */
-  const rawVideoY = useTransform(scrollYProgress, [0, 1], ['0%', '10%'])
-  const videoY    = useSpring(rawVideoY, DRIFT)
-
-  const rawTextY  = useTransform(scrollYProgress, [0, 1],    ['0%', '-4%'])
-  const rawTextOp = useTransform(scrollYProgress, [0, 0.65], [1, 0])
-  const textY     = useSpring(rawTextY,  FOLLOW)
-  const textOp    = useSpring(rawTextOp, FOLLOW)
+  const opacity = useSpring(rawOpacity, { stiffness: 60, damping: 28 })
+  const y       = useSpring(rawY,       { stiffness: 60, damping: 28 })
+  const bgScale = useSpring(rawBgScale, { stiffness: 45, damping: 30 })
 
   return (
-    /*
-     * z-stack  ─────────────────────────────────────────────────────
-     *  z-[1]   video layer
-     *  z-[2]   gradient overlays
-     *  z-[10]  hero copy
-     *
-     * overflow-hidden on <section> is the only clip boundary needed.
-     * bg-[#F7F6FE] is the gradient-fallback if video fails to load.
-     */
     <section
-      ref={sectionRef}
-      className="relative min-h-screen flex items-center overflow-hidden bg-[#F7F6FE]"
+      className="relative overflow-hidden"
+      style={{ height: '100vh', minHeight: '640px' }}
     >
+      {/* Background image — subtle scale on scroll */}
+      <motion.div className="absolute inset-0 z-0" style={{ scale: bgScale }}>
+        <Image
+          src="/videos/hero.png"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          quality={90}
+          style={{ objectFit: 'cover', objectPosition: '60% center' }}
+        />
+      </motion.div>
 
-      {/* ── 1. Video ─────────────────────────────────────────────────── */}
-      {/*
-       * Plain div: absolute inset-0, z-[1], NO overflow-hidden.
-       * (Section already clips everything. An extra overflow-hidden here
-       *  can cause zero-height resolution for the child motion.div in
-       *  some browsers when the child extends outside the parent bounds.)
-       *
-       * motion.div: absolute inset-0 + scale(1.12) so the video has
-       * bleed room for the parallax translateY without exposing edges.
-       * It receives ONLY the motion value `y` — no static CSS positioning
-       * mixed into the same style prop.
-       *
-       * DEBUG: outline is intentional for render verification.
-       * Remove it once you confirm the video is visible.
-       */}
+      {/* Single overlay: left-to-right gradient for text readability only */}
       <div
-        className="absolute inset-0 z-[1]"
-        aria-hidden="true"
-      >
-        <motion.div
-          style={{ y: videoY, scale: 1.12 }}
-          className="absolute inset-0 will-change-transform origin-center"
-        >
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            className="absolute inset-0 w-full h-full object-cover"
-            style={{ opacity: 1, filter: 'brightness(0.38) saturate(0.5) blur(1px)' }}
-          >
-            <source src="/videos/hero-bg.mp4"  type="video/mp4" />
-            <source src="/videos/hero-bg.webm" type="video/webm" />
-          </video>
-        </motion.div>
-      </div>
-
-      {/* ── 2. Overlays ───────────────────────────────────────────────── */}
-      {/*
-       * Directional gradient — left side has enough opacity to keep text
-       * readable, but is no longer near-solid: max 0.82 instead of 0.97.
-       * The right half (56 % onward) drops to near-transparent so the
-       * video is clearly visible there.
-       */}
-      <div
-        className="absolute inset-0 z-[2] pointer-events-none"
+        className="absolute inset-0 z-10 pointer-events-none"
         aria-hidden="true"
         style={{
           background:
-            'linear-gradient(108deg,' +
-            ' rgba(247,246,254,0.94)  0%,' +
-            ' rgba(247,246,254,0.88) 32%,' +
-            ' rgba(247,246,254,0.55) 56%,' +
-            ' rgba(247,246,254,0.10) 100%)',
+            'linear-gradient(100deg, rgba(3,4,18,0.78) 0%, rgba(3,4,18,0.52) 36%, rgba(3,4,18,0.18) 62%, rgba(3,4,18,0.04) 100%)',
         }}
       />
 
-      {/* Top chrome */}
-      <div
-        className="absolute inset-x-0 top-0 h-32 z-[2] pointer-events-none"
-        aria-hidden="true"
-        style={{
-          background: 'linear-gradient(to bottom, rgba(247,246,254,0.75) 0%, transparent 100%)',
-        }}
-      />
-
-      {/* Bottom section-blend */}
-      <div
-        className="absolute inset-x-0 bottom-0 h-44 z-[2] pointer-events-none"
-        aria-hidden="true"
-        style={{
-          background:
-            'linear-gradient(to top, rgba(247,246,254,1.00) 0%, rgba(247,246,254,0.55) 55%, transparent 100%)',
-        }}
-      />
-
-      {/* ── 3. Hero copy ─────────────────────────────────────────────── */}
+      {/* Content — fades and drifts on scroll */}
       <motion.div
-        style={{ y: textY, opacity: textOp }}
-        className="relative z-[10] w-full max-w-6xl mx-auto px-6 py-32 lg:py-0 lg:min-h-screen lg:flex lg:items-center"
+        className="absolute inset-0 z-20 flex items-center"
+        style={{ opacity, y }}
       >
-        <div className="max-w-[580px]">
+        <div className="w-full max-w-6xl mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="max-w-[560px]">
 
-          {/* Eyebrow */}
-          <motion.div custom={0.1} variants={fadeUp} initial="hidden" animate="visible">
-            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 mb-8
-              bg-white/70 border border-slate-200/55 rounded-full backdrop-blur-sm
-              text-[11px] font-semibold text-slate-500 tracking-wide
-              shadow-[0_1px_6px_rgba(0,0,0,0.04)]">
-              ✦&nbsp; Inteligência artificial para marketing
-            </span>
-          </motion.div>
-
-          {/* Headline */}
-          <motion.h1
-            custom={0.22}
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            className="text-[44px] sm:text-[54px] lg:text-[62px]
-              font-extrabold text-slate-900 leading-[1.05] tracking-[-0.034em] mb-6"
-          >
-            Automatize seu{' '}
-            <span className="block">marketing com</span>
-            <span className="block">inteligência.</span>
-          </motion.h1>
-
-          {/* Subheadline */}
-          <motion.p
-            custom={0.36}
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            className="text-[17px] sm:text-[18px] text-slate-500 leading-relaxed mb-10 max-w-[460px]"
-          >
-            O{' '}
-            <NezoraMark className="font-semibold text-slate-800" />
-            {' '}organiza, cria e executa sua operação de marketing com IA.
-          </motion.p>
-
-          {/* CTAs */}
-          <motion.div
-            custom={0.48}
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            className="flex flex-col sm:flex-row items-start gap-3 mb-10"
-          >
-            {isAuthenticated ? (
-              <Link
-                href="/overview"
-                className="group btn-primary-soft inline-flex items-center gap-2
-                  px-7 py-3.5 rounded-full
-                  text-white text-[15px] font-semibold
-                  hover:scale-[1.02] active:scale-[0.99]
-                  transition-transform duration-200 will-change-transform"
-              >
-                <LayoutDashboard className="w-4 h-4" />
-                Ir para o Dashboard
-              </Link>
-            ) : (
-              <>
-                <Link
-                  href="/register"
-                  className="group btn-primary-soft inline-flex items-center gap-2
-                    px-7 py-3.5 rounded-full
-                    text-white text-[15px] font-semibold
-                    hover:scale-[1.02] active:scale-[0.99]
-                    transition-transform duration-200 will-change-transform"
-                >
-                  Começar agora
-                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200" strokeWidth={1.5} />
-                </Link>
-
-                <button
-                  onClick={() =>
-                    document.getElementById('why')?.scrollIntoView({ behavior: 'smooth' })
-                  }
-                  className="btn-secondary-soft inline-flex items-center gap-1.5
-                    px-6 py-3.5 rounded-full
-                    text-[15px] font-medium text-slate-600 hover:text-slate-900
-                    hover:scale-[1.02] active:scale-[0.99]
-                    transition-transform duration-200 will-change-transform"
-                >
-                  Ver como funciona
-                </button>
-              </>
-            )}
-          </motion.div>
-
-          {/* Trust strip */}
-          <motion.div
-            custom={0.58}
-            variants={fadeUp}
-            initial="hidden"
-            animate="visible"
-            className="flex flex-wrap items-center gap-x-5 gap-y-2"
-          >
-            {[
-              'Sem cartão de crédito',
-              '7 dias grátis',
-              'Cancele quando quiser',
-            ].map((t) => (
-              <span key={t} className="flex items-center gap-1.5 text-[12px] text-slate-400">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0" />
-                {t}
+            {/* Eyebrow */}
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 mb-8
+              bg-white/[0.06] border border-white/[0.12] rounded-full backdrop-blur-sm">
+              <span className="w-[5px] h-[5px] rounded-full bg-indigo-400
+                shadow-[0_0_6px_2px_rgba(129,140,248,0.55)] flex-shrink-0" />
+              <span className="text-[11.5px] font-semibold text-white/65 tracking-[0.03em]">
+                Inteligência artificial para marketing
               </span>
-            ))}
-          </motion.div>
+            </div>
+
+            {/* Headline */}
+            <h1
+              className="font-extrabold text-white leading-[1.03] tracking-[-0.036em] mb-6"
+              style={{ fontSize: 'clamp(38px, 5.2vw, 66px)' }}
+            >
+              Automatize seu{' '}
+              <span className="block">marketing com</span>
+              <span
+                className="block"
+                style={{
+                  background: 'linear-gradient(130deg, #a78bfa 0%, #818cf8 42%, #38bdf8 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                inteligência.
+              </span>
+            </h1>
+
+            {/* Subheadline */}
+            <p className="text-[17px] sm:text-[18px] text-white/55 leading-[1.68] mb-10 max-w-[450px]">
+              Nezora organiza, cria e executa sua operação de
+              marketing com IA — sem esforço manual.
+            </p>
+
+            {/* CTAs */}
+            <div className="flex flex-wrap items-center gap-3 mb-10">
+              {showDashboardCTA ? (
+                <Link
+                  href="/overview"
+                  className="group inline-flex items-center gap-2
+                    px-7 py-3.5 rounded-full
+                    bg-white text-slate-900 text-[15px] font-bold
+                    hover:bg-slate-50 hover:scale-[1.02] active:scale-[0.98]
+                    shadow-[0_4px_24px_rgba(0,0,0,0.28)]
+                    transition-all duration-200 will-change-transform"
+                >
+                  <LayoutDashboard className="w-[15px] h-[15px] flex-shrink-0" />
+                  Ir para o Dashboard
+                </Link>
+              ) : (
+                <>
+                  <Link
+                    href="/register"
+                    className="group inline-flex items-center gap-2
+                      px-7 py-3.5 rounded-full
+                      bg-white text-slate-900 text-[15px] font-bold
+                      hover:bg-slate-50 hover:scale-[1.02] active:scale-[0.98]
+                      shadow-[0_4px_24px_rgba(0,0,0,0.28)]
+                      transition-all duration-200 will-change-transform"
+                  >
+                    Começar grátis
+                    <ArrowRight
+                      className="w-[15px] h-[15px] group-hover:translate-x-0.5 transition-transform duration-200 flex-shrink-0"
+                      strokeWidth={2.2}
+                    />
+                  </Link>
+
+                  <button
+                    onClick={() =>
+                      document.getElementById('why')?.scrollIntoView({ behavior: 'smooth' })
+                    }
+                    className="inline-flex items-center
+                      px-6 py-3.5 rounded-full
+                      text-[15px] font-semibold text-white/72 hover:text-white
+                      border border-white/[0.16] hover:border-white/28
+                      hover:bg-white/[0.06] backdrop-blur-sm
+                      hover:scale-[1.02] active:scale-[0.98]
+                      transition-all duration-200 will-change-transform"
+                  >
+                    Ver como funciona
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Trust strip */}
+            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+              {[
+                'Sem cartão de crédito',
+                '7 dias grátis',
+                'Cancele quando quiser',
+              ].map((t) => (
+                <span
+                  key={t}
+                  className="flex items-center gap-1.5 text-[12px] text-white/38 tracking-[0.01em]"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400/60 flex-shrink-0" />
+                  {t}
+                </span>
+              ))}
+            </div>
+
+          </div>
         </div>
       </motion.div>
+
     </section>
   )
 }
