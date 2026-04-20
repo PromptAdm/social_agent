@@ -2,11 +2,12 @@
 
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Image from 'next/image'
 import { Eye, EyeOff, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
+import { billingService } from '@/services/billingService'
 import { cn } from '@/lib/utils/cn'
 
 /* ── Password strength ──────────────────────────────────────────────────────── */
@@ -38,9 +39,12 @@ const REQUIREMENTS = [
 
 /* ── RegisterForm ───────────────────────────────────────────────────────────── */
 
+const VALID_PLANS = new Set(['starter', 'professional', 'premium'])
+
 function RegisterForm() {
-  const router  = useRouter()
-  const setAuth = useAuthStore((s) => s.setAuth)
+  const router       = useRouter()
+  const searchParams = useSearchParams()
+  const setAuth      = useAuthStore((s) => s.setAuth)
 
   const [fullName,     setFullName]     = useState('')
   const [email,        setEmail]        = useState('')
@@ -103,7 +107,42 @@ function RegisterForm() {
       }
 
       const { access_token, user } = await loginRes.json()
-      if (user) setAuth(user, access_token)
+      if (user && access_token) {
+        setAuth(user, access_token)
+      } else {
+        useAuthStore.getState().setLoading(false)
+      }
+
+      // If user arrived from a plan CTA, start checkout immediately
+      const plan = searchParams.get('plan')
+      if (plan && VALID_PLANS.has(plan)) {
+        console.log('[register] post-register checkout — plan:', plan)
+        try {
+          const checkout = await billingService.createCheckoutSession({
+            plan_code:                 plan,
+            billing_cycle:             'monthly',
+            payment_method_preference: 'card',
+          })
+          console.log('[register] checkout_url:', checkout.checkout_url)
+          window.location.href = checkout.checkout_url
+          return
+        } catch (checkoutErr: any) {
+          // parseApiError in the Axios interceptor rejects with a string — use it directly.
+          console.error('[register] checkout failed after register (raw):', checkoutErr)
+          const message = typeof checkoutErr === 'string'
+            ? checkoutErr
+            : (checkoutErr?.response?.data?.detail ?? checkoutErr?.message ?? null)
+          console.error('[register] checkout error message:', message)
+          setError(
+            message
+              ? `Erro ao iniciar pagamento: ${message}`
+              : 'Conta criada! Acesse o painel e vá em Billing para assinar um plano.',
+          )
+          setLoading(false)
+          return
+        }
+      }
+
       router.replace('/overview')
     } catch {
       setError('Erro de conexão. Tente novamente.')

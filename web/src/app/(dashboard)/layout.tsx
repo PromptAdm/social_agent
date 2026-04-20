@@ -1,8 +1,6 @@
-import { Sidebar } from '@/components/layout/Sidebar'
-import { Topbar } from '@/components/layout/Topbar'
-import { Toaster } from '@/components/shared/Toaster'
+import { Sidebar }   from '@/components/layout/Sidebar'
+import { Topbar }    from '@/components/layout/Topbar'
 import { AuthGuard } from '@/components/providers/AuthGuard'
-// import { OperationFeedback } from '@/components/shared/OperationFeedback'
 
 export default function DashboardLayout({
   children,
@@ -17,8 +15,6 @@ export default function DashboardLayout({
           <Topbar />
           <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
-        <Toaster />
-        {/* <OperationFeedback /> */}
       </div>
     </AuthGuard>
   )

@@ -16,10 +16,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ message: 'Sessão expirada.' }, { status: 401 })
     }
 
+    // Timeout de 5s para não pendurar quando FastAPI está fora do ar
     const apiRes = await fetch(`${API_URL}/auth/refresh`, {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ refresh_token: refreshToken }),
+      signal:  AbortSignal.timeout(5_000),
     })
 
     const data = await apiRes.json()

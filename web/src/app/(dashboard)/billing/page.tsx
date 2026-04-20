@@ -265,7 +265,11 @@ export default function BillingPage() {
       window.location.href = data.checkout_url
     },
     onError: (err: unknown) => {
-      const msg = err instanceof Error ? err.message : 'Erro ao iniciar pagamento. Tente novamente.'
+      // parseApiError no interceptor Axios rejeita com string — usar direto
+      console.error('[billing] checkout error:', err)
+      const msg = typeof err === 'string'
+        ? err
+        : (err instanceof Error ? err.message : 'Erro ao iniciar pagamento. Tente novamente.')
       setToast({ type: 'error', message: msg })
       setUpgradingPlan(null)
     },
@@ -276,8 +280,12 @@ export default function BillingPage() {
     onSuccess: (data) => {
       window.location.href = data.portal_url
     },
-    onError: () => {
-      setToast({ type: 'error', message: 'Erro ao abrir portal de faturamento.' })
+    onError: (err: unknown) => {
+      console.error('[billing] portal error:', err)
+      const msg = typeof err === 'string'
+        ? err
+        : 'Erro ao abrir portal de faturamento.'
+      setToast({ type: 'error', message: msg })
     },
   })
 
@@ -288,14 +296,21 @@ export default function BillingPage() {
       queryClient.invalidateQueries({ queryKey: queryKeys.billing() })
       queryClient.invalidateQueries({ queryKey: queryKeys.billingPlans() })
     },
-    onError: () => {
-      setToast({ type: 'error', message: 'Não foi possível ativar o trial. Tente novamente.' })
+    onError: (err: unknown) => {
+      console.error('[billing] trial error:', err)
+      const msg = typeof err === 'string'
+        ? err
+        : 'Não foi possível ativar o trial. Tente novamente.'
+      setToast({ type: 'error', message: msg })
     },
   })
 
   function handleUpgrade(planCode: string) {
+    console.log('[billing] upgrade clicked:', planCode)
     setUpgradingPlan(planCode)
-    checkoutMutation.mutate(planCode)
+    checkoutMutation.mutate(planCode, {
+      onSettled: () => setUpgradingPlan(null),
+    })
   }
 
   const { data: summary, isLoading: summaryLoading } = usePlan()

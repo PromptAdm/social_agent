@@ -8,6 +8,7 @@ export const apiClient = axios.create({
   baseURL: BASE_URL,
   withCredentials: true, // envia cookie httpOnly nas chamadas /api/auth/*
   headers: { 'Content-Type': 'application/json' },
+  timeout: 10_000, // 10s — garante que nenhuma chamada trava infinito com backend fora
 })
 
 // ── Request: injeta Bearer token ──────────────────────────────────────────────

@@ -4,7 +4,8 @@ import { useEffect, useRef } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/authStore'
 
-const LOADING_DEADLINE_MS = 10_000 // after 10 s still loading → force logout
+// If isLoading is still true after this deadline, force logout to break any hang.
+const LOADING_DEADLINE_MS = 4_000
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const isLoading       = useAuthStore((s) => s.isLoading)
@@ -14,25 +15,24 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
   const pathname        = usePathname()
   const deadlineRef     = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Debug — visible in browser console during QA
+  // Diagnostic log every render — visible in browser DevTools during QA
   useEffect(() => {
     console.log('[AuthGuard]', { pathname, isLoading, isAuthenticated })
   })
 
-  // Redirect when session is definitively absent
+  // Only redirect when we are CERTAIN the user is not authenticated
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      console.log('[AuthGuard] not authenticated → redirecting to /login')
+      console.log('[AuthGuard] not authenticated → /login')
       router.replace('/login')
     }
   }, [isLoading, isAuthenticated, router])
 
-  // Safety: if isLoading never resolves (e.g. backend hung after the
-  // SessionProvider timeout missed it), force a logout so we redirect.
+  // Safety: break any infinite loading if SessionProvider never resolves
   useEffect(() => {
     if (isLoading) {
       deadlineRef.current = setTimeout(() => {
-        console.warn('[AuthGuard] loading deadline exceeded → forcing logout')
+        console.warn('[AuthGuard] LOADING DEADLINE exceeded — forcing logout to break hang')
         logout()
       }, LOADING_DEADLINE_MS)
     } else {
@@ -46,7 +46,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     }
   }, [isLoading, logout])
 
-  // Block render until we know the auth state
+  // Block render only while auth state is genuinely unknown
   if (isLoading || !isAuthenticated) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-[#F5F4FB]">

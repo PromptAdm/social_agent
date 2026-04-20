@@ -4,6 +4,7 @@ import './globals.css'
 import { QueryProvider }   from '@/components/providers/QueryProvider'
 import { SessionProvider } from '@/components/providers/SessionProvider'
 import { PostHogProvider } from '@/components/providers/PostHogProvider'
+import { Toaster }         from '@/components/shared/Toaster'
 
 const inter = Inter({
   subsets: ['latin'],
@@ -28,6 +29,7 @@ export default function RootLayout({
           <QueryProvider>
             <SessionProvider>
               {children}
+              <Toaster />
             </SessionProvider>
           </QueryProvider>
         </PostHogProvider>

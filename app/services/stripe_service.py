@@ -83,11 +83,16 @@ def _resolve_price_id(plan_code: str, billing_cycle: str) -> str:
         ("premium",      "yearly"):  settings.STRIPE_PRICE_PREMIUM_YEARLY,
     }
     price_id = price_map.get((plan_code, billing_cycle), "")
+    print(f"[stripe] resolved price_id: {price_id!r}  (plan={plan_code!r} cycle={billing_cycle!r})")
     if not price_id:
         raise ValueError(
             f"Stripe Price ID not configured for {plan_code}/{billing_cycle}. "
             "Set STRIPE_PRICE_* in .env."
         )
+    logger.info(
+        "[stripe] resolved price_id plan=%s/%s price_id=%s",
+        plan_code, billing_cycle, price_id,
+    )
     return price_id
 
 
@@ -572,6 +577,10 @@ def create_checkout_session(
     from app.billing.trial import TRIAL_DAYS
     from app.services.subscription_service import get_or_create as _get_sub
 
+    print(f"[stripe] incoming plan_code: {plan_code!r}")
+    print(f"[stripe] incoming billing_cycle: {billing_cycle!r}")
+    print(f"[stripe] incoming user_id: {user_id!r}  email: {email!r}")
+
     sub         = _get_sub(db, user_id)
     customer_id = get_or_create_customer(email, user_id, sub)
 
@@ -581,7 +590,14 @@ def create_checkout_session(
 
     apply_trial = not sub.has_used_trial
     price_id    = _resolve_price_id(plan_code, billing_cycle)
-    client      = _client()
+
+    print(f"[stripe] creating session with: price_id={price_id!r}  customer={customer_id!r}  trial={apply_trial}")
+    logger.info(
+        "[stripe] creating checkout user=%s plan=%s/%s price_id=%s trial=%s customer=%s",
+        user_id, plan_code, billing_cycle, price_id, apply_trial, customer_id,
+    )
+
+    client = _client()
 
     subscription_data: dict = {
         "metadata": {
@@ -610,9 +626,10 @@ def create_checkout_session(
         "subscription_data": subscription_data,
     })
 
+    print(f"[stripe] checkout session created: session_id={session.id!r}  url={session.url!r}")
     logger.info(
-        "[stripe] checkout session created user=%s plan=%s/%s trial=%s session=%s",
-        user_id, plan_code, billing_cycle, apply_trial, session.id,
+        "[stripe] checkout session created user=%s plan=%s/%s price_id=%s trial=%s session=%s url=%s",
+        user_id, plan_code, billing_cycle, price_id, apply_trial, session.id, session.url,
     )
     return session.url  # type: ignore[return-value]
 

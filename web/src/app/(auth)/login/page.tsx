@@ -4,9 +4,12 @@ import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Eye, EyeOff, AlertCircle, ArrowRight, CheckCircle2 } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, ArrowRight } from 'lucide-react'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
+import { billingService } from '@/services/billingService'
+
+const VALID_PLANS = new Set(['starter', 'professional', 'premium'])
 
 /* ─────────────────────────────────────────────────────────────────────────── */
 
@@ -52,7 +55,32 @@ function LoginForm() {
       }
 
       const { access_token, user } = data
-      if (user) setAuth(user, access_token)
+      if (user && access_token) {
+        setAuth(user, access_token)
+      } else {
+        // Response valid but user/token missing — clear loading to avoid hang
+        useAuthStore.getState().setLoading(false)
+      }
+
+      // Plano selecionado na landing page → tenta checkout imediato
+      const plan = searchParams.get('plan')
+      if (plan && VALID_PLANS.has(plan)) {
+        console.log('[login] post-login checkout — plan:', plan)
+        try {
+          const checkout = await billingService.createCheckoutSession({
+            plan_code:                 plan,
+            billing_cycle:             'monthly',
+            payment_method_preference: 'card',
+          })
+          window.location.href = checkout.checkout_url
+          return
+        } catch (checkoutErr: any) {
+          console.error('[login] checkout failed after login:', checkoutErr)
+          // Fallback: vai para o billing page onde o usuário pode tentar de novo
+          router.replace('/billing')
+          return
+        }
+      }
 
       const from = searchParams.get('from') ?? '/overview'
       router.replace(from)
