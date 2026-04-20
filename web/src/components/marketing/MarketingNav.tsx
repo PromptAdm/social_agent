@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { Hexagon, Menu, X } from 'lucide-react'
+import { Hexagon, Menu, X, LayoutDashboard } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
+import { useAuthStore } from '@/store/authStore'
 
 const links = [
   { label: 'Produto',        href: '#benefits'        },
@@ -13,8 +14,9 @@ const links = [
 ]
 
 export function MarketingNav() {
-  const [scrolled,  setScrolled]  = useState(false)
-  const [menuOpen,  setMenuOpen]  = useState(false)
+  const [scrolled,    setScrolled]  = useState(false)
+  const [menuOpen,    setMenuOpen]  = useState(false)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 16)
@@ -60,23 +62,39 @@ export function MarketingNav() {
 
         {/* CTAs */}
         <div className="hidden md:flex items-center gap-2">
-          <Link
-            href="/login"
-            className="px-4 py-2 text-[14px] font-medium text-slate-500
-              hover:text-slate-900 transition-colors"
-          >
-            Entrar
-          </Link>
-          <Link
-            href="/register"
-            className="btn-primary-soft inline-flex items-center
-              px-5 py-2.5 rounded-full
-              text-[14px] font-semibold text-white
-              hover:-translate-y-px active:translate-y-0
-              transition-transform duration-200"
-          >
-            Começar grátis
-          </Link>
+          {isAuthenticated ? (
+            <Link
+              href="/overview"
+              className="btn-primary-soft inline-flex items-center gap-1.5
+                px-5 py-2.5 rounded-full
+                text-[14px] font-semibold text-white
+                hover:-translate-y-px active:translate-y-0
+                transition-transform duration-200"
+            >
+              <LayoutDashboard className="w-4 h-4" />
+              Ir para o Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="px-4 py-2 text-[14px] font-medium text-slate-500
+                  hover:text-slate-900 transition-colors"
+              >
+                Entrar
+              </Link>
+              <Link
+                href="/register"
+                className="btn-primary-soft inline-flex items-center
+                  px-5 py-2.5 rounded-full
+                  text-[14px] font-semibold text-white
+                  hover:-translate-y-px active:translate-y-0
+                  transition-transform duration-200"
+              >
+                Começar grátis
+              </Link>
+            </>
+          )}
         </div>
 
         {/* Mobile toggle */}
@@ -104,22 +122,35 @@ export function MarketingNav() {
             </a>
           ))}
           <div className="pt-3 pb-1 flex flex-col gap-2 border-t border-slate-100 mt-2">
-            <Link
-              href="/login"
-              onClick={() => setMenuOpen(false)}
-              className="block text-center px-4 py-3 text-[14px] font-medium
-                text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
-            >
-              Entrar
-            </Link>
-            <Link
-              href="/register"
-              onClick={() => setMenuOpen(false)}
-              className="btn-primary-soft block text-center px-4 py-3
-                text-[14px] font-semibold text-white rounded-xl"
-            >
-              Começar grátis
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                href="/overview"
+                onClick={() => setMenuOpen(false)}
+                className="btn-primary-soft block text-center px-4 py-3
+                  text-[14px] font-semibold text-white rounded-xl"
+              >
+                Ir para o Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="block text-center px-4 py-3 text-[14px] font-medium
+                    text-slate-600 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Entrar
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMenuOpen(false)}
+                  className="btn-primary-soft block text-center px-4 py-3
+                    text-[14px] font-semibold text-white rounded-xl"
+                >
+                  Começar grátis
+                </Link>
+              </>
+            )}
           </div>
         </div>
       )}

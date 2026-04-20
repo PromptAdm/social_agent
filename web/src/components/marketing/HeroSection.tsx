@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { ArrowRight, CheckCircle2 } from 'lucide-react'
+import { ArrowRight, CheckCircle2, LayoutDashboard } from 'lucide-react'
 import { useRef } from 'react'
 import {
   motion,
@@ -9,6 +9,7 @@ import {
   useTransform,
   useSpring,
 } from 'framer-motion'
+import { useAuthStore } from '@/store/authStore'
 
 /* ── Spring presets ──────────────────────────────────────────────────── */
 const DRIFT  = { stiffness: 22, damping: 50, restDelta: 0.001 } as const
@@ -47,7 +48,8 @@ function NezoraMark({ className }: { className?: string }) {
 
 /* ── HeroSection ─────────────────────────────────────────────────────── */
 export function HeroSection() {
-  const sectionRef = useRef<HTMLElement>(null)
+  const sectionRef      = useRef<HTMLElement>(null)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   const { scrollYProgress } = useScroll({
     target: sectionRef,
@@ -111,7 +113,7 @@ export function HeroSection() {
             loop
             playsInline
             className="absolute inset-0 w-full h-full object-cover"
-            style={{ opacity: 1, filter: 'brightness(0.72) saturate(0.82)' }}
+            style={{ opacity: 1, filter: 'brightness(0.38) saturate(0.5) blur(1px)' }}
           >
             <source src="/videos/hero-bg.mp4"  type="video/mp4" />
             <source src="/videos/hero-bg.webm" type="video/webm" />
@@ -132,10 +134,10 @@ export function HeroSection() {
         style={{
           background:
             'linear-gradient(108deg,' +
-            ' rgba(247,246,254,0.82)  0%,' +
-            ' rgba(247,246,254,0.72) 32%,' +
-            ' rgba(247,246,254,0.38) 56%,' +
-            ' rgba(247,246,254,0.06) 100%)',
+            ' rgba(247,246,254,0.94)  0%,' +
+            ' rgba(247,246,254,0.88) 32%,' +
+            ' rgba(247,246,254,0.55) 56%,' +
+            ' rgba(247,246,254,0.10) 100%)',
         }}
       />
 
@@ -210,30 +212,46 @@ export function HeroSection() {
             animate="visible"
             className="flex flex-col sm:flex-row items-start gap-3 mb-10"
           >
-            <Link
-              href="/register"
-              className="group btn-primary-soft inline-flex items-center gap-2
-                px-7 py-3.5 rounded-full
-                text-white text-[15px] font-semibold
-                hover:scale-[1.02] active:scale-[0.99]
-                transition-transform duration-200 will-change-transform"
-            >
-              Começar agora
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200" strokeWidth={1.5} />
-            </Link>
+            {isAuthenticated ? (
+              <Link
+                href="/overview"
+                className="group btn-primary-soft inline-flex items-center gap-2
+                  px-7 py-3.5 rounded-full
+                  text-white text-[15px] font-semibold
+                  hover:scale-[1.02] active:scale-[0.99]
+                  transition-transform duration-200 will-change-transform"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Ir para o Dashboard
+              </Link>
+            ) : (
+              <>
+                <Link
+                  href="/register"
+                  className="group btn-primary-soft inline-flex items-center gap-2
+                    px-7 py-3.5 rounded-full
+                    text-white text-[15px] font-semibold
+                    hover:scale-[1.02] active:scale-[0.99]
+                    transition-transform duration-200 will-change-transform"
+                >
+                  Começar agora
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform duration-200" strokeWidth={1.5} />
+                </Link>
 
-            <button
-              onClick={() =>
-                document.getElementById('why')?.scrollIntoView({ behavior: 'smooth' })
-              }
-              className="btn-secondary-soft inline-flex items-center gap-1.5
-                px-6 py-3.5 rounded-full
-                text-[15px] font-medium text-slate-600 hover:text-slate-900
-                hover:scale-[1.02] active:scale-[0.99]
-                transition-transform duration-200 will-change-transform"
-            >
-              Ver como funciona
-            </button>
+                <button
+                  onClick={() =>
+                    document.getElementById('why')?.scrollIntoView({ behavior: 'smooth' })
+                  }
+                  className="btn-secondary-soft inline-flex items-center gap-1.5
+                    px-6 py-3.5 rounded-full
+                    text-[15px] font-medium text-slate-600 hover:text-slate-900
+                    hover:scale-[1.02] active:scale-[0.99]
+                    transition-transform duration-200 will-change-transform"
+                >
+                  Ver como funciona
+                </button>
+              </>
+            )}
           </motion.div>
 
           {/* Trust strip */}

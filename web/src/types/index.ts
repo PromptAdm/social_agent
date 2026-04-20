@@ -120,7 +120,7 @@ export interface Lead {
 // ── Billing / Planos ───────────────────────────────────────────────────────────
 
 export type PlanCode = 'starter' | 'professional' | 'premium' | 'legacy' | 'free' | 'basic'
-export type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'cancelled'
+export type SubscriptionStatus = 'active' | 'trialing' | 'past_due' | 'cancelled' | 'free' | 'expired'
 export type BillingCycle = 'monthly' | 'yearly'
 
 export interface PlanLimits {
@@ -167,6 +167,8 @@ export interface BillingSummary {
   features: PlanFeatures
   monetization_enabled: boolean
   stripe_enabled: boolean
+  effective_plan_code: string
+  trial_days_left: number | null
 }
 
 // ── Créditos ───────────────────────────────────────────────────────────────────

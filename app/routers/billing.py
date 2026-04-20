@@ -81,7 +81,7 @@ def list_plans(
     current_user: User = Depends(get_current_active_user),
 ) -> list[PlanDetail]:
     summary = subscription_service.get_billing_summary(db, current_user.id)
-    return subscription_service.list_public_plans(summary.plan_code)
+    return subscription_service.list_public_plans(summary.effective_plan_code)
 
 
 @router.get("/usage", response_model=UsageSet, summary="Uso atual de recursos")

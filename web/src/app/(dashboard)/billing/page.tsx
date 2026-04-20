@@ -13,6 +13,8 @@ import {
   AlertCircle,
   Loader2,
   Settings,
+  Sparkles,
+  Lock,
 } from 'lucide-react'
 import { usePlan, usePlans } from '@/hooks/usePlan'
 import { UsageMeter }  from '@/components/billing/UsageMeter'
@@ -194,12 +196,22 @@ function PlanCard({
         >
           Fazer downgrade
         </button>
+      ) : !stripeEnabled ? (
+        <div className="flex flex-col items-center gap-1">
+          <button
+            disabled
+            className="h-9 w-full rounded-lg border border-slate-200 text-[13px] text-slate-400 cursor-not-allowed flex items-center justify-center gap-1.5"
+          >
+            <Lock className="w-3 h-3" />
+            Pagamentos em breve
+          </button>
+        </div>
       ) : (
         <button
           onClick={() => onUpgrade(plan.code)}
-          disabled={isUpgrading || !stripeEnabled}
+          disabled={isUpgrading}
           className={cn(
-            'h-9 rounded-lg text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5',
+            'h-9 w-full rounded-lg text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5',
             isPro
               ? 'bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60'
               : 'bg-slate-100 hover:bg-slate-200 text-slate-600 border border-slate-200 disabled:opacity-60',
@@ -269,6 +281,18 @@ export default function BillingPage() {
     },
   })
 
+  const trialMutation = useMutation({
+    mutationFn: billingService.startTrial,
+    onSuccess: () => {
+      setToast({ type: 'success', message: 'Trial ativado! Você tem 7 dias no plano Professional.' })
+      queryClient.invalidateQueries({ queryKey: queryKeys.billing() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.billingPlans() })
+    },
+    onError: () => {
+      setToast({ type: 'error', message: 'Não foi possível ativar o trial. Tente novamente.' })
+    },
+  })
+
   function handleUpgrade(planCode: string) {
     setUpgradingPlan(planCode)
     checkoutMutation.mutate(planCode)
@@ -293,11 +317,16 @@ export default function BillingPage() {
     )
   }
 
-  const trialDaysLeft = summary.trial_ends_at
-    ? Math.max(0, Math.ceil(
-        (new Date(summary.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-      ))
-    : null
+  const trialDaysLeft = summary.trial_days_left ?? (
+    summary.trial_ends_at
+      ? Math.max(0, Math.ceil(
+          (new Date(summary.trial_ends_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+        ))
+      : null
+  )
+
+  const effectivePlanCode = (summary.effective_plan_code ?? summary.plan_code) as PlanCode
+  const effectivePlanName = plans?.find(p => p.code === effectivePlanCode)?.display_name ?? summary.plan_name
 
   return (
     <div className="px-6 py-6 max-w-5xl mx-auto space-y-8">
@@ -321,8 +350,8 @@ export default function BillingPage() {
               Plano atual
             </p>
             <div className="flex items-center gap-2.5">
-              <span className="text-[22px] font-bold text-slate-900">{summary.plan_name}</span>
-              <PlanBadge plan={summary.plan_code} />
+              <span className="text-[22px] font-bold text-slate-900">{effectivePlanName}</span>
+              <PlanBadge plan={effectivePlanCode} />
             </div>
 
             <div className="flex items-center gap-2 mt-2">
@@ -419,12 +448,63 @@ export default function BillingPage() {
         )}
       </div>
 
+      {/* Trial CTA — free user who hasn't used trial */}
+      {summary.status === 'free' && !summary.has_used_trial && (
+        <div className="bg-gradient-to-r from-indigo-50 to-violet-50 border border-indigo-200 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+          <div className="w-10 h-10 bg-indigo-600/15 border border-indigo-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-5 h-5 text-indigo-500" />
+          </div>
+          <div className="flex-1">
+            <p className="text-[14px] font-semibold text-slate-800">Experimente o plano Professional grátis por 7 dias</p>
+            <p className="text-[12px] text-slate-500 mt-0.5">Sem cartão de crédito. Cancele quando quiser. Acesso total a todos os recursos.</p>
+          </div>
+          <button
+            onClick={() => trialMutation.mutate()}
+            disabled={trialMutation.isPending}
+            className="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-60 text-white text-[13px] font-semibold rounded-lg transition-colors"
+          >
+            {trialMutation.isPending ? (
+              <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Ativando…</>
+            ) : (
+              <><Sparkles className="w-3.5 h-3.5" /> Iniciar trial gratuito</>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Active trial status banner */}
+      {summary.is_trial_active && (
+        <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 flex items-center gap-3">
+          <Sparkles className="w-4 h-4 text-blue-500 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-[13px] font-semibold text-blue-800">
+              Trial ativo — Plano Professional
+            </p>
+            <p className="text-[12px] text-blue-600 mt-0.5">
+              {summary.trial_days_left != null
+                ? `Termina em ${summary.trial_days_left} dia${summary.trial_days_left === 1 ? '' : 's'}`
+                : summary.trial_ends_at
+                  ? `Termina em ${new Date(summary.trial_ends_at).toLocaleDateString('pt-BR')}`
+                  : 'Trial em andamento'}
+              {' '}· Para continuar, escolha um plano abaixo antes do fim do período.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Plan comparison */}
       <div>
         <h2 className="text-[15px] font-semibold text-slate-700 mb-1">Planos disponíveis</h2>
         <p className="text-[13px] text-slate-500 mb-5">
           Compare os planos e escolha o ideal para o seu negócio.
         </p>
+
+        {!summary.stripe_enabled && (
+          <div className="mb-4 flex items-center gap-2 text-[12px] text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5">
+            <Lock className="w-3.5 h-3.5 flex-shrink-0 text-slate-400" />
+            Pagamentos ainda não estão disponíveis neste ambiente. Os planos estão em configuração.
+          </div>
+        )}
 
         {plans && plans.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -433,7 +513,7 @@ export default function BillingPage() {
                 key={plan.code}
                 plan={plan}
                 stripeEnabled={summary.stripe_enabled}
-                currentPlanCode={summary.plan_code}
+                currentPlanCode={effectivePlanCode}
                 onUpgrade={handleUpgrade}
                 isUpgrading={checkoutMutation.isPending && upgradingPlan === plan.code}
               />

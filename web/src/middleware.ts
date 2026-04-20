@@ -1,37 +1,41 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Rotas que não precisam de autenticação
+// Routes that don't require authentication
 const PUBLIC_PATHS = ['/', '/login', '/register']
 
-// Rotas que o Next.js não deve interceptar
+// Paths the middleware must not intercept
 const STATIC_PREFIXES = ['/_next', '/favicon', '/api', '/videos', '/images']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
-  // Ignora assets estáticos e route handlers
+  // Skip static assets and API route handlers
   if (STATIC_PREFIXES.some((prefix) => pathname.startsWith(prefix))) {
     return NextResponse.next()
   }
 
   const isPublic = PUBLIC_PATHS.some(
-    (path) => pathname === path || pathname.startsWith(path + '/')
+    (path) => pathname === path || pathname.startsWith(path + '/'),
   )
 
-  // Presença do cookie de refresh token indica sessão ativa
+  // Cookie presence is the server-side auth signal (set by /api/auth/login)
   const hasRefreshToken = request.cookies.has('sa_refresh_token')
 
-  // Usuário autenticado tentando acessar /login ou /register → redireciona para dashboard
-  // A landing page (/) fica acessível mesmo para usuários autenticados.
+  console.log(`[middleware] ${pathname} | public=${isPublic} | hasToken=${hasRefreshToken}`)
+
+  // Authenticated user visiting /login or /register → send to dashboard
+  // The landing page (/) stays accessible regardless of auth state.
   if (isPublic && hasRefreshToken && pathname !== '/') {
+    console.log('[middleware] authenticated on public route → /overview')
     return NextResponse.redirect(new URL('/overview', request.url))
   }
 
-  // Usuário não autenticado tentando acessar rota protegida → redireciona para /login
+  // Unauthenticated user visiting a protected route → redirect to /login
   if (!isPublic && !hasRefreshToken) {
     const loginUrl = new URL('/login', request.url)
-    loginUrl.searchParams.set('from', pathname) // preserva rota de origem
+    loginUrl.searchParams.set('from', pathname)
+    console.log(`[middleware] no token on protected route → /login?from=${pathname}`)
     return NextResponse.redirect(loginUrl)
   }
 
@@ -40,7 +44,7 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Aplica em todas as rotas exceto arquivos estáticos do Next.js
+    // Run on every path except Next.js static files
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 }

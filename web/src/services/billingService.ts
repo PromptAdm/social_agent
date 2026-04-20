@@ -33,4 +33,7 @@ export const billingService = {
 
   createPortalSession: (): Promise<PortalResponse> =>
     api.post(API.billing.portal).then((r) => r.data),
+
+  startTrial: (): Promise<{ trial_ends_at: string; plan_code: string; status: string }> =>
+    api.post(API.billing.trialStart).then((r) => r.data),
 }

@@ -123,14 +123,16 @@ function SkeletonCard({ index }: { index: number }) {
 interface IdeaCardProps {
   idea:        Idea
   index:       number
-  onToPost:    (id: number) => Promise<void>
+  onToPost:    (id: number) => Promise<import('@/types').Post | null>
   onDiscard:   (id: number) => void
 }
 
 function IdeaCard({ idea, index, onToPost, onDiscard }: IdeaCardProps) {
   const [toPostLoading, setToPostLoading] = useState(false)
   const [converted, setConverted]         = useState(false)
+  const [createdPost, setCreatedPost]     = useState<import('@/types').Post | null>(null)
   const [discarded, setDiscarded]         = useState(false)
+  const router                            = useRouter()
 
   const plat = PLATAFORMAS.find((p) => p.key === idea.plataforma) ?? null
   const prio = PRIORITY_CONFIG[idea.prioridade]
@@ -138,7 +140,8 @@ function IdeaCard({ idea, index, onToPost, onDiscard }: IdeaCardProps) {
   async function handleToPost() {
     setToPostLoading(true)
     try {
-      await onToPost(idea.id)
+      const post = await onToPost(idea.id)
+      setCreatedPost(post)
       setConverted(true)
     } finally {
       setToPostLoading(false)
@@ -211,9 +214,22 @@ function IdeaCard({ idea, index, onToPost, onDiscard }: IdeaCardProps) {
 
       {/* Converted banner */}
       {converted && (
-        <div className="flex items-center gap-2 px-3 py-2 bg-emerald-500/8 border border-emerald-500/20 rounded-md">
-          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
-          <span className="text-xs text-emerald-400 font-medium">Convertido em post — veja em Posts</span>
+        <div className="flex flex-col gap-2 px-3 py-2.5 bg-emerald-500/8 border border-emerald-500/20 rounded-md">
+          <div className="flex items-center gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+            <span className="text-xs text-emerald-400 font-semibold">Rascunho criado com sucesso</span>
+          </div>
+          {createdPost?.caption && (
+            <p className="text-[11px] text-slate-400 leading-snug line-clamp-3 pl-5">
+              {createdPost.caption}
+            </p>
+          )}
+          <button
+            onClick={() => router.push('/posts')}
+            className="ml-5 flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+          >
+            Ver em Posts <ArrowRight className="w-3 h-3" />
+          </button>
         </div>
       )}
 
@@ -347,11 +363,15 @@ export default function GeneratePage() {
     }
   }, [form, canGenerate])
 
-  async function handleToPost(ideaId: number) {
-    const post = await ideaService.toPost(ideaId)
-    queryClient.invalidateQueries({ queryKey: form.brandId ? queryKeys.posts(form.brandId) : ['posts'] })
-    toast.success('Post criado — abra Posts para editar e agendar.')
-    return
+  async function handleToPost(ideaId: number): Promise<import('@/types').Post | null> {
+    try {
+      const post = await ideaService.toPost(ideaId)
+      queryClient.invalidateQueries({ queryKey: form.brandId ? queryKeys.posts(form.brandId) : ['posts'] })
+      return post
+    } catch (err) {
+      toast.error(parseApiError(err))
+      return null
+    }
   }
 
   function handleDiscard(ideaId: number) {

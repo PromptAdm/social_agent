@@ -43,8 +43,8 @@ export async function POST(req: NextRequest) {
       response.cookies.set('sa_refresh_token', newRefreshToken, {
         httpOnly: true,
         secure:   process.env.NODE_ENV === 'production',
-        sameSite: 'strict',
-        path:     '/api/auth',
+        sameSite: 'lax',
+        path:     '/',   // must match the login cookie path so middleware can read it
         maxAge:   60 * 60 * 24 * 30,
       })
     }
