@@ -1,43 +1,5 @@
 """
 Stripe Service — production-safe checkout, sync, and webhook handling.
-
-Architecture
-────────────
-                  Stripe API
-                      │
-        ┌─────────────┴──────────────┐
-        │                            │
-  checkout session            webhook event
-        │                            │
-   create_checkout_session   handle_webhook()
-        │                            │
-        │               ┌────────────┴────────────┐
-        │          idempotency            dispatch to handler
-        │          guard                           │
-        │               │                          ▼
-        │            already?          sync_subscription_from_stripe()
-        │            yes → 200               │
-        │            no  → continue          │
-        │                                    ▼
-        └───────────────────────────> UserSubscription (DB)
-
-Idempotency
-───────────
-Every processed event ID (evt_xxx) is stored in stripe_webhook_events.
-The INSERT and the subscription mutation share one DB transaction:
-  • success  → both committed atomically
-  • failure  → both rolled back; Stripe retries safely
-
-Sync strategy
-─────────────
-For create/update/paid events we NEVER trust the event payload alone.
-We call sync_subscription_from_stripe() which fetches the live subscription
-object from the Stripe API and overwrites all subscription fields in one shot.
-Stripe is always the source of truth.
-
-Logging
-───────
-All log lines follow:   [stripe] <verb> event_id=... type=... [extra fields]
 """
 
 from __future__ import annotations
@@ -53,13 +15,17 @@ from app.core.config import get_settings
 from app.models.stripe_event import StripeWebhookEvent
 from app.models.subscription import SubscriptionStatus, UserSubscription
 
-logger   = logging.getLogger(__name__)
-settings = get_settings()
+logger = logging.getLogger(__name__)
 
 
-# ── Stripe client ──────────────────────────────────────────────────────────────
+# ── Settings / client ──────────────────────────────────────────────────────────
+
+def _settings():
+    return get_settings()
+
 
 def _client() -> stripe.StripeClient:
+    settings = _settings()
     return stripe.StripeClient(settings.STRIPE_SECRET_KEY)
 
 
@@ -73,64 +39,104 @@ def _now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _normalize_plan_code(plan_code: str) -> str:
+    return (plan_code or "").strip().lower()
+
+
+def _normalize_billing_cycle(billing_cycle: str) -> str:
+    value = (billing_cycle or "").strip().lower()
+    if value in {"annual", "annually", "year", "yearly"}:
+        return "yearly"
+    return "monthly" if value not in {"monthly", "yearly"} else value
+
+
 def _resolve_price_id(plan_code: str, billing_cycle: str) -> str:
+    settings = _settings()
+    normalized_plan = _normalize_plan_code(plan_code)
+    normalized_cycle = _normalize_billing_cycle(billing_cycle)
+
     price_map: dict[tuple[str, str], str] = {
-        ("starter",      "monthly"): settings.STRIPE_PRICE_STARTER_MONTHLY,
-        ("starter",      "yearly"):  settings.STRIPE_PRICE_STARTER_YEARLY,
-        ("professional", "monthly"): settings.STRIPE_PRICE_PROFESSIONAL_MONTHLY,
-        ("professional", "yearly"):  settings.STRIPE_PRICE_PROFESSIONAL_YEARLY,
-        ("premium",      "monthly"): settings.STRIPE_PRICE_PREMIUM_MONTHLY,
-        ("premium",      "yearly"):  settings.STRIPE_PRICE_PREMIUM_YEARLY,
+        ("starter", "monthly"): (settings.STRIPE_PRICE_STARTER_MONTHLY or "").strip(),
+        ("starter", "yearly"): (settings.STRIPE_PRICE_STARTER_YEARLY or "").strip(),
+        ("professional", "monthly"): (settings.STRIPE_PRICE_PROFESSIONAL_MONTHLY or "").strip(),
+        ("professional", "yearly"): (settings.STRIPE_PRICE_PROFESSIONAL_YEARLY or "").strip(),
+        ("premium", "monthly"): (settings.STRIPE_PRICE_PREMIUM_MONTHLY or "").strip(),
+        ("premium", "yearly"): (settings.STRIPE_PRICE_PREMIUM_YEARLY or "").strip(),
     }
-    price_id = price_map.get((plan_code, billing_cycle), "")
-    print(f"[stripe] resolved price_id: {price_id!r}  (plan={plan_code!r} cycle={billing_cycle!r})")
+
+    price_id = price_map.get((normalized_plan, normalized_cycle), "")
+
+    print("=== STRIPE PRICE RESOLUTION DEBUG ===")
+    print(f"raw plan_code={plan_code!r}")
+    print(f"raw billing_cycle={billing_cycle!r}")
+    print(f"normalized plan_code={normalized_plan!r}")
+    print(f"normalized billing_cycle={normalized_cycle!r}")
+    print(f"resolved price_id={price_id!r}")
+    print("=====================================")
+
     if not price_id:
         raise ValueError(
-            f"Stripe Price ID not configured for {plan_code}/{billing_cycle}. "
+            f"Stripe Price ID not configured for {normalized_plan}/{normalized_cycle}. "
             "Set STRIPE_PRICE_* in .env."
         )
+
     logger.info(
         "[stripe] resolved price_id plan=%s/%s price_id=%s",
-        plan_code, billing_cycle, price_id,
+        normalized_plan,
+        normalized_cycle,
+        price_id,
     )
     return price_id
 
 
+def _validate_price_exists(price_id: str) -> None:
+    client = _client()
+    try:
+        price = client.v1.prices.retrieve(price_id)
+        print("=== STRIPE PRICE VALIDATION DEBUG ===")
+        print(f"validated price_id={price_id!r}")
+        print(f"stripe returned price.id={getattr(price, 'id', None)!r}")
+        print(f"stripe returned active={getattr(price, 'active', None)!r}")
+        print("=====================================")
+        logger.info("[stripe] validated price exists price_id=%s", price_id)
+    except stripe.InvalidRequestError as exc:
+        logger.exception("[stripe] price validation failed price_id=%s", price_id)
+        raise ValueError(
+            f"Stripe price does not exist or is inaccessible for this API key: {price_id}"
+        ) from exc
+
+
 def _price_id_to_plan_code(price_id: str) -> str | None:
-    """Maps a Stripe Price ID back to our internal plan_code. Returns None if unknown."""
+    settings = _settings()
+
     if not price_id:
         return None
+
     mapping = {
-        settings.STRIPE_PRICE_STARTER_MONTHLY:      "starter",
-        settings.STRIPE_PRICE_STARTER_YEARLY:        "starter",
-        settings.STRIPE_PRICE_PROFESSIONAL_MONTHLY: "professional",
-        settings.STRIPE_PRICE_PROFESSIONAL_YEARLY:   "professional",
-        settings.STRIPE_PRICE_PREMIUM_MONTHLY:       "premium",
-        settings.STRIPE_PRICE_PREMIUM_YEARLY:        "premium",
+        (settings.STRIPE_PRICE_STARTER_MONTHLY or "").strip(): "starter",
+        (settings.STRIPE_PRICE_STARTER_YEARLY or "").strip(): "starter",
+        (settings.STRIPE_PRICE_PROFESSIONAL_MONTHLY or "").strip(): "professional",
+        (settings.STRIPE_PRICE_PROFESSIONAL_YEARLY or "").strip(): "professional",
+        (settings.STRIPE_PRICE_PREMIUM_MONTHLY or "").strip(): "premium",
+        (settings.STRIPE_PRICE_PREMIUM_YEARLY or "").strip(): "premium",
     }
     return mapping.get(price_id)
 
 
 def _map_stripe_status(stripe_status: str) -> str:
-    """
-    Maps Stripe subscription status → our SubscriptionStatus value.
-
-    Unknown statuses default to PAST_DUE (cautious — don't silently grant active).
-    """
     return {
-        "active":             SubscriptionStatus.ACTIVE.value,
-        "trialing":           SubscriptionStatus.TRIALING.value,
-        "past_due":           SubscriptionStatus.PAST_DUE.value,
-        "canceled":           SubscriptionStatus.CANCELLED.value,
-        "incomplete":         SubscriptionStatus.PAST_DUE.value,
+        "active": SubscriptionStatus.ACTIVE.value,
+        "trialing": SubscriptionStatus.TRIALING.value,
+        "past_due": SubscriptionStatus.PAST_DUE.value,
+        "canceled": SubscriptionStatus.CANCELLED.value,
+        "incomplete": SubscriptionStatus.PAST_DUE.value,
         "incomplete_expired": SubscriptionStatus.CANCELLED.value,
-        "unpaid":             SubscriptionStatus.PAST_DUE.value,
-        "paused":             SubscriptionStatus.PAST_DUE.value,
-    }.get(stripe_status, SubscriptionStatus.PAST_DUE.value)   # safe fallback
+        "unpaid": SubscriptionStatus.PAST_DUE.value,
+        "paused": SubscriptionStatus.PAST_DUE.value,
+    }.get(stripe_status, SubscriptionStatus.PAST_DUE.value)
 
 
 def _detect_billing_cycle(stripe_sub: object) -> str:
-    """Extracts 'monthly' or 'yearly' from a Stripe Subscription object."""
     try:
         interval = stripe_sub.items.data[0].price.recurring.interval  # type: ignore[union-attr]
         return "yearly" if interval == "year" else "monthly"
@@ -171,10 +177,6 @@ def _resolve_local_sub(
     customer_id: str | None = None,
     user_id: int | None = None,
 ) -> UserSubscription | None:
-    """
-    Finds the local subscription row using any available identifier.
-    Tries in order: stripe_subscription_id → customer_id → user_id.
-    """
     if stripe_sub_id:
         sub = _find_by_stripe_sub_id(db, stripe_sub_id)
         if sub:
@@ -199,18 +201,8 @@ def sync_subscription_from_stripe(
     customer_id: str | None = None,
     user_id: int | None = None,
 ) -> UserSubscription | None:
-    """
-    Fetches the live subscription from the Stripe API and overwrites all
-    relevant fields in the local UserSubscription row.
-
-    Stripe is always the source of truth.  Never call this with stale event data.
-
-    Returns the updated UserSubscription, or None if no local row was found.
-    The caller is responsible for calling db.commit().
-    """
     client = _client()
 
-    # Fetch live from Stripe with items expanded so we can resolve plan code.
     try:
         stripe_sub = client.v1.subscriptions.retrieve(
             stripe_subscription_id,
@@ -223,7 +215,6 @@ def sync_subscription_from_stripe(
         )
         return None
 
-    # Resolve local row
     sub = _resolve_local_sub(
         db,
         stripe_sub_id=stripe_subscription_id,
@@ -239,51 +230,51 @@ def sync_subscription_from_stripe(
         )
         return None
 
-    # Determine plan code from the subscription's price
-    plan_code = sub.plan_code  # keep current as fallback
+    plan_code = sub.plan_code
     try:
         price_id = stripe_sub.items.data[0].price.id
-        mapped   = _price_id_to_plan_code(price_id)
+        mapped = _price_id_to_plan_code(price_id)
         if mapped:
             plan_code = mapped
         else:
             logger.warning(
                 "[stripe] sync — unknown price_id=%s for stripe_sub_id=%s; keeping plan_code=%s",
-                price_id, stripe_subscription_id, plan_code,
+                price_id,
+                stripe_subscription_id,
+                plan_code,
             )
     except (AttributeError, IndexError):
         logger.warning(
-            "[stripe] sync — no price in subscription items stripe_sub_id=%s", stripe_subscription_id
+            "[stripe] sync — no price in subscription items stripe_sub_id=%s",
+            stripe_subscription_id,
         )
 
-    # ── Write all fields from the live Stripe object ──────────────────────────
     mapped_status = _map_stripe_status(stripe_sub.status)
 
     sub.stripe_subscription_id = stripe_subscription_id
-    sub.stripe_customer_id     = stripe_sub.customer
-    sub.plan_code              = plan_code
-    sub.status                 = mapped_status
-    sub.billing_cycle          = _detect_billing_cycle(stripe_sub)
-    sub.current_period_start   = _dt(stripe_sub.current_period_start)
-    sub.current_period_end     = _dt(stripe_sub.current_period_end)
-    sub.cancel_at_period_end   = bool(stripe_sub.cancel_at_period_end)
+    sub.stripe_customer_id = stripe_sub.customer
+    sub.plan_code = plan_code
+    sub.status = mapped_status
+    sub.billing_cycle = _detect_billing_cycle(stripe_sub)
+    sub.current_period_start = _dt(stripe_sub.current_period_start)
+    sub.current_period_end = _dt(stripe_sub.current_period_end)
+    sub.cancel_at_period_end = bool(stripe_sub.cancel_at_period_end)
 
-    # ── Trial fields ───────────────────────────────────────────────────────────
-    # Stripe is the authority: if the subscription has a trial window, record it.
-    # has_used_trial is only set to True — never cleared back to False.
     stripe_trial_start = getattr(stripe_sub, "trial_start", None)
-    stripe_trial_end   = getattr(stripe_sub, "trial_end",   None)
+    stripe_trial_end = getattr(stripe_sub, "trial_end", None)
 
     if stripe_trial_start is not None:
         sub.trial_started_at = _dt(stripe_trial_start)
-        sub.trial_ends_at    = _dt(stripe_trial_end)
+        sub.trial_ends_at = _dt(stripe_trial_end)
         if not sub.has_used_trial:
             sub.has_used_trial = True
             logger.info(
                 "[stripe] sync — trial detected stripe_sub_id=%s user=%s "
                 "trial_start=%s trial_end=%s",
-                stripe_subscription_id, sub.user_id,
-                sub.trial_started_at, sub.trial_ends_at,
+                stripe_subscription_id,
+                sub.user_id,
+                sub.trial_started_at,
+                sub.trial_ends_at,
             )
 
     logger.info(
@@ -302,15 +293,6 @@ def sync_subscription_from_stripe(
 # ── Idempotency ────────────────────────────────────────────────────────────────
 
 def _claim_event(db: Session, event_id: str, event_type: str) -> bool:
-    """
-    Tries to INSERT the event_id into stripe_webhook_events.
-
-    Returns True  if this event is new and should be processed.
-    Returns False if it was already processed (duplicate delivery).
-
-    Uses flush() to detect the unique constraint violation immediately,
-    without committing — the caller commits with the subscription mutation.
-    """
     row = StripeWebhookEvent(
         stripe_event_id=event_id,
         event_type=event_type,
@@ -328,54 +310,44 @@ def _claim_event(db: Session, event_id: str, event_type: str) -> bool:
 # ── Webhook dispatcher ─────────────────────────────────────────────────────────
 
 def handle_webhook(payload: bytes, stripe_signature: str, db: Session) -> dict:
-    """
-    Entry point for POST /billing/webhook.
+    settings = _settings()
 
-    1. Validates the Stripe-Signature header.
-    2. Checks idempotency — ignores already-processed events.
-    3. Dispatches to the correct handler.
-    4. Commits idempotency row + subscription mutation atomically.
-    5. On any error: rolls back so Stripe can retry safely.
-
-    Raises stripe.SignatureVerificationError on bad signatures (→ 400 to caller).
-    Re-raises other exceptions after rollback (→ 500 to caller → Stripe retries).
-    """
     event = stripe.Webhook.construct_event(
-        payload, stripe_signature, settings.STRIPE_WEBHOOK_SECRET
+        payload,
+        stripe_signature,
+        settings.STRIPE_WEBHOOK_SECRET,
     )
 
-    event_id   = event["id"]
+    event_id = event["id"]
     event_type = event["type"]
-    data       = event["data"]["object"]
+    data = event["data"]["object"]
 
     logger.info("[stripe] received event_id=%s type=%s", event_id, event_type)
 
-    # ── Idempotency guard ──────────────────────────────────────────────────────
     if not _claim_event(db, event_id, event_type):
         logger.info("[stripe] ignored event_id=%s type=%s reason=duplicate", event_id, event_type)
         return {"received": True, "idempotent": True}
 
-    # ── Dispatch ───────────────────────────────────────────────────────────────
     handlers = {
-        "checkout.session.completed":    _on_checkout_completed,
+        "checkout.session.completed": _on_checkout_completed,
         "customer.subscription.created": _on_subscription_sync,
         "customer.subscription.updated": _on_subscription_sync,
-        "invoice.paid":                  _on_invoice_paid,
+        "invoice.paid": _on_invoice_paid,
         "customer.subscription.deleted": _on_subscription_deleted,
     }
 
     handler = handlers.get(event_type)
     if handler is None:
         logger.info("[stripe] unhandled event_id=%s type=%s", event_id, event_type)
-        db.commit()   # commit the idempotency row so we don't re-process
+        db.commit()
         return {"received": True}
 
     try:
         handler(data, db, event_id=event_id)
-        db.commit()   # atomically commits idempotency row + subscription mutation
+        db.commit()
         logger.info("[stripe] processed event_id=%s type=%s", event_id, event_type)
     except Exception:
-        db.rollback()  # rolls back idempotency row too → Stripe will retry
+        db.rollback()
         logger.exception("[stripe] failed event_id=%s type=%s — rolled back", event_id, event_type)
         raise
 
@@ -383,23 +355,12 @@ def handle_webhook(payload: bytes, stripe_signature: str, db: Session) -> dict:
 
 
 # ── Event handlers ─────────────────────────────────────────────────────────────
-# Each handler mutates the session but does NOT commit.
-# The commit is done by handle_webhook() to ensure atomicity with the
-# idempotency row.  Handlers also do NOT re-raise — they let exceptions
-# bubble up to handle_webhook() which rolls back.
 
 def _on_checkout_completed(session: dict, db: Session, *, event_id: str) -> None:
-    """
-    Fired when a Checkout Session completes and the subscription is created.
-
-    1. Extracts user_id and stripe_subscription_id from session metadata.
-    2. Links the local subscription row to the Stripe customer + subscription.
-    3. Calls sync_subscription_from_stripe() to pull the definitive state.
-    """
-    metadata    = session.get("metadata") or {}
+    metadata = session.get("metadata") or {}
     user_id_str = metadata.get("user_id", "")
     stripe_sub_id = session.get("subscription")
-    customer_id   = session.get("customer")
+    customer_id = session.get("customer")
 
     if not user_id_str:
         logger.error(
@@ -413,46 +374,48 @@ def _on_checkout_completed(session: dict, db: Session, *, event_id: str) -> None
     except ValueError:
         logger.error(
             "[stripe] checkout.completed event_id=%s — invalid user_id=%s",
-            event_id, user_id_str,
+            event_id,
+            user_id_str,
         )
         return
 
     if not stripe_sub_id:
         logger.error(
             "[stripe] checkout.completed event_id=%s user=%s — no subscription ID in session",
-            event_id, user_id,
+            event_id,
+            user_id,
         )
         return
 
     logger.info(
         "[stripe] checkout.completed event_id=%s user=%s stripe_sub=%s",
-        event_id, user_id, stripe_sub_id,
+        event_id,
+        user_id,
+        stripe_sub_id,
     )
 
-    # Pre-link customer so sync can find the row even before it has a sub_id.
     sub = _find_by_user_id(db, user_id)
     if sub and customer_id and not sub.stripe_customer_id:
         sub.stripe_customer_id = customer_id
         db.flush()
 
-    # Full sync from Stripe — this sets plan, status, period, etc.
     result = sync_subscription_from_stripe(
-        stripe_sub_id, db, customer_id=customer_id, user_id=user_id
+        stripe_sub_id,
+        db,
+        customer_id=customer_id,
+        user_id=user_id,
     )
     if result is None:
         logger.error(
             "[stripe] checkout.completed event_id=%s — sync returned None for stripe_sub=%s",
-            event_id, stripe_sub_id,
+            event_id,
+            stripe_sub_id,
         )
 
 
 def _on_subscription_sync(subscription: dict, db: Session, *, event_id: str) -> None:
-    """
-    Handles subscription.created and subscription.updated.
-    Always syncs from the Stripe API — never trusts the event payload alone.
-    """
     stripe_sub_id = subscription.get("id")
-    customer_id   = subscription.get("customer")
+    customer_id = subscription.get("customer")
 
     if not stripe_sub_id:
         logger.error("[stripe] subscription event_id=%s — missing subscription id", event_id)
@@ -460,56 +423,55 @@ def _on_subscription_sync(subscription: dict, db: Session, *, event_id: str) -> 
 
     logger.info(
         "[stripe] subscription.sync event_id=%s stripe_sub=%s customer=%s",
-        event_id, stripe_sub_id, customer_id,
+        event_id,
+        stripe_sub_id,
+        customer_id,
     )
 
     result = sync_subscription_from_stripe(
-        stripe_sub_id, db, customer_id=customer_id
+        stripe_sub_id,
+        db,
+        customer_id=customer_id,
     )
     if result is None:
         logger.error(
             "[stripe] subscription.sync event_id=%s — no local row for stripe_sub=%s",
-            event_id, stripe_sub_id,
+            event_id,
+            stripe_sub_id,
         )
 
 
 def _on_invoice_paid(invoice: dict, db: Session, *, event_id: str) -> None:
-    """
-    Fired on successful payment.  Syncs the linked subscription to ensure
-    status=active and period dates are current.
-    """
     stripe_sub_id = invoice.get("subscription")
-    customer_id   = invoice.get("customer")
+    customer_id = invoice.get("customer")
 
     if not stripe_sub_id:
-        # One-off invoice with no subscription — nothing to sync.
         logger.info("[stripe] invoice.paid event_id=%s — no subscription, skipping", event_id)
         return
 
     logger.info(
         "[stripe] invoice.paid event_id=%s stripe_sub=%s customer=%s",
-        event_id, stripe_sub_id, customer_id,
+        event_id,
+        stripe_sub_id,
+        customer_id,
     )
 
     result = sync_subscription_from_stripe(
-        stripe_sub_id, db, customer_id=customer_id
+        stripe_sub_id,
+        db,
+        customer_id=customer_id,
     )
     if result is None:
         logger.error(
             "[stripe] invoice.paid event_id=%s — sync returned None for stripe_sub=%s",
-            event_id, stripe_sub_id,
+            event_id,
+            stripe_sub_id,
         )
 
 
 def _on_subscription_deleted(subscription: dict, db: Session, *, event_id: str) -> None:
-    """
-    Fired when a subscription is cancelled and the period has ended.
-
-    We sync from Stripe (the subscription still exists with status=canceled)
-    to get the exact period_end timestamp, then mark the local row accordingly.
-    """
     stripe_sub_id = subscription.get("id")
-    customer_id   = subscription.get("customer")
+    customer_id = subscription.get("customer")
 
     if not stripe_sub_id:
         logger.error("[stripe] subscription.deleted event_id=%s — missing id", event_id)
@@ -517,42 +479,45 @@ def _on_subscription_deleted(subscription: dict, db: Session, *, event_id: str) 
 
     logger.info(
         "[stripe] subscription.deleted event_id=%s stripe_sub=%s customer=%s",
-        event_id, stripe_sub_id, customer_id,
+        event_id,
+        stripe_sub_id,
+        customer_id,
     )
 
-    # Sync to get the final state (status will be "canceled" → CANCELLED).
     sub = sync_subscription_from_stripe(
-        stripe_sub_id, db, customer_id=customer_id
+        stripe_sub_id,
+        db,
+        customer_id=customer_id,
     )
 
     if sub is None:
-        # Last-resort: find and mark cancelled without a full sync.
         sub = _resolve_local_sub(db, stripe_sub_id=stripe_sub_id, customer_id=customer_id)
         if sub:
-            sub.status                 = SubscriptionStatus.CANCELLED.value
+            sub.status = SubscriptionStatus.CANCELLED.value
             sub.stripe_subscription_id = None
-            sub.cancel_at_period_end   = False
+            sub.cancel_at_period_end = False
             logger.warning(
                 "[stripe] subscription.deleted event_id=%s — sync failed, fallback cancel applied user=%s",
-                event_id, sub.user_id,
+                event_id,
+                sub.user_id,
             )
         else:
             logger.error(
                 "[stripe] subscription.deleted event_id=%s — no local row found for stripe_sub=%s",
-                event_id, stripe_sub_id,
+                event_id,
+                stripe_sub_id,
             )
 
 
 # ── Customer ───────────────────────────────────────────────────────────────────
 
 def get_or_create_customer(email: str, user_id: int, sub: UserSubscription) -> str:
-    """Returns stripe_customer_id, creating one in Stripe if needed."""
     if sub.stripe_customer_id:
         return sub.stripe_customer_id
 
-    client   = _client()
+    client = _client()
     customer = client.v1.customers.create(params={
-        "email":    email,
+        "email": email,
         "metadata": {"user_id": str(user_id)},
     })
     logger.info("[stripe] customer created user=%s customer=%s", user_id, customer.id)
@@ -568,20 +533,25 @@ def create_checkout_session(
     billing_cycle: str,
     db: Session,
 ) -> str:
-    """Creates a Stripe Checkout Session and returns the redirect URL.
-
-    A 7-day trial is attached to the subscription when the user has never used
-    a trial before (has_used_trial=False).  The backend is the sole authority
-    on this — the frontend never passes a trial flag.
-    """
     from app.billing.trial import TRIAL_DAYS
     from app.services.subscription_service import get_or_create as _get_sub
 
-    print(f"[stripe] incoming plan_code: {plan_code!r}")
-    print(f"[stripe] incoming billing_cycle: {billing_cycle!r}")
-    print(f"[stripe] incoming user_id: {user_id!r}  email: {email!r}")
+    settings = _settings()
 
-    sub         = _get_sub(db, user_id)
+    normalized_plan = _normalize_plan_code(plan_code)
+    normalized_cycle = _normalize_billing_cycle(billing_cycle)
+
+    print("=== STRIPE CHECKOUT INPUT DEBUG ===")
+    print(f"user_id={user_id!r}")
+    print(f"email={email!r}")
+    print(f"plan_code_raw={plan_code!r}")
+    print(f"billing_cycle_raw={billing_cycle!r}")
+    print(f"plan_code_normalized={normalized_plan!r}")
+    print(f"billing_cycle_normalized={normalized_cycle!r}")
+    print(f"stripe_key_prefix={settings.STRIPE_SECRET_KEY[:20]!r}")
+    print("===================================")
+
+    sub = _get_sub(db, user_id)
     customer_id = get_or_create_customer(email, user_id, sub)
 
     if sub.stripe_customer_id != customer_id:
@@ -589,47 +559,69 @@ def create_checkout_session(
         db.commit()
 
     apply_trial = not sub.has_used_trial
-    price_id    = _resolve_price_id(plan_code, billing_cycle)
+    price_id = _resolve_price_id(normalized_plan, normalized_cycle)
+    _validate_price_exists(price_id)
 
-    print(f"[stripe] creating session with: price_id={price_id!r}  customer={customer_id!r}  trial={apply_trial}")
+    print("=== STRIPE CHECKOUT SESSION DEBUG ===")
+    print(f"customer_id={customer_id!r}")
+    print(f"apply_trial={apply_trial!r}")
+    print(f"price_id={price_id!r}")
+    print(f"frontend_url={getattr(settings, 'FRONTEND_URL', None)!r}")
+    print("=====================================")
+
     logger.info(
         "[stripe] creating checkout user=%s plan=%s/%s price_id=%s trial=%s customer=%s",
-        user_id, plan_code, billing_cycle, price_id, apply_trial, customer_id,
+        user_id,
+        normalized_plan,
+        normalized_cycle,
+        price_id,
+        apply_trial,
+        customer_id,
     )
 
     client = _client()
 
     subscription_data: dict = {
         "metadata": {
-            "user_id":       str(user_id),
-            "plan_code":     plan_code,
-            "billing_cycle": billing_cycle,
+            "user_id": str(user_id),
+            "plan_code": normalized_plan,
+            "billing_cycle": normalized_cycle,
         },
     }
     if apply_trial:
         subscription_data["trial_period_days"] = TRIAL_DAYS
 
     session = client.v1.checkout.sessions.create(params={
-        "customer":   customer_id,
-        "mode":       "subscription",
+        "customer": customer_id,
+        "mode": "subscription",
         "line_items": [{"price": price_id, "quantity": 1}],
         "success_url": (
             f"{settings.FRONTEND_URL}/billing"
-            f"?success=true&plan={plan_code}"
+            f"?success=true&plan={normalized_plan}"
         ),
-        "cancel_url":        f"{settings.FRONTEND_URL}/billing?canceled=true",
+        "cancel_url": f"{settings.FRONTEND_URL}/billing?canceled=true",
         "metadata": {
-            "user_id":       str(user_id),
-            "plan_code":     plan_code,
-            "billing_cycle": billing_cycle,
+            "user_id": str(user_id),
+            "plan_code": normalized_plan,
+            "billing_cycle": normalized_cycle,
         },
         "subscription_data": subscription_data,
     })
 
-    print(f"[stripe] checkout session created: session_id={session.id!r}  url={session.url!r}")
+    print("=== STRIPE CHECKOUT CREATED ===")
+    print(f"session_id={session.id!r}")
+    print(f"url={session.url!r}")
+    print("================================")
+
     logger.info(
         "[stripe] checkout session created user=%s plan=%s/%s price_id=%s trial=%s session=%s url=%s",
-        user_id, plan_code, billing_cycle, price_id, apply_trial, session.id, session.url,
+        user_id,
+        normalized_plan,
+        normalized_cycle,
+        price_id,
+        apply_trial,
+        session.id,
+        session.url,
     )
     return session.url  # type: ignore[return-value]
 
@@ -637,10 +629,10 @@ def create_checkout_session(
 # ── Customer Portal ────────────────────────────────────────────────────────────
 
 def create_portal_session(stripe_customer_id: str) -> str:
-    """Returns a Stripe Customer Portal URL for subscription management."""
-    client  = _client()
+    settings = _settings()
+    client = _client()
     session = client.v1.billing_portal.sessions.create(params={
-        "customer":   stripe_customer_id,
+        "customer": stripe_customer_id,
         "return_url": f"{settings.FRONTEND_URL}/billing",
     })
     return session.url  # type: ignore[return-value]
