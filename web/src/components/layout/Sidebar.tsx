@@ -22,6 +22,7 @@ import {
   Image,
   Video,
   History,
+  ShieldCheck,
 } from 'lucide-react'
 import NextImage from 'next/image'
 import { cn } from '@/lib/utils/cn'
@@ -231,6 +232,40 @@ export function Sidebar() {
             </div>
           </div>
         ))}
+
+        {/* Superuser-only admin section */}
+        {user?.is_superuser && (
+          <div>
+            <div className="px-2 mb-1">
+              <span className="text-[9px] font-bold tracking-[0.1em] text-amber-500 uppercase">
+                Admin
+              </span>
+            </div>
+            <div className="space-y-px">
+              {(() => {
+                const href = '/admin/analytics'
+                const isActive = pathname.startsWith(href)
+                return (
+                  <Link
+                    href={href}
+                    className={cn(
+                      'relative flex items-center gap-2.5 px-2.5 py-[7px] rounded-lg text-[13px] transition-all group',
+                      isActive
+                        ? 'bg-amber-50 text-amber-900'
+                        : 'text-amber-600 hover:bg-amber-50/60',
+                    )}
+                  >
+                    {isActive && (
+                      <span className="absolute left-0 inset-y-1.5 w-[3px] bg-amber-500 rounded-r-full" />
+                    )}
+                    <ShieldCheck className={cn('w-[15px] h-[15px] flex-shrink-0', isActive ? 'text-amber-600' : 'text-amber-500')} />
+                    <span className="flex-1 font-medium leading-none">Analytics</span>
+                  </Link>
+                )
+              })()}
+            </div>
+          </div>
+        )}
       </nav>
 
       {/* Plan section — only rendered when billing data is available */}

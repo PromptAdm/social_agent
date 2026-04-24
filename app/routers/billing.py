@@ -225,22 +225,44 @@ async def stripe_webhook(
     No user auth — identity comes from the Stripe signature.
     """
     if not settings.STRIPE_ENABLED:
+        logger.info("[stripe_webhook] STRIPE_ENABLED=false — ignoring event")
         return {"ignored": True}
 
-    payload = await request.body()
+    payload: bytes = await request.body()
+
+    # ── DEBUG (remover após validar em produção) ───────────────────────────────
+    print("WEBHOOK RECEIVED")
+    print("SIGNATURE:", stripe_signature)
+    print("PAYLOAD SIZE:", len(payload))
+    print("STRIPE_WEBHOOK_SECRET prefix:", (settings.STRIPE_WEBHOOK_SECRET or "")[:12] or "<NOT SET>")
+    # ──────────────────────────────────────────────────────────────────────────
 
     if not stripe_signature:
+        logger.warning("[stripe_webhook] missing stripe-signature header")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Missing Stripe-Signature header")
 
+    if not payload:
+        logger.warning("[stripe_webhook] empty payload")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Empty payload")
+
+    if not settings.STRIPE_WEBHOOK_SECRET:
+        logger.error("[stripe_webhook] STRIPE_WEBHOOK_SECRET not configured")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Webhook secret not configured")
+
     try:
-        return payment_provider_service.handle_webhook(
+        result = payment_provider_service.handle_webhook(
             payload,
             stripe_signature,
             db,
             provider_name="card",
         )
-    except stripe.SignatureVerificationError:
-        logger.warning("[stripe_webhook] invalid signature")
+        logger.info("[stripe_webhook] event processed successfully")
+        return result
+    except stripe.SignatureVerificationError as exc:
+        logger.warning(
+            "[stripe_webhook] signature verification failed — check STRIPE_WEBHOOK_SECRET matches 'stripe listen' output. detail=%s",
+            str(exc),
+        )
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Stripe signature")
     except Exception:
         logger.exception("[stripe_webhook] unhandled error")

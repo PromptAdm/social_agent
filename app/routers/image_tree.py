@@ -238,6 +238,18 @@ async def create_project(
         ref_paths,
     )
 
+    try:
+        from app.core import analytics
+        analytics.track("image_generated", distinct_id=str(current_user.id), properties={
+            "project_id":  project.id,
+            "mode":        mode,
+            "style":       style,
+            "credits_cost": credits_cost,
+            "brand_id":    brand_id,
+        })
+    except Exception:
+        pass
+
     return CreateImageProjectOut(project_id=project.id, credits_cost=credits_cost)
 
 

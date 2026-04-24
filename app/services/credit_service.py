@@ -80,6 +80,16 @@ def earn(
     _earn(db, credit, user_id, amount, operation_type, reference_id, reference_type, description)
     db.commit()
     db.refresh(credit)
+    if operation_type == PURCHASE:
+        try:
+            from app.core import analytics
+            analytics.track("extra_credit_granted", distinct_id=str(user_id), properties={
+                "amount":        amount,
+                "balance_after": credit.balance,
+                "description":   description,
+            })
+        except Exception:
+            pass
     return credit
 
 
@@ -95,6 +105,15 @@ def spend(
     """Debita créditos. Lança 402 se saldo insuficiente."""
     credit = _get_or_create(db, user_id)
     if credit.balance < amount:
+        try:
+            from app.core import analytics
+            analytics.track("credit_limit_reached", distinct_id=str(user_id), properties={
+                "balance":        credit.balance,
+                "required":       amount,
+                "operation_type": operation_type,
+            })
+        except Exception:
+            pass
         raise HTTPException(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
             detail=f"Créditos insuficientes. Saldo atual: {credit.balance}, necessário: {amount}.",
@@ -102,6 +121,15 @@ def spend(
     credit.balance -= amount
     _append_log(db, user_id, -amount, operation_type, reference_id, reference_type, description)
     db.flush()
+    try:
+        from app.core import analytics
+        analytics.track("credit_used", distinct_id=str(user_id), properties={
+            "amount":         amount,
+            "operation_type": operation_type,
+            "balance_after":  credit.balance,
+        })
+    except Exception:
+        pass
     return credit
 
 

@@ -53,7 +53,16 @@ def generate_ideas(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ) -> AIIdeaGenerateOut:
-    return ai_service.generate_ideas(db, payload, user_id=current_user.id)
+    result = ai_service.generate_ideas(db, payload, user_id=current_user.id)
+    try:
+        from app.core import analytics
+        analytics.track("ai_idea_generated", distinct_id=str(current_user.id), properties={
+            "brand_id":    payload.brand_id if hasattr(payload, "brand_id") else None,
+            "ideas_count": len(result.ideas) if hasattr(result, "ideas") else None,
+        })
+    except Exception:
+        pass
+    return result
 
 
 # ── 2. Ideia → Post ────────────────────────────────────────────────────────────

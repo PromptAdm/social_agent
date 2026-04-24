@@ -5,6 +5,7 @@ Registra todos os routers e configura CORS, metadados e health-check.
 
 import asyncio
 import logging
+import time
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -15,6 +16,7 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.core.config import get_settings
 from app.routers import (
+    admin,
     ai,
     analytics,
     approval,
@@ -24,6 +26,7 @@ from app.routers import (
     content_pillars,
     credits,
     engagement,
+    health,
     ideas,
     image_tree,
     integrations,
@@ -73,10 +76,10 @@ def _sentry_before_send(event, hint):
 
 def _init_sentry() -> None:
     """
-    Inicializa Sentry se SENTRY_DSN configurado e DEBUG=False.
+    Inicializa Sentry se SENTRY_DSN estiver configurado.
     Chamado antes de app = FastAPI() para garantir patching ASGI.
     """
-    if not settings.SENTRY_DSN or settings.DEBUG:
+    if not settings.SENTRY_DSN:
         return
     import sentry_sdk
     from sentry_sdk.integrations.fastapi import FastApiIntegration
@@ -86,7 +89,7 @@ def _init_sentry() -> None:
     import logging as _logging
     sentry_sdk.init(
         dsn=settings.SENTRY_DSN,
-        environment="production",
+        environment=settings.SENTRY_ENVIRONMENT,
         release=settings.APP_VERSION,
         integrations=[
             StarletteIntegration(transaction_style="endpoint"),
@@ -97,12 +100,17 @@ def _init_sentry() -> None:
                 event_level=_logging.ERROR,
             ),
         ],
-        traces_sample_rate=0.1,
+        traces_sample_rate=settings.SENTRY_TRACES_SAMPLE_RATE,
         profiles_sample_rate=0.0,
         send_default_pii=False,
         before_send=_sentry_before_send,
     )
-    logger.info("Sentry inicializado (release=%s)", settings.APP_VERSION)
+    logger.info(
+        "Sentry inicializado (env=%s release=%s traces=%.0f%%)",
+        settings.SENTRY_ENVIRONMENT,
+        settings.APP_VERSION,
+        settings.SENTRY_TRACES_SAMPLE_RATE * 100,
+    )
 
 
 _init_sentry()
@@ -185,6 +193,8 @@ async def sqlalchemy_exception_handler(
     request: Request, exc: SQLAlchemyError
 ) -> JSONResponse:
     """Captura erros de banco de dados não tratados e retorna 500 limpo."""
+    import sentry_sdk
+    sentry_sdk.capture_exception(exc)
     return JSONResponse(
         status_code=500,
         content={"detail": "Erro de banco de dados. Tente novamente em instantes."},
@@ -196,14 +206,60 @@ async def unhandled_exception_handler(
     request: Request, exc: Exception
 ) -> JSONResponse:
     """Captura qualquer exceção não tratada e retorna 500 sem expor detalhes internos."""
-    # Re-levanta HTTPException para que o handler padrão do FastAPI a trate normalmente
     from fastapi import HTTPException as _HTTPException
     if isinstance(exc, _HTTPException):
         raise exc
+    import sentry_sdk
+    sentry_sdk.capture_exception(exc)
     return JSONResponse(
         status_code=500,
         content={"detail": "Erro interno do servidor. Tente novamente em instantes."},
     )
+
+
+# --- Middleware: user context for Sentry ---
+@app.middleware("http")
+async def _sentry_user_context(request: Request, call_next):
+    """Injects user_id from JWT into the active Sentry scope (no DB round-trip)."""
+    if settings.SENTRY_DSN:
+        auth = request.headers.get("Authorization", "")
+        if auth.startswith("Bearer "):
+            try:
+                from jose import jwt as _jwt
+                payload = _jwt.decode(
+                    auth[7:],
+                    settings.SECRET_KEY,
+                    algorithms=[settings.ALGORITHM],
+                    options={"verify_exp": False},
+                )
+                user_id = payload.get("sub")
+                if user_id and payload.get("type") == "access":
+                    import sentry_sdk
+                    sentry_sdk.set_user({"id": user_id})
+            except Exception:
+                pass
+    return await call_next(request)
+
+
+# --- Middleware: slow request detection ---
+@app.middleware("http")
+async def _slow_request_monitor(request: Request, call_next):
+    """Captures a Sentry warning for requests that exceed SENTRY_SLOW_REQUEST_MS."""
+    start = time.perf_counter()
+    response = await call_next(request)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+    if settings.SENTRY_DSN and elapsed_ms > settings.SENTRY_SLOW_REQUEST_MS:
+        import sentry_sdk
+        with sentry_sdk.new_scope() as scope:
+            scope.set_tag("slow_request", "true")
+            scope.set_extra("duration_ms", round(elapsed_ms, 2))
+            scope.set_extra("path", str(request.url.path))
+            scope.set_extra("method", request.method)
+            scope.capture_message(
+                f"Slow request: {request.method} {request.url.path} ({elapsed_ms:.0f}ms)",
+                level="warning",
+            )
+    return response
 
 
 # --- CORS ---
@@ -218,6 +274,8 @@ app.add_middleware(
 # --- Routers ---
 API_PREFIX = "/api/v1"
 
+app.include_router(health.router)
+app.include_router(admin.router, prefix=API_PREFIX)
 app.include_router(auth.router, prefix=API_PREFIX)
 app.include_router(users.router, prefix=API_PREFIX)
 app.include_router(brands.router, prefix=API_PREFIX)

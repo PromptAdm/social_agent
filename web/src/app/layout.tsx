@@ -4,6 +4,7 @@ import './globals.css'
 import { QueryProvider }   from '@/components/providers/QueryProvider'
 import { SessionProvider } from '@/components/providers/SessionProvider'
 import { PostHogProvider } from '@/components/providers/PostHogProvider'
+import { SentryProvider }  from '@/components/providers/SentryProvider'
 import { Toaster }         from '@/components/shared/Toaster'
 
 const inter = Inter({
@@ -25,14 +26,16 @@ export default function RootLayout({
   return (
     <html lang="pt-BR" className={inter.variable}>
       <body className={inter.className}>
-        <PostHogProvider>
-          <QueryProvider>
-            <SessionProvider>
-              {children}
-              <Toaster />
-            </SessionProvider>
-          </QueryProvider>
-        </PostHogProvider>
+        <SentryProvider>
+          <PostHogProvider>
+            <QueryProvider>
+              <SessionProvider>
+                {children}
+                <Toaster />
+              </SessionProvider>
+            </QueryProvider>
+          </PostHogProvider>
+        </SentryProvider>
       </body>
     </html>
   )

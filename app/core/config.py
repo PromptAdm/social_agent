@@ -76,8 +76,14 @@ class Settings(BaseSettings):
     POSTHOG_API_KEY: str = ""                          # phc_xxxx — obtido em app.posthog.com
     POSTHOG_HOST: str = "https://us.i.posthog.com"    # us.i.posthog.com | eu.i.posthog.com
 
+    # --- Better Stack (uptime monitoring) ---
+    BETTERSTACK_HEARTBEAT_URL: str = ""  # URL gerada pelo Better Stack após criar o heartbeat monitor
+
     # --- Monitoramento (Sentry) ---
-    SENTRY_DSN: str = ""  # https://xxxx@oXXXX.ingest.sentry.io/XXXX — desabilitado se vazio
+    SENTRY_DSN: str = ""              # https://xxxx@oXXXX.ingest.sentry.io/XXXX — desabilitado se vazio
+    SENTRY_ENVIRONMENT: str = "production"   # development | staging | production
+    SENTRY_TRACES_SAMPLE_RATE: float = 0.1   # fração das transações amostradas (0.0–1.0)
+    SENTRY_SLOW_REQUEST_MS: int = 2000       # ms acima do qual o request é marcado como lento
 
     # --- Monetização / Billing ---
     MONETIZATION_ENABLED: bool = False   # False = limites não são aplicados (feature flag)

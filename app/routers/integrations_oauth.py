@@ -347,6 +347,16 @@ def meta_callback(
         connected_str = ",".join(connected_providers) or "facebook"
         first_name    = pages[0]["name"] if pages else "conta"
         logger.info("[meta_callback] SUCCESS connected_providers=%s redirecting to frontend", connected_providers)
+        try:
+            from app.core import analytics
+            for provider_name in connected_providers:
+                event = "instagram_connected" if provider_name == "instagram" else "social_account_connected"
+                analytics.track(event, distinct_id=str(user_id), properties={
+                    "provider": provider_name,
+                    "brand_id": brand_id,
+                })
+        except Exception:
+            pass
         return RedirectResponse(
             _frontend_redirect(
                 f"/integrations?connected={connected_str}&account={first_name}"
@@ -444,6 +454,14 @@ def twitter_callback(
             metadata            = {"username": user_info.get("username")},
         )
 
+        try:
+            from app.core import analytics
+            analytics.track("social_account_connected", distinct_id=str(user_id), properties={
+                "provider": "twitter",
+                "brand_id": brand_id,
+            })
+        except Exception:
+            pass
         return RedirectResponse(
             _frontend_redirect(f"/integrations?connected=twitter&account={twitter_name}"),
             status_code=302,

@@ -30,6 +30,7 @@ export type EventName =
   | 'logout'
   | 'register_success'
   // Posts
+  | 'post_generated'
   | 'post_created'
   | 'post_draft_saved'
   | 'post_submitted_for_approval'
@@ -38,13 +39,29 @@ export type EventName =
   | 'post_scheduled'
   | 'post_published'
   | 'post_publish_failed'
+  | 'post_failed'
   // IA
   | 'ai_idea_generated'
   | 'ai_post_generated'
   | 'idea_converted_to_post'
+  // Integrações
+  | 'instagram_connected'
+  | 'social_account_connected'
+  // Imagens
+  | 'image_generated'
   // Marcas
   | 'brand_created'
   | 'brand_strategy_updated'
+  // Billing
+  | 'subscription_started'
+  | 'subscription_canceled'
+  | 'payment_failed'
+  | 'plan_upgraded'
+  | 'plan_downgraded'
+  // Créditos
+  | 'credit_used'
+  | 'credit_limit_reached'
+  | 'extra_credit_granted'
   // Navegação
   | '$pageview'
   | '$pageleave'

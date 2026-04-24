@@ -428,6 +428,19 @@ def run_tick_sync() -> TickResult:
     return result
 
 
+# ── Better Stack heartbeat ────────────────────────────────────────────────────
+
+async def _ping_heartbeat(url: str) -> None:
+    """Fire-and-forget GET to the Better Stack heartbeat URL."""
+    try:
+        import urllib.request as _urllib_req
+        await asyncio.get_event_loop().run_in_executor(
+            None, lambda: _urllib_req.urlopen(url, timeout=5)
+        )
+    except Exception:
+        pass
+
+
 # ── Loop principal — roda como asyncio.Task (contrato inalterado) ──────────────
 
 async def scheduler_loop(interval_seconds: int) -> None:
@@ -464,6 +477,12 @@ async def scheduler_loop(interval_seconds: int) -> None:
     while True:
         try:
             result = await loop.run_in_executor(None, run_tick_sync)
+
+            # Ping Better Stack heartbeat — proves the scheduler is alive
+            from app.core.config import get_settings as _gs
+            _hb_url = _gs().BETTERSTACK_HEARTBEAT_URL
+            if _hb_url:
+                asyncio.create_task(_ping_heartbeat(_hb_url))
 
             if result.lock_acquired and (result.published_count > 0 or result.failed_count > 0):
                 logger.info(

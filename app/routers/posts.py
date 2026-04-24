@@ -56,7 +56,18 @@ def create_post(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    return post_service.create_post(db, payload, user_id=current_user.id)
+    post = post_service.create_post(db, payload, user_id=current_user.id)
+    try:
+        from app.core import analytics
+        analytics.track("post_generated", distinct_id=str(current_user.id), properties={
+            "post_id":  post.id,
+            "brand_id": post.brand_id,
+            "platform": post.platform.value if post.platform else None,
+            "formato":  post.formato.value if post.formato else None,
+        })
+    except Exception:
+        pass
+    return post
 
 
 @router.get(
@@ -117,7 +128,19 @@ def update_post(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_active_user),
 ):
-    return post_service.update_post(db, post_id, payload, user_id=current_user.id)
+    post = post_service.update_post(db, post_id, payload, user_id=current_user.id)
+    if post.scheduled_at and str(post.status) == "agendado":
+        try:
+            from app.core import analytics
+            analytics.track("post_scheduled", distinct_id=str(current_user.id), properties={
+                "post_id":      post.id,
+                "brand_id":     post.brand_id,
+                "scheduled_at": post.scheduled_at.isoformat() if post.scheduled_at else None,
+                "platform":     post.platform.value if post.platform else None,
+            })
+        except Exception:
+            pass
+    return post
 
 
 @router.delete(
