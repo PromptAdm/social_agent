@@ -3,7 +3,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '@/lib/api/queryClient'
 import { billingService } from '@/services/billingService'
-import type { PlanFeatures, PlanLimits } from '@/types'
+import type { CreditsBalance, PlanFeatures, PlanLimits } from '@/types'
 
 // ── Hooks principais ──────────────────────────────────────────────────────────
 
@@ -60,6 +60,16 @@ export function useLimitPercent(resource: keyof PlanLimits): number {
 /** true quando uso >= threshold% (padrão 80%) */
 export function useIsNearLimit(resource: keyof PlanLimits, threshold = 80): boolean {
   return useLimitPercent(resource) >= threshold
+}
+
+/** Saldo de créditos e pacotes disponíveis */
+export function useCredits() {
+  return useQuery<CreditsBalance>({
+    queryKey: queryKeys.creditBalance(),
+    queryFn:  billingService.getCredits,
+    staleTime: 60 * 1000,  // 1 min
+    retry: false,
+  })
 }
 
 /** true se o plano do usuário inclui a feature */

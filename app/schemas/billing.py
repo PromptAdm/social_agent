@@ -129,3 +129,28 @@ class CheckoutResponse(BaseModel):
 
 class PortalResponse(BaseModel):
     portal_url: str
+
+
+# ── Credits ───────────────────────────────────────────────────────────────────
+
+class CreditPackage(BaseModel):
+    """Single credit package available for purchase."""
+    code:             str
+    amount:           int   = Field(description="Number of credits in the package")
+    price_brl_cents:  int   = Field(description="Price in BRL cents (e.g. 1900 = R$19)")
+    label:            str
+    badge:            str | None = None
+
+
+class CreditsCheckoutRequest(BaseModel):
+    package_code: str = Field(description="credits_100 | credits_500 | credits_1000")
+
+
+class CreditsCheckoutResponse(BaseModel):
+    checkout_url: str
+
+
+class CreditsBalanceResponse(BaseModel):
+    balance:         int
+    lifetime_earned: int
+    packages:        list[CreditPackage]

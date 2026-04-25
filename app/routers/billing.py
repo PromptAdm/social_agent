@@ -26,6 +26,10 @@ from app.schemas.billing import (
     BillingSummary,
     CheckoutRequest,
     CheckoutResponse,
+    CreditPackage,
+    CreditsBalanceResponse,
+    CreditsCheckoutRequest,
+    CreditsCheckoutResponse,
     PlanDetail,
     PortalResponse,
     TrialStartResponse,
@@ -206,6 +210,81 @@ def create_portal_session(
         )
 
     return PortalResponse(portal_url=url)
+
+
+# ── Credits ────────────────────────────────────────────────────────────────────
+
+@router.get(
+    "/credits",
+    response_model=CreditsBalanceResponse,
+    summary="Saldo de créditos e pacotes disponíveis",
+)
+def get_credits(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> CreditsBalanceResponse:
+    from app.billing.credit_packages import list_packages
+    from app.services.credits_service import get_or_create
+
+    row      = get_or_create(db, current_user.id)
+    packages = [CreditPackage(**pkg) for pkg in list_packages()]
+
+    return CreditsBalanceResponse(
+        balance         = row.balance,
+        lifetime_earned = row.lifetime_earned,
+        packages        = packages,
+    )
+
+
+@router.post(
+    "/credits/checkout",
+    response_model=CreditsCheckoutResponse,
+    summary="Cria sessão de pagamento avulso para comprar créditos",
+)
+def create_credits_checkout(
+    body: CreditsCheckoutRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_active_user),
+) -> CreditsCheckoutResponse:
+    """
+    Creates a one-time Stripe Checkout for the requested credit package.
+    Returns `{"checkout_url": "https://checkout.stripe.com/..."}`.
+    Returns 503 when STRIPE_ENABLED=false.
+    """
+    if not settings.STRIPE_ENABLED:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Pagamentos ainda não estão disponíveis. Entre em contato com o suporte.",
+        )
+
+    from app.billing.credit_packages import get_package
+    try:
+        get_package(body.package_code)
+    except KeyError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Pacote de créditos inválido: {body.package_code!r}. "
+                   "Use: credits_100, credits_500 ou credits_1000.",
+        )
+
+    try:
+        from app.services.stripe_service import create_credits_checkout_session
+        url = create_credits_checkout_session(
+            user_id=current_user.id,
+            email=current_user.email,
+            package_code=body.package_code,
+            db=db,
+        )
+    except (ValueError, KeyError) as exc:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc)) from exc
+    except Exception:
+        logger.exception("[billing] create_credits_checkout failed user=%s", current_user.id)
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail="Erro ao criar sessão de pagamento. Tente novamente.",
+        )
+
+    return CreditsCheckoutResponse(checkout_url=url)
 
 
 # ── Webhook ────────────────────────────────────────────────────────────────────

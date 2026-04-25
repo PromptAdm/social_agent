@@ -252,6 +252,14 @@ def check_limit(db: Session, user_id: int, resource: str) -> tuple[bool, str | N
         current = usage.get(resource, 0)
 
         if current >= limit:
+            # For posts: try spending 1 credit before hard-blocking
+            if resource == "posts_per_month":
+                from app.services.credits_service import check_and_spend_for_post
+                ok, credit_msg = check_and_spend_for_post(db, user_id)
+                if ok:
+                    return (True, None)
+                return (False, credit_msg)
+
             plan_name = get_plan(plan_code)["display_name"]
             label     = {"brands": "marcas", "posts_per_month": "posts este mês"}.get(resource, resource)
             return (

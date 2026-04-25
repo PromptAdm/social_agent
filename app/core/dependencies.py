@@ -172,3 +172,25 @@ def plan_limit(resource: str) -> Callable:
     # Nome único evita que o FastAPI deduplique dependências com o mesmo nome
     _check.__name__ = f"plan_limit_{resource}"
     return _check
+
+
+def feature_gate(feature: str, plan_hint: str = "Professional") -> Callable:
+    """
+    Fábrica de dependências para feature gating por plano.
+
+    Uso em routers:
+        @router.get("/", dependencies=[Depends(feature_gate("analytics"))])
+        @router.get("/", dependencies=[Depends(feature_gate("approval"))])
+
+    Quando MONETIZATION_ENABLED=false → no-op, nunca bloqueia.
+    Quando feature não disponível no plano → HTTP 402 Payment Required.
+    """
+    def _check(
+        db: Session = Depends(get_db),
+        current_user: User = Depends(get_current_active_user),
+    ) -> None:
+        from app.services.feature_access_service import require_feature
+        require_feature(db, current_user.id, feature, plan_hint)
+
+    _check.__name__ = f"feature_gate_{feature}"
+    return _check

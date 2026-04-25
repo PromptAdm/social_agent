@@ -9,12 +9,16 @@ Nota: aprovação/rejeição de posts está em POST /posts/{id}/approve|reject
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_active_user, get_db
+from app.core.dependencies import feature_gate, get_current_active_user, get_db
 from app.models.user import User
 from app.schemas.reply_suggestion import ReplySuggestionOut
 from app.services import approval_service
 
-router = APIRouter(prefix="/approval", tags=["Approval"])
+router = APIRouter(
+    prefix="/approval",
+    tags=["Approval"],
+    dependencies=[Depends(feature_gate("approval"))],
+)
 
 
 @router.post("/replies/{suggestion_id}/approve", response_model=ReplySuggestionOut)

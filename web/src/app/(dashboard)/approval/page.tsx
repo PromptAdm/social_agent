@@ -14,6 +14,7 @@ import {
   useSchedulePost, useDuplicatePost, useUpdatePost,
 } from '@/hooks/usePosts'
 import { cn } from '@/lib/utils/cn'
+import { FeatureGate } from '@/components/billing/FeatureGate'
 
 // ── constants ──────────────────────────────────────────────────────────────────
 
@@ -385,7 +386,7 @@ function PostPreview({ post }: { post: Post }) {
 
 type ModalType = 'reject' | 'edit' | 'schedule' | null
 
-export default function ApprovalPage() {
+function ApprovalContent() {
   const activeBrand = useBrandStore((s) => s.activeBrand)
   const brandId = activeBrand?.id ?? 0
 
@@ -760,5 +761,13 @@ export default function ApprovalPage() {
         </div>
       </div>
     </>
+  )
+}
+
+export default function ApprovalPage() {
+  return (
+    <FeatureGate feature="approval" label="Fluxo de aprovação">
+      <ApprovalContent />
+    </FeatureGate>
   )
 }

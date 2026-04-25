@@ -6,9 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Check,
   X,
-  Zap,
   ExternalLink,
-  TrendingUp,
   CheckCircle2,
   AlertCircle,
   Loader2,
@@ -16,10 +14,9 @@ import {
   Sparkles,
   Lock,
 } from 'lucide-react'
-import { usePlan, usePlans } from '@/hooks/usePlan'
-import { UsageMeter }  from '@/components/billing/UsageMeter'
+import { usePlan, usePlans, useCredits } from '@/hooks/usePlan'
 import { PlanBadge }   from '@/components/billing/PlanBadge'
-import { billingService } from '@/services/billingService'
+import { billingService, type CreditsCheckoutRequest } from '@/services/billingService'
 import { queryKeys }   from '@/lib/api/queryClient'
 import { cn }          from '@/lib/utils/cn'
 import type { PlanDetail, PlanCode } from '@/types'
@@ -38,24 +35,6 @@ function formatCents(cents: number): string {
 function formatLimit(n: number, singular: string, plural: string): string {
   if (n === -1) return `${singular === 'marca' ? 'Marcas' : 'Posts'} ilimitados`
   return `${n} ${n === 1 ? singular : plural}`
-}
-
-const STATUS_LABEL: Record<string, string> = {
-  free:      'Gratuito',
-  active:    'Ativo',
-  trialing:  'Trial',
-  past_due:  'Pagamento pendente',
-  cancelled: 'Cancelado',
-  expired:   'Expirado',
-}
-
-const STATUS_COLOR: Record<string, string> = {
-  free:      'text-slate-400 bg-slate-400/10 border-slate-400/20',
-  active:    'text-emerald-400 bg-emerald-400/10 border-emerald-400/20',
-  trialing:  'text-blue-400 bg-blue-400/10 border-blue-400/20',
-  past_due:  'text-amber-400 bg-amber-400/10 border-amber-400/20',
-  cancelled: 'text-red-400 bg-red-400/10 border-red-400/20',
-  expired:   'text-slate-400 bg-slate-400/10 border-slate-400/20',
 }
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
@@ -81,7 +60,7 @@ function ToastBanner({ toast }: { toast: Toast }) {
   )
 }
 
-// ── Feature row ───────────────────────────────────────────────────────────────
+// ── Feature row (used by PlanCard) ───────────────────────────────────────────
 
 function FeatureRow({ label, included }: { label: string; included: boolean }) {
   return (
@@ -92,6 +71,83 @@ function FeatureRow({ label, included }: { label: string; included: boolean }) {
       }
       <span className="text-slate-600">{label}</span>
     </li>
+  )
+}
+
+// ── Subscribed plan card ──────────────────────────────────────────────────────
+
+const PLAN_BENEFITS: Record<string, string[]> = {
+  starter:      ['1 marca', '100 posts/mês', 'Agendamento de posts'],
+  professional: ['5 marcas', '500 posts/mês', 'Agendamento de posts', 'Analytics avançado', 'Fluxo de aprovação'],
+  premium:      ['Marcas ilimitadas', 'Posts ilimitados', 'Todos os recursos', 'Suporte prioritário'],
+}
+
+function SubscribedPlanCard({
+  planCode,
+  planName,
+  stripeEnabled,
+  status,
+  onManage,
+  isManaging,
+}: {
+  planCode: string
+  planName: string
+  stripeEnabled: boolean
+  status: string
+  onManage: () => void
+  isManaging: boolean
+}) {
+  const isKnown   = ['starter', 'professional', 'premium'].includes(planCode)
+  const benefits  = PLAN_BENEFITS[planCode] ?? []
+  const showPortal = stripeEnabled && (status === 'active' || status === 'trialing' || status === 'past_due')
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-6">
+      <div className="flex items-start justify-between flex-wrap gap-4">
+        <div>
+          <p className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold mb-2">
+            Seu plano contratado
+          </p>
+          <h2 className="text-[18px] font-bold text-slate-900">
+            {isKnown ? planName : 'Assinatura gerenciada pela Stripe'}
+          </h2>
+          <p className="text-[13px] text-slate-500 mt-2 max-w-md">
+            Seu plano, forma de pagamento, histórico de cobrança e cancelamento são
+            gerenciados com segurança pelo portal da Stripe.
+          </p>
+        </div>
+
+        {showPortal && (
+          <button
+            onClick={onManage}
+            disabled={isManaging}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-[12px] text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-60 flex-shrink-0"
+          >
+            {isManaging
+              ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              : <Settings className="w-3.5 h-3.5" />
+            }
+            Gerenciar assinatura
+          </button>
+        )}
+      </div>
+
+      {isKnown && benefits.length > 0 && (
+        <div className="mt-5 pt-4 border-t border-slate-100">
+          <p className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-3">
+            Incluído no seu plano
+          </p>
+          <ul className="grid grid-cols-2 sm:grid-cols-4 gap-y-2 gap-x-4">
+            {benefits.map((b) => (
+              <li key={b} className="flex items-center gap-2 text-[13px] text-slate-600">
+                <Check className="w-3.5 h-3.5 text-indigo-400 flex-shrink-0" />
+                {b}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   )
 }
 
@@ -228,6 +284,88 @@ function PlanCard({
   )
 }
 
+// ── Credits section ───────────────────────────────────────────────────────────
+
+function CreditPackageCard({
+  code,
+  amount,
+  price_brl_cents,
+  label,
+  badge,
+  stripeEnabled,
+  onBuy,
+  isBuying,
+}: {
+  code:            string
+  amount:          number
+  price_brl_cents: number
+  label:           string
+  badge:           string | null
+  stripeEnabled:   boolean
+  onBuy:           (code: string) => void
+  isBuying:        boolean
+}) {
+  const isPopular = code === 'credits_500'
+
+  return (
+    <div
+      className={cn(
+        'relative flex flex-col rounded-xl border p-5 transition-all',
+        isPopular
+          ? 'bg-indigo-600/[0.06] border-indigo-500/30 ring-1 ring-indigo-500/20'
+          : 'bg-white border-slate-200',
+      )}
+    >
+      {badge && (
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span className="px-3 py-1 bg-indigo-600 text-white text-[10px] font-bold uppercase tracking-widest rounded-full whitespace-nowrap">
+            {badge}
+          </span>
+        </div>
+      )}
+
+      <div className="mb-4">
+        <p className="text-[22px] font-bold text-slate-900">{amount.toLocaleString('pt-BR')}</p>
+        <p className="text-[13px] text-slate-500">créditos</p>
+        <div className="flex items-baseline gap-1 mt-3">
+          <span className="text-[20px] font-bold text-slate-900">
+            {formatCents(price_brl_cents)}
+          </span>
+          <span className="text-[12px] text-slate-400">único</span>
+        </div>
+        <p className="text-[11px] text-slate-400 mt-0.5">
+          {formatCents(Math.round(price_brl_cents / amount * 100))} por crédito
+        </p>
+      </div>
+
+      {!stripeEnabled ? (
+        <button
+          disabled
+          className="mt-auto h-9 w-full rounded-lg border border-slate-200 text-[13px] text-slate-400 cursor-not-allowed flex items-center justify-center gap-1.5"
+        >
+          <Lock className="w-3 h-3" /> Em breve
+        </button>
+      ) : (
+        <button
+          onClick={() => onBuy(code)}
+          disabled={isBuying}
+          className={cn(
+            'mt-auto h-9 w-full rounded-lg text-[13px] font-semibold transition-all flex items-center justify-center gap-1.5',
+            isPopular
+              ? 'bg-indigo-600 hover:bg-indigo-500 text-white disabled:opacity-60'
+              : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 disabled:opacity-60',
+          )}
+        >
+          {isBuying
+            ? <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Aguarde…</>
+            : 'Comprar'
+          }
+        </button>
+      )}
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────────
 
 export default function BillingPage() {
@@ -235,16 +373,22 @@ export default function BillingPage() {
   const queryClient   = useQueryClient()
   const [toast, setToast] = useState<Toast | null>(null)
   const [upgradingPlan, setUpgradingPlan] = useState<string | null>(null)
+  const [buyingPackage, setBuyingPackage] = useState<string | null>(null)
 
   // Handle Stripe redirect-back params
   useEffect(() => {
-    const success  = searchParams.get('success')
-    const canceled = searchParams.get('canceled')
+    const success        = searchParams.get('success')
+    const canceled       = searchParams.get('canceled')
+    const creditsSuccess = searchParams.get('credits_success')
 
     if (success === 'true') {
       setToast({ type: 'success', message: 'Plano ativado com sucesso!' })
       queryClient.invalidateQueries({ queryKey: queryKeys.billing() })
       queryClient.invalidateQueries({ queryKey: queryKeys.billingPlans() })
+      window.history.replaceState({}, '', '/billing')
+    } else if (creditsSuccess === 'true') {
+      setToast({ type: 'success', message: 'Créditos adicionados ao seu saldo!' })
+      queryClient.invalidateQueries({ queryKey: queryKeys.creditBalance() })
       window.history.replaceState({}, '', '/billing')
     } else if (canceled === 'true') {
       window.history.replaceState({}, '', '/billing')
@@ -305,6 +449,26 @@ export default function BillingPage() {
     },
   })
 
+  const creditsMutation = useMutation({
+    mutationFn: (req: CreditsCheckoutRequest) => billingService.createCreditsCheckout(req),
+    onSuccess: (data) => {
+      window.location.href = data.checkout_url
+    },
+    onError: (err: unknown) => {
+      const msg = typeof err === 'string' ? err : 'Erro ao iniciar compra de créditos.'
+      setToast({ type: 'error', message: msg })
+      setBuyingPackage(null)
+    },
+  })
+
+  function handleBuyCredits(packageCode: string) {
+    setBuyingPackage(packageCode)
+    creditsMutation.mutate(
+      { package_code: packageCode as CreditsCheckoutRequest['package_code'] },
+      { onSettled: () => setBuyingPackage(null) },
+    )
+  }
+
   function handleUpgrade(planCode: string) {
     console.log('[billing] upgrade clicked:', planCode)
     setUpgradingPlan(planCode)
@@ -315,6 +479,7 @@ export default function BillingPage() {
 
   const { data: summary, isLoading: summaryLoading } = usePlan()
   const { data: plans,   isLoading: plansLoading   } = usePlans()
+  const { data: credits }                             = useCredits()
 
   if (summaryLoading || plansLoading) {
     return (
@@ -341,7 +506,9 @@ export default function BillingPage() {
   )
 
   const effectivePlanCode = (summary.effective_plan_code ?? summary.plan_code) as PlanCode
-  const effectivePlanName = plans?.find(p => p.code === effectivePlanCode)?.display_name ?? summary.plan_name
+  const isKnownPlan       = ['starter', 'professional', 'premium'].includes(effectivePlanCode)
+  const effectivePlanName = plans?.find(p => p.code === effectivePlanCode)?.display_name
+    ?? (isKnownPlan ? summary.plan_name : 'Assinatura ativa')
 
   return (
     <div className="px-6 py-6 max-w-5xl mx-auto space-y-8">
@@ -354,113 +521,6 @@ export default function BillingPage() {
         <p className="text-[13px] text-slate-500 mt-1">
           Gerencie seu plano, acompanhe seu uso e faça upgrade quando precisar.
         </p>
-      </div>
-
-      {/* Current plan card */}
-      <div className="bg-white border border-slate-200 rounded-xl p-6">
-        <div className="flex items-start justify-between flex-wrap gap-4">
-
-          <div>
-            <p className="text-[11px] text-slate-500 uppercase tracking-wider font-semibold mb-2">
-              Plano atual
-            </p>
-            <div className="flex items-center gap-2.5">
-              <span className="text-[22px] font-bold text-slate-900">{effectivePlanName}</span>
-              <PlanBadge plan={effectivePlanCode} />
-            </div>
-
-            <div className="flex items-center gap-2 mt-2">
-              <span className={cn(
-                'inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border',
-                STATUS_COLOR[summary.status] ?? STATUS_COLOR.active,
-              )}>
-                {STATUS_LABEL[summary.status] ?? summary.status}
-              </span>
-              {summary.billing_cycle === 'yearly' && (
-                <span className="text-[11px] text-emerald-400 bg-emerald-400/10 border border-emerald-400/20 px-2 py-0.5 rounded-full font-medium">
-                  Anual
-                </span>
-              )}
-              {summary.is_trial_active && trialDaysLeft !== null && (
-                <span className="text-[11px] text-blue-500 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full font-medium">
-                  Trial · {trialDaysLeft}d restantes
-                </span>
-              )}
-            </div>
-
-            {summary.is_trial_active && summary.trial_ends_at && (
-              <p className="text-[12px] text-slate-500 mt-2">
-                Trial até{' '}
-                <span className="font-medium text-blue-500">
-                  {new Date(summary.trial_ends_at).toLocaleDateString('pt-BR')}
-                </span>
-              </p>
-            )}
-            {!summary.is_trial_active && summary.current_period_end && (
-              <p className="text-[12px] text-slate-500 mt-2">
-                {summary.cancel_at_period_end ? 'Cancela em' : 'Renova em'}{' '}
-                <span className="font-medium text-slate-700">
-                  {new Date(summary.current_period_end).toLocaleDateString('pt-BR')}
-                </span>
-              </p>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            {summary.stripe_enabled && (summary.status === 'active' || summary.status === 'trialing') && (
-              <button
-                onClick={() => portalMutation.mutate()}
-                disabled={portalMutation.isPending}
-                className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-[12px] text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-60"
-              >
-                {portalMutation.isPending
-                  ? <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  : <Settings className="w-3.5 h-3.5" />
-                }
-                Gerenciar assinatura
-              </button>
-            )}
-            <div className="w-12 h-12 bg-indigo-600/15 border border-indigo-500/20 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-indigo-400" />
-            </div>
-          </div>
-        </div>
-
-        {/* Usage meters */}
-        <div className="mt-6 pt-5 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <UsageMeter
-            label="Marcas criadas"
-            used={summary.usage.brands}
-            limit={summary.limits.brands}
-          />
-          <UsageMeter
-            label="Posts este mês"
-            used={summary.usage.posts_per_month}
-            limit={summary.limits.posts_per_month}
-          />
-        </div>
-
-        {summary.cancel_at_period_end && summary.status === 'active' && (
-          <div className="mt-4 flex items-center gap-2 text-[12px] text-orange-600 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2">
-            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-            Assinatura cancelada — acesso mantido até{' '}
-            {summary.current_period_end
-              ? new Date(summary.current_period_end).toLocaleDateString('pt-BR')
-              : 'o fim do período'}.
-          </div>
-        )}
-        {summary.status === 'past_due' && (
-          <div className="mt-4 flex items-center gap-2 text-[12px] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
-            <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
-            Pagamento pendente. Atualize seu método de pagamento para evitar interrupção do serviço.
-          </div>
-        )}
-        {!summary.monetization_enabled && (
-          <div className="mt-4 flex items-center gap-2 text-[12px] text-amber-400/80 bg-amber-400/5 border border-amber-400/15 rounded-lg px-3 py-2">
-            <Zap className="w-3.5 h-3.5 flex-shrink-0" />
-            Limites não estão sendo aplicados — modo preview ativo.
-          </div>
-        )}
       </div>
 
       {/* Trial CTA — free user who hasn't used trial */}
@@ -507,6 +567,16 @@ export default function BillingPage() {
         </div>
       )}
 
+      {/* Subscribed plan card */}
+      <SubscribedPlanCard
+        planCode={effectivePlanCode}
+        planName={effectivePlanName}
+        stripeEnabled={summary.stripe_enabled}
+        status={summary.status}
+        onManage={() => portalMutation.mutate()}
+        isManaging={portalMutation.isPending}
+      />
+
       {/* Plan comparison */}
       <div>
         <h2 className="text-[15px] font-semibold text-slate-700 mb-1">Planos disponíveis</h2>
@@ -539,6 +609,45 @@ export default function BillingPage() {
             Planos não disponíveis no momento.
           </div>
         )}
+      </div>
+
+      {/* Credits section */}
+      <div id="credits">
+        <div className="flex items-start justify-between mb-1 flex-wrap gap-2">
+          <div>
+            <h2 className="text-[15px] font-semibold text-slate-700">Comprar créditos</h2>
+            <p className="text-[13px] text-slate-500 mt-0.5">
+              Créditos permitem criar posts extras além do seu plano mensal.
+            </p>
+          </div>
+          {credits !== undefined && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 border border-indigo-100 rounded-lg">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-500 flex-shrink-0" />
+              <span className="text-[13px] font-semibold text-indigo-700">
+                {credits.balance.toLocaleString('pt-BR')} crédito{credits.balance === 1 ? '' : 's'}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {!summary?.stripe_enabled && (
+          <div className="mb-4 flex items-center gap-2 text-[12px] text-slate-500 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2.5 mt-4">
+            <Lock className="w-3.5 h-3.5 flex-shrink-0 text-slate-400" />
+            Compra de créditos disponível em breve.
+          </div>
+        )}
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+          {(credits?.packages ?? []).map((pkg) => (
+            <CreditPackageCard
+              key={pkg.code}
+              {...pkg}
+              stripeEnabled={summary?.stripe_enabled ?? false}
+              onBuy={handleBuyCredits}
+              isBuying={creditsMutation.isPending && buyingPackage === pkg.code}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Footer */}

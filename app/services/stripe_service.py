@@ -396,6 +396,7 @@ def handle_webhook(payload: bytes, stripe_signature: str, db: Session) -> dict:
         db.commit()
         return {"received": True}
 
+    print("DISPATCHING EVENT:", event_type, "→", handler.__name__)
     try:
         handler(data, db, event_id=event_id)
         db.commit()
@@ -418,8 +419,77 @@ def handle_webhook(payload: bytes, stripe_signature: str, db: Session) -> dict:
 
 # ── Event handlers ─────────────────────────────────────────────────────────────
 
+def _on_credits_purchase_completed(session: dict, db: Session, *, event_id: str) -> None:
+    """Handles checkout.session.completed when metadata.type == 'credits_purchase'."""
+    meta         = session.get("metadata") or {}
+    user_id_str  = meta.get("user_id")
+    package_code = meta.get("package_code")
+    amount_str   = meta.get("amount")
+    stripe_session_id = session.get("id")
+
+    if not user_id_str:
+        logger.error("[stripe] credits_purchase event_id=%s — missing user_id in metadata", event_id)
+        return
+
+    user_id = int(user_id_str)
+
+    # Derive amount from metadata or fall back to package catalog
+    if amount_str and amount_str.isdigit():
+        amount = int(amount_str)
+    elif package_code:
+        try:
+            from app.billing.credit_packages import get_package
+            amount = get_package(package_code)["amount"]
+        except KeyError:
+            logger.error(
+                "[stripe] credits_purchase event_id=%s — unknown package_code=%s",
+                event_id, package_code,
+            )
+            return
+    else:
+        logger.error(
+            "[stripe] credits_purchase event_id=%s — cannot determine credit amount", event_id
+        )
+        return
+
+    from app.services.credits_service import add_credits
+    log = add_credits(
+        db,
+        user_id,
+        amount,
+        f"Compra de créditos: {package_code or 'manual'}",
+        operation_type="purchase",
+        stripe_session_id=stripe_session_id,
+    )
+
+    logger.info(
+        "[stripe] credits_purchase DONE event_id=%s user=%s amount=%d log_id=%s",
+        event_id, user_id, amount, log.id,
+    )
+
+    try:
+        from app.core import analytics
+        analytics.track("credits_purchased", distinct_id=str(user_id), properties={
+            "package_code": package_code,
+            "amount":       amount,
+        })
+    except Exception:
+        pass
+
+
 def _on_checkout_completed(session: dict, db: Session, *, event_id: str) -> None:
+    print("CHECKOUT COMPLETED HANDLER ENTERED")
+    print("CHECKOUT METADATA:", session.get("metadata"))
+    print("SUBSCRIPTION ID:", session.get("subscription"))
+
     meta = session.get("metadata") or {}
+
+    # Route credits purchases to dedicated handler
+    if meta.get("type") == "credits_purchase":
+        logger.info("[stripe] checkout.completed event_id=%s — routing to credits handler", event_id)
+        _on_credits_purchase_completed(session, db, event_id=event_id)
+        return
+
     user_id = int(meta.get("user_id")) if meta.get("user_id") else None
     plan_code = meta.get("plan_code")
     billing_cycle_meta = _normalize_billing_cycle(meta.get("billing_cycle", "monthly"))
@@ -455,6 +525,7 @@ def _on_checkout_completed(session: dict, db: Session, *, event_id: str) -> None
         db.flush()
         logger.info("[stripe] checkout.completed — pre-saved stripe_customer_id for user=%s", user_id)
 
+    print("CALLING SYNC:", stripe_sub_id, "user_id=", user_id, "hint=", plan_code)
     result = sync_subscription_from_stripe(
         stripe_sub_id,
         db,
@@ -744,6 +815,78 @@ def create_checkout_session(
         apply_trial,
         session.id,
         session.url,
+    )
+    return session.url  # type: ignore[return-value]
+
+
+# ── Credits checkout ───────────────────────────────────────────────────────────
+
+def _resolve_credits_price_id(package_code: str) -> str:
+    """Maps a credit package_code to a Stripe Price ID (one-time payment)."""
+    from app.billing.credit_packages import get_package
+    settings = _settings()
+
+    get_package(package_code)  # validates code exists — raises KeyError if not
+
+    price_map: dict[str, str] = {
+        "credits_100":  (settings.STRIPE_PRICE_CREDITS_100  or "").strip(),
+        "credits_500":  (settings.STRIPE_PRICE_CREDITS_500  or "").strip(),
+        "credits_1000": (settings.STRIPE_PRICE_CREDITS_1000 or "").strip(),
+    }
+    price_id = price_map.get(package_code, "")
+    if not price_id:
+        raise ValueError(
+            f"Stripe Price ID not configured for credits package {package_code!r}. "
+            "Set STRIPE_PRICE_CREDITS_* in .env."
+        )
+    return price_id
+
+
+def create_credits_checkout_session(
+    user_id: int,
+    email: str,
+    package_code: str,
+    db: Session,
+) -> str:
+    """
+    Creates a Stripe Checkout session in mode=payment for a one-time credit
+    purchase.  Returns the checkout URL.
+    """
+    from app.billing.credit_packages import get_package
+    from app.services.subscription_service import get_or_create as _get_sub
+
+    settings = _settings()
+    pkg      = get_package(package_code)
+    price_id = _resolve_credits_price_id(package_code)
+
+    # Reuse or create Stripe customer so the receipt email is correct
+    sub         = _get_sub(db, user_id)
+    customer_id = get_or_create_customer(email, user_id, sub)
+    if sub.stripe_customer_id != customer_id:
+        sub.stripe_customer_id = customer_id
+        db.commit()
+
+    client  = _client()
+    session = client.v1.checkout.sessions.create(params={
+        "customer":   customer_id,
+        "mode":       "payment",
+        "line_items": [{"price": price_id, "quantity": 1}],
+        "success_url": (
+            f"{settings.FRONTEND_URL}/billing"
+            f"?credits_success=true&package={package_code}"
+        ),
+        "cancel_url": f"{settings.FRONTEND_URL}/billing?credits_canceled=true",
+        "metadata": {
+            "type":         "credits_purchase",
+            "user_id":      str(user_id),
+            "package_code": package_code,
+            "amount":       str(pkg["amount"]),
+        },
+    })
+
+    logger.info(
+        "[stripe] credits checkout created user=%s package=%s amount=%d price_id=%s session=%s",
+        user_id, package_code, pkg["amount"], price_id, session.id,
     )
     return session.url  # type: ignore[return-value]
 

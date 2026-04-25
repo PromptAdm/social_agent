@@ -1,6 +1,6 @@
 import { apiClient as api } from '@/lib/api/client'
 import { API } from '@/lib/api/endpoints'
-import type { BillingSummary, PlanDetail, PlanUsage } from '@/types'
+import type { BillingSummary, CreditsBalance, PlanDetail, PlanUsage } from '@/types'
 
 export type PaymentMethodPreference = 'card' | 'pix'
 
@@ -16,6 +16,14 @@ export interface CheckoutResponse {
 
 export interface PortalResponse {
   portal_url: string
+}
+
+export interface CreditsCheckoutRequest {
+  package_code: 'credits_100' | 'credits_500' | 'credits_1000'
+}
+
+export interface CreditsCheckoutResponse {
+  checkout_url: string
 }
 
 export const billingService = {
@@ -36,4 +44,10 @@ export const billingService = {
 
   startTrial: (): Promise<{ trial_ends_at: string; plan_code: string; status: string }> =>
     api.post(API.billing.trialStart).then((r) => r.data),
+
+  getCredits: (): Promise<CreditsBalance> =>
+    api.get(API.billing.creditsBalance).then((r) => r.data),
+
+  createCreditsCheckout: (body: CreditsCheckoutRequest): Promise<CreditsCheckoutResponse> =>
+    api.post(API.billing.creditsCheckout, body).then((r) => r.data),
 }

@@ -130,6 +130,11 @@ async def lifespan(app: FastAPI):
     """
     _scheduler_task: asyncio.Task | None = None
 
+    # ── Superuser bootstrap ────────────────────────────────────────────────────
+    from app.core.bootstrap import run as _bootstrap
+    from app.core.database import SessionLocal as _SessionLocal
+    _bootstrap(_SessionLocal)
+
     if settings.SCHEDULER_ENABLED:
         from app.scheduler.scheduler import scheduler_loop, get_state
         get_state().enabled = True

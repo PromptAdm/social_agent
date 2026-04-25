@@ -24,6 +24,7 @@ import logging
 from sqlalchemy.orm import Session
 
 from app.billing.plans import has_feature as _plan_has_feature
+from app.billing.state_machine import get_effective_plan
 from app.core.config import get_settings
 
 logger = logging.getLogger(__name__)
@@ -42,9 +43,34 @@ def can_use(db: Session, user_id: int, feature: str) -> bool:
         return True
 
     try:
-        from app.services.subscription_service import get_or_create
+        # 1. Check per-user feature override (super admin grant/revoke)
+        from app.models.feature_override import FeatureOverride
+        from datetime import datetime, timezone
+        override = (
+            db.query(FeatureOverride)
+            .filter(
+                FeatureOverride.user_id == user_id,
+                FeatureOverride.feature == feature,
+            )
+            .first()
+        )
+        if override is not None:
+            active = override.enabled and (
+                override.expires_at is None
+                or datetime.now(timezone.utc) < override.expires_at
+            )
+            logger.info(
+                "feature_access_service.can_use: user=%s feature=%s → override=%s (enabled=%s)",
+                user_id, feature, active, override.enabled,
+            )
+            return active
+
+        # 2. Fall back to plan-based check
+        from app.services.subscription_service import get_or_create, _flush_expired_trial
         sub = get_or_create(db, user_id)
-        return _plan_has_feature(sub.plan_code, feature)
+        _flush_expired_trial(db, sub)
+        effective = get_effective_plan(sub)
+        return _plan_has_feature(effective, feature)
     except Exception as exc:
         logger.warning("feature_access_service.can_use falhou: user=%s feature=%s err=%s",
                        user_id, feature, exc)

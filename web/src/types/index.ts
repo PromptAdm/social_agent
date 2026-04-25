@@ -180,10 +180,24 @@ export type CreditOperationType =
   | 'image_generation'
   | 'video_subtitle'
 
+export interface CreditPackage {
+  code:            string
+  amount:          number
+  price_brl_cents: number
+  label:           string
+  badge:           string | null
+}
+
 export interface CreditBalance {
   balance:         number
   lifetime_earned: number
   updated_at:      string | null
+}
+
+export interface CreditsBalance {
+  balance:         number
+  lifetime_earned: number
+  packages:        CreditPackage[]
 }
 
 export interface CreditLog {

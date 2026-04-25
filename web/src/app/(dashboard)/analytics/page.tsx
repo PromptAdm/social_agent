@@ -7,6 +7,7 @@ import { PageHeader } from '@/components/shared/PageHeader'
 import type { SocialPlatform } from '@/types'
 import { useBrandStore }           from '@/store/brandStore'
 import { useAnalyticsSummary, useAnalyticsSnapshots } from '@/hooks/useAnalytics'
+import { FeatureGate } from '@/components/billing/FeatureGate'
 
 const PERIODS = ['7 dias', '30 dias', '90 dias'] as const
 type Period = (typeof PERIODS)[number]
@@ -23,7 +24,7 @@ const PLATFORM_BAR: Record<string, string> = {
   TikTok:    'bg-pink-500',
 }
 
-export default function AnalyticsPage() {
+function AnalyticsContent() {
   const activeBrand = useBrandStore((s) => s.activeBrand)
   const brandId     = activeBrand?.id ?? 0
 
@@ -227,5 +228,13 @@ export default function AnalyticsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function AnalyticsPage() {
+  return (
+    <FeatureGate feature="analytics" label="Analytics avançado">
+      <AnalyticsContent />
+    </FeatureGate>
   )
 }

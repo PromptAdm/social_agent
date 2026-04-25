@@ -6,12 +6,16 @@ Endpoints para criação e consulta de snapshots de métricas.
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
-from app.core.dependencies import get_current_active_user, get_db
+from app.core.dependencies import feature_gate, get_current_active_user, get_db
 from app.models.user import User
 from app.schemas.analytics_snapshot import AnalyticsSnapshotCreate, AnalyticsSnapshotOut
 from app.services import analytics_service
 
-router = APIRouter(prefix="/analytics", tags=["Analytics"])
+router = APIRouter(
+    prefix="/analytics",
+    tags=["Analytics"],
+    dependencies=[Depends(feature_gate("analytics"))],
+)
 
 
 @router.post("/snapshots", response_model=AnalyticsSnapshotOut, status_code=status.HTTP_201_CREATED)

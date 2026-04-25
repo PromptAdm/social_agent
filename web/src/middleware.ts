@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Routes that don't require authentication
-const PUBLIC_PATHS = ['/', '/login', '/register']
+const PUBLIC_PATHS = ['/', '/login', '/register', '/privacy', '/data-deletion']
 
 // Paths the middleware must not intercept
 const STATIC_PREFIXES = ['/_next', '/favicon', '/api', '/videos', '/images']

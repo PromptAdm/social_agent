@@ -101,6 +101,11 @@ class Settings(BaseSettings):
     STRIPE_PRICE_PREMIUM_MONTHLY:      str = ""
     STRIPE_PRICE_PREMIUM_YEARLY:       str = ""
 
+    # Stripe Price IDs — créditos avulsos (mode=payment, one-time)
+    STRIPE_PRICE_CREDITS_100:  str = ""   # 100 créditos — R$19
+    STRIPE_PRICE_CREDITS_500:  str = ""   # 500 créditos — R$79
+    STRIPE_PRICE_CREDITS_1000: str = ""   # 1000 créditos — R$129
+
     # --- Storage (uploads e arquivos gerados) ---
     STORAGE_DIR: str = "./storage"                        # raiz local de uploads e outputs
     MAX_UPLOAD_MB: int = 500                              # limite por arquivo (MB)

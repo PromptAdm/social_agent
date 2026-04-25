@@ -75,6 +75,8 @@ export const API = {
     trialStart:      '/billing/trial/start',
     checkout:        '/billing/create-checkout-session',
     portal:          '/billing/portal',
+    creditsBalance:  '/billing/credits',
+    creditsCheckout: '/billing/credits/checkout',
   },
 
   credits: {

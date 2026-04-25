@@ -1,6 +1,7 @@
-import { Sidebar }   from '@/components/layout/Sidebar'
-import { Topbar }    from '@/components/layout/Topbar'
-import { AuthGuard } from '@/components/providers/AuthGuard'
+import { Sidebar }      from '@/components/layout/Sidebar'
+import { Topbar }       from '@/components/layout/Topbar'
+import { TrialBanner }  from '@/components/billing/TrialBanner'
+import { AuthGuard }    from '@/components/providers/AuthGuard'
 
 export default function DashboardLayout({
   children,
@@ -13,6 +14,7 @@ export default function DashboardLayout({
         <Sidebar />
         <div className="flex flex-col flex-1 min-w-0 overflow-hidden">
           <Topbar />
+          <TrialBanner />
           <main className="flex-1 overflow-y-auto">{children}</main>
         </div>
       </div>
