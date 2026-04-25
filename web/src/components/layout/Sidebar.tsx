@@ -263,6 +263,27 @@ export function Sidebar() {
         )}
       </nav>
 
+      {/* Institutional links */}
+      <div className="px-5 pb-2 pt-1 flex items-center gap-3 flex-shrink-0">
+        <a
+          href="/privacy"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[10px] text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          Privacidade
+        </a>
+        <span className="text-slate-200 select-none">·</span>
+        <a
+          href="/data-deletion"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[10px] text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          Exclusão de Dados
+        </a>
+      </div>
+
       {/* User row */}
       <div className="px-3 py-3 border-t border-slate-200 flex-shrink-0">
         <button

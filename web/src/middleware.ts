@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
-// Routes that don't require authentication
-const PUBLIC_PATHS = ['/', '/login', '/register', '/privacy', '/data-deletion']
+// Always open — no auth required, no redirect even when authenticated
+const OPEN_PATHS = ['/', '/privacy', '/data-deletion']
+
+// Open to anonymous users; authenticated users are bounced to the dashboard
+const AUTH_REDIRECT_PATHS = ['/login', '/register']
 
 // Paths the middleware must not intercept
 const STATIC_PREFIXES = ['/_next', '/favicon', '/api', '/videos', '/images']
@@ -15,23 +18,21 @@ export function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  const isPublic = PUBLIC_PATHS.some(
-    (path) => pathname === path || pathname.startsWith(path + '/'),
-  )
+  const isOpen           = OPEN_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))
+  const isAuthRedirect   = AUTH_REDIRECT_PATHS.some((p) => pathname === p || pathname.startsWith(p + '/'))
+  const isPublic         = isOpen || isAuthRedirect
 
-  // Cookie presence is the server-side auth signal (set by /api/auth/login)
-  const hasRefreshToken = request.cookies.has('sa_refresh_token')
+  const hasRefreshToken  = request.cookies.has('sa_refresh_token')
 
-  console.log(`[middleware] ${pathname} | public=${isPublic} | hasToken=${hasRefreshToken}`)
+  console.log(`[middleware] ${pathname} | open=${isOpen} | authRedirect=${isAuthRedirect} | hasToken=${hasRefreshToken}`)
 
-  // Authenticated user visiting /login or /register → send to dashboard
-  // The landing page (/) stays accessible regardless of auth state.
-  if (isPublic && hasRefreshToken && pathname !== '/') {
-    console.log('[middleware] authenticated on public route → /overview')
+  // Authenticated user on /login or /register → send to dashboard
+  if (isAuthRedirect && hasRefreshToken) {
+    console.log('[middleware] authenticated on auth-only route → /overview')
     return NextResponse.redirect(new URL('/overview', request.url))
   }
 
-  // Unauthenticated user visiting a protected route → redirect to /login
+  // Unauthenticated user on a protected route → redirect to /login
   if (!isPublic && !hasRefreshToken) {
     const loginUrl = new URL('/login', request.url)
     loginUrl.searchParams.set('from', pathname)
