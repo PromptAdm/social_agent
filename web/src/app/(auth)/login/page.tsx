@@ -41,19 +41,24 @@ function LoginForm() {
         body:    JSON.stringify({ email, password }),
       })
 
-      const data = await res.json()
-
       if (!res.ok) {
-        if (Array.isArray(data?.detail)) {
-          setError(data.detail.map((item: any) => item.msg).join(' | '))
-        } else if (typeof data?.detail === 'string') {
-          setError(data.detail)
-        } else {
-          setError('Credenciais inválidas.')
-        }
+        let msg = 'Credenciais inválidas.'
+        try {
+          const ct = res.headers.get('content-type') ?? ''
+          if (ct.includes('application/json')) {
+            const errData = await res.json()
+            if (Array.isArray(errData?.detail)) {
+              msg = errData.detail.map((i: any) => i.msg).join(' | ')
+            } else if (typeof errData?.detail === 'string') {
+              msg = errData.detail
+            }
+          }
+        } catch { /* resposta não-JSON — usa mensagem padrão */ }
+        setError(msg)
         return
       }
 
+      const data         = await res.json()
       const { access_token, user } = data
       if (user && access_token) {
         setAuth(user, access_token)

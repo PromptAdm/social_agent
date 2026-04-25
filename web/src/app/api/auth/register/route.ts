@@ -1,37 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { backendFetch } from '@/lib/server/api-proxy'
 
-const API_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1'
-
+/**
+ * POST /api/auth/register
+ *
+ * Proxy seguro para FastAPI POST /auth/register.
+ * Não faz login automático — o frontend chama /api/auth/login após o registro.
+ */
 export async function POST(req: NextRequest) {
+  let email = '', full_name = '', password = ''
   try {
     const body = await req.json()
-
-    const apiRes = await fetch(`${API_URL}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        email: body.email ?? '',
-        full_name: body.full_name ?? '',
-        password: body.password ?? '',
-      }),
-    })
-
-    const data = await apiRes.json()
-
-    if (!apiRes.ok) {
-      return NextResponse.json(
-        { detail: data.detail ?? 'Não foi possível criar a conta.' },
-        { status: apiRes.status },
-      )
-    }
-
-    return NextResponse.json(data, { status: 201 })
-  } catch (err) {
-    console.error('[auth/register]', err)
-    return NextResponse.json(
-      { detail: 'Erro de conexão. Tente novamente.' },
-      { status: 502 },
-    )
+    email     = String(body.email     ?? '')
+    full_name = String(body.full_name ?? '')
+    password  = String(body.password  ?? '')
+  } catch {
+    return NextResponse.json({ detail: 'Requisição inválida.' }, { status: 400 })
   }
+
+  const result = await backendFetch('/auth/register', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ email, full_name, password }),
+  })
+
+  if (!result.ok) {
+    return NextResponse.json(result.data, { status: result.status })
+  }
+
+  return NextResponse.json(result.data, { status: 201 })
 }

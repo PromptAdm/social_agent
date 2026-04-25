@@ -1,47 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1'
+import {
+  backendFetch,
+  REFRESH_COOKIE,
+  expireRefreshCookie,
+} from '@/lib/server/api-proxy'
 
 /**
  * POST /api/auth/logout
  *
- * Calls FastAPI to invalidate the refresh token on the backend (best-effort),
- * then FULLY clears the sa_refresh_token cookie.
- *
- * Critical: the cookie was set with path='/' so we must delete with path='/'
- * explicitly — response.cookies.delete() defaults to the request path
- * (/api/auth) which would leave the root-path cookie alive.
+ * Notifica o FastAPI para revogar o token (best-effort) e limpa o cookie.
+ * O logout local sempre ocorre, mesmo que o backend esteja fora do ar.
  */
 export async function POST(req: NextRequest) {
-  const refreshToken = req.cookies.get('sa_refresh_token')?.value
+  const refreshToken = req.cookies.get(REFRESH_COOKIE)?.value
 
-  console.log('[logout] refreshToken present:', !!refreshToken)
-
-  // Notify backend to revoke the token (ignore errors — local logout must always succeed)
   if (refreshToken) {
-    try {
-      await fetch(`${API_URL}/auth/logout`, {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ refresh_token: refreshToken }),
-      })
-      console.log('[logout] backend revoke called')
-    } catch (err) {
-      console.warn('[logout] backend revoke failed (ok, local logout continues):', err)
-    }
+    // Fire-and-forget — erro no backend não bloqueia o logout local
+    backendFetch('/auth/logout', {
+      method:    'POST',
+      headers:   { 'Content-Type': 'application/json' },
+      body:      JSON.stringify({ refresh_token: refreshToken }),
+      timeoutMs: 4_000,
+    }).catch(() => {/* silencioso — logout local prossegue */})
   }
 
-  const response = NextResponse.json({ ok: true })
-
-  // Expire the cookie at path='/' — must match the path used by /api/auth/login
-  response.cookies.set('sa_refresh_token', '', {
-    httpOnly: true,
-    secure:   process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
-    path:     '/',
-    maxAge:   0,
-  })
-
-  console.log('[logout] cookie cleared')
-  return response
+  const res = NextResponse.json({ ok: true })
+  res.cookies.set(REFRESH_COOKIE, '', expireRefreshCookie)
+  return res
 }

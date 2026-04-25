@@ -67,31 +67,35 @@ function RegisterForm() {
 
     setLoading(true)
     try {
-      const regRes = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1'}/auth/register`,
-        {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({
-            email,
-            full_name: fullName.trim() || undefined,
-            password,
-          }),
-        },
-      )
-
-      const regData = await regRes.json()
+      // Usa o Route Handler /api/auth/register (proxy seguro para o backend)
+      const regRes = await fetch('/api/auth/register', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          email,
+          full_name: fullName.trim() || undefined,
+          password,
+        }),
+      })
 
       if (!regRes.ok) {
-        if (regRes.status === 409) {
-          setError('E-mail já cadastrado. Tente fazer login.')
-          return
-        }
-        if (Array.isArray(regData?.detail)) {
-          setError(regData.detail.map((d: any) => d.msg).join(' | '))
-        } else {
-          setError(regData?.detail ?? 'Erro ao criar conta.')
-        }
+        let msg = 'Erro ao criar conta.'
+        try {
+          const ct = regRes.headers.get('content-type') ?? ''
+          if (ct.includes('application/json')) {
+            const regData = await regRes.json()
+            if (regRes.status === 409) {
+              msg = 'E-mail já cadastrado. Tente fazer login.'
+            } else if (Array.isArray(regData?.detail)) {
+              msg = regData.detail.map((d: any) => d.msg).join(' | ')
+            } else if (typeof regData?.detail === 'string') {
+              msg = regData.detail
+            }
+          } else if (regRes.status === 409) {
+            msg = 'E-mail já cadastrado. Tente fazer login.'
+          }
+        } catch { /* resposta não-JSON — usa mensagem padrão */ }
+        setError(msg)
         return
       }
 

@@ -1,59 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api/v1'
+import {
+  backendFetch,
+  REFRESH_COOKIE,
+  refreshCookieOptions,
+  expireRefreshCookie,
+} from '@/lib/server/api-proxy'
 
 /**
  * POST /api/auth/refresh
  *
- * Lê o refresh_token do cookie httpOnly, envia para FastAPI,
- * atualiza o cookie e devolve { access_token } ao browser.
+ * Lê o refresh_token do cookie httpOnly, chama FastAPI, renova o cookie
+ * e retorna { access_token } ao browser.
  */
 export async function POST(req: NextRequest) {
-  try {
-    const refreshToken = req.cookies.get('sa_refresh_token')?.value
+  const refreshToken = req.cookies.get(REFRESH_COOKIE)?.value
 
-    if (!refreshToken) {
-      return NextResponse.json({ message: 'Sessão expirada.' }, { status: 401 })
-    }
-
-    // Timeout de 5s para não pendurar quando FastAPI está fora do ar
-    const apiRes = await fetch(`${API_URL}/auth/refresh`, {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ refresh_token: refreshToken }),
-      signal:  AbortSignal.timeout(5_000),
-    })
-
-    const data = await apiRes.json()
-
-    if (!apiRes.ok) {
-      // Refresh inválido/expirado — limpa o cookie
-      const response = NextResponse.json(
-        { message: data.detail ?? 'Sessão expirada.' },
-        { status: 401 }
-      )
-      response.cookies.delete('sa_refresh_token')
-      return response
-    }
-
-    const { access_token, refresh_token: newRefreshToken } = data
-
-    const response = NextResponse.json({ access_token })
-
-    // Renova o refresh_token se a API devolveu um novo (rotation)
-    if (newRefreshToken) {
-      response.cookies.set('sa_refresh_token', newRefreshToken, {
-        httpOnly: true,
-        secure:   process.env.NODE_ENV === 'production',
-        sameSite: 'lax',
-        path:     '/',   // must match the login cookie path so middleware can read it
-        maxAge:   60 * 60 * 24 * 30,
-      })
-    }
-
-    return response
-  } catch (err) {
-    console.error('[auth/refresh]', err)
-    return NextResponse.json({ message: 'Erro ao renovar sessão.' }, { status: 502 })
+  if (!refreshToken) {
+    return NextResponse.json({ message: 'Sessão expirada.' }, { status: 401 })
   }
+
+  const result = await backendFetch<{
+    access_token:   string
+    refresh_token?: string
+  }>('/auth/refresh', {
+    method:    'POST',
+    headers:   { 'Content-Type': 'application/json' },
+    body:      JSON.stringify({ refresh_token: refreshToken }),
+    timeoutMs: 5_000,
+  })
+
+  if (!result.ok) {
+    const res = NextResponse.json(
+      { message: result.data.detail ?? 'Sessão expirada.' },
+      { status: 401 },
+    )
+    res.cookies.set(REFRESH_COOKIE, '', expireRefreshCookie)
+    return res
+  }
+
+  const { access_token, refresh_token: newRefresh } = result.data
+  const res = NextResponse.json({ access_token })
+
+  // Renova o cookie se a API retornou um novo refresh_token (rotation)
+  if (newRefresh) {
+    res.cookies.set(REFRESH_COOKIE, newRefresh, refreshCookieOptions)
+  }
+
+  return res
 }
