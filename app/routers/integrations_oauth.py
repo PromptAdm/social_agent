@@ -177,6 +177,12 @@ def connect_provider(
             f"http://localhost:8000/api/v1/integrations/meta/callback"
         )
         url = meta_oauth.build_auth_url(settings.META_APP_ID, redirect_uri, state)
+        logger.info(
+            "[meta_connect] app_id=%s redirect_uri=%s scopes=%s",
+            settings.META_APP_ID,
+            redirect_uri,
+            meta_oauth.SCOPES,
+        )
         return OAuthRedirectOut(redirect_url=url)
 
     if provider == "twitter":
@@ -217,15 +223,22 @@ def connect_provider(
     include_in_schema=False,
 )
 def meta_callback(
-    code:  str | None = Query(default=None),
-    state: str | None = Query(default=None),
-    error: str | None = Query(default=None),
-    db:    Session    = Depends(get_db),
+    code:              str | None = Query(default=None),
+    state:             str | None = Query(default=None),
+    error:             str | None = Query(default=None),
+    error_code:        str | None = Query(default=None),
+    error_description: str | None = Query(default=None),
+    db:                Session    = Depends(get_db),
 ):
     settings = get_settings()
 
     if error:
-        logger.warning("Meta OAuth error: %s", error)
+        logger.error(
+            "[meta_callback] Meta retornou erro OAuth — error=%s error_code=%s error_description=%s",
+            error,
+            error_code,
+            error_description,
+        )
         return RedirectResponse(
             _frontend_redirect(f"/integrations?oauth_error={error}"),
             status_code=302,
@@ -275,77 +288,63 @@ def meta_callback(
             if token_expires_seconds else None
         )
 
-        # 3. Fetch user's Facebook Pages
-        pages = meta_oauth.get_user_pages(user_token)
-        logger.info("[meta_callback] pages found: %d — names=%s", len(pages), [p.get("name") for p in pages])
+        # 3. Fetch Instagram Business Accounts (Instagram Business Login — no Facebook Pages)
+        logger.info("[meta_callback] fetching /me/instagram_accounts for user_id=%s", user_id)
+        ig_accounts = meta_oauth.get_instagram_accounts(user_token)
+        logger.info(
+            "[meta_callback] instagram_accounts found=%d ids=%s usernames=%s",
+            len(ig_accounts),
+            [a.get("id") for a in ig_accounts],
+            [a.get("username") for a in ig_accounts],
+        )
 
-        if not pages:
-            logger.warning("[meta_callback] no pages found for user_id=%s", user_id)
+        if not ig_accounts:
+            logger.warning(
+                "[meta_callback] no Instagram Business accounts found for user_id=%s — "
+                "ensure the account is a Business/Creator account and instagram_business_basic is granted",
+                user_id,
+            )
             return RedirectResponse(
-                _frontend_redirect("/integrations?oauth_error=no_pages_found"),
+                _frontend_redirect("/integrations?oauth_error=no_instagram_accounts_found"),
                 status_code=302,
             )
 
         connected_providers: list[str] = []
 
-        for page in pages:
-            page_token = page["access_token"]
-            page_id    = page["id"]
-            page_name  = page["name"]
-            page_pic   = page.get("picture", {}).get("data", {}).get("url")
+        for ig in ig_accounts:
+            ig_id       = ig["id"]
+            ig_username = ig.get("username") or ""
+            ig_name     = ig.get("name") or ig_username or "conta"
+            ig_pic      = ig.get("profile_picture_url")
 
-            # Store Facebook Page connection
-            if provider in ("facebook", "instagram"):
-                svc.upsert_account(
-                    db,
-                    user_id             = user_id,
-                    provider            = "facebook",
-                    external_account_id = page_id,
-                    account_name        = page_name,
-                    access_token        = page_token,
-                    brand_id            = brand_id,
-                    account_picture_url = page_pic,
-                    scopes              = meta_oauth.SCOPES,
-                    metadata            = {"page_id": page_id, "user_token_expires_at": expires_at.isoformat() if expires_at else None},
-                )
-                logger.info("[meta_callback] facebook persisted page_id=%s page_name=%s", page_id, page_name)
-                if "facebook" not in connected_providers:
-                    connected_providers.append("facebook")
+            svc.upsert_account(
+                db,
+                user_id             = user_id,
+                provider            = "instagram",
+                external_account_id = ig_id,
+                account_name        = ig_username or ig_name,
+                access_token        = user_token,
+                brand_id            = brand_id,
+                account_picture_url = ig_pic,
+                expires_at          = expires_at,
+                scopes              = meta_oauth.SCOPES,
+                metadata            = {
+                    "ig_user_id":            ig_id,
+                    "ig_name":               ig_name,
+                    "ig_username":           ig_username,
+                    "followers_count":       ig.get("followers_count"),
+                    "user_token_expires_at": expires_at.isoformat() if expires_at else None,
+                },
+            )
+            logger.info(
+                "[meta_callback] instagram persisted ig_id=%s username=%s followers=%s",
+                ig_id, ig_username, ig.get("followers_count"),
+            )
+            if "instagram" not in connected_providers:
+                connected_providers.append("instagram")
 
-            # Check for linked Instagram Business Account
-            try:
-                ig_account = meta_oauth.get_instagram_account_for_page(page_id, page_token)
-                logger.info("[meta_callback] ig_account for page %s: %s", page_id, ig_account)
-            except Exception as exc:
-                logger.warning("[meta_callback] could not fetch IG account for page %s: %s", page_id, exc)
-                ig_account = None
-
-            if ig_account:
-                svc.upsert_account(
-                    db,
-                    user_id             = user_id,
-                    provider            = "instagram",
-                    external_account_id = ig_account["id"],
-                    account_name        = ig_account.get("username") or ig_account.get("name") or page_name,
-                    access_token        = page_token,
-                    brand_id            = brand_id,
-                    account_picture_url = ig_account.get("profile_picture_url"),
-                    scopes              = meta_oauth.SCOPES,
-                    metadata            = {
-                        "ig_user_id":       ig_account["id"],
-                        "fb_page_id":       page_id,
-                        "fb_page_name":     page_name,
-                        "followers_count":  ig_account.get("followers_count"),
-                    },
-                )
-                logger.info("[meta_callback] instagram persisted ig_id=%s username=%s", ig_account["id"], ig_account.get("username"))
-                if "instagram" not in connected_providers:
-                    connected_providers.append("instagram")
-            else:
-                logger.warning("[meta_callback] no IG business account linked to page %s", page_id)
-
-        connected_str = ",".join(connected_providers) or "facebook"
-        first_name    = pages[0]["name"] if pages else "conta"
+        connected_str = ",".join(connected_providers) or "instagram"
+        first_name    = ig_accounts[0].get("username") or ig_accounts[0].get("name", "conta")
         logger.info("[meta_callback] SUCCESS connected_providers=%s redirecting to frontend", connected_providers)
         try:
             from app.core import analytics

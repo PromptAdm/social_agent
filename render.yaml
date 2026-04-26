@@ -52,9 +52,9 @@ services:
       - key: REFRESH_TOKEN_EXPIRE_DAYS
         value: "7"
 
-      # ── CORS — substitua pelo domínio real do frontend no Vercel ──────────────
+      # ── CORS — todos os domínios autorizados do frontend ─────────────────────
       - key: ALLOWED_ORIGINS
-        value: '["https://social-agent.vercel.app"]'
+        value: '["https://usenezora.vercel.app","https://social-agent-wzdl.vercel.app","https://social-agent.vercel.app"]'
 
       # ── IA ────────────────────────────────────────────────────────────────────
       - key: AI_PROVIDER

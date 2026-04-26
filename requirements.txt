@@ -16,6 +16,7 @@ email-validator==2.2.0          # necessário para EmailStr (pydantic)
 # ── Autenticação ───────────────────────────────────────────────────────────────
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
+bcrypt==4.0.1                     # passlib 1.7.4 incompatível com bcrypt>=4.2 (detect_wrap_bug usa senha >72 bytes)
 python-multipart==0.0.12
 
 # ── IA ─────────────────────────────────────────────────────────────────────────

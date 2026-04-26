@@ -1,21 +1,16 @@
 """
-Meta (Facebook / Instagram) OAuth 2.0 — Facebook Login flow.
+Meta OAuth 2.0 — Instagram Business Login flow.
 
 Permissions requested:
-    instagram_basic                 — read IG profile and media
-    instagram_content_publish       — publish to IG
-    instagram_manage_comments       — read/reply to IG comments
-    pages_show_list                 — enumerate FB pages the user manages
-    pages_manage_posts              — publish to FB pages
-    pages_read_engagement           — read page engagement metrics
+    instagram_business_basic            — read IG Business profile and media
+    instagram_manage_comments           — read/reply to IG comments
+    instagram_business_manage_messages  — manage IG DMs
 
 Token lifecycle:
     1. User authorises → short-lived user token (~1 h)
-    2. Exchange for long-lived user token (60 days)
-    3. From user token, fetch Page access tokens (never expire while app permissions held)
-
-The Page access token is what we store and use for publishing to both Instagram
-(via the IG Business Account linked to the page) and Facebook.
+    2. Exchange for long-lived user token (60 days, Graph API)
+    3. GET /me/instagram_accounts → list of Instagram Business Accounts
+    4. Store long-lived token per IG account (used directly for all API calls)
 """
 
 import json
@@ -28,12 +23,9 @@ _API_VERSION = "v21.0"
 _BASE = f"{_GRAPH}/{_API_VERSION}"
 
 SCOPES = ",".join([
-    "instagram_basic",
-    "instagram_content_publish",
+    "instagram_business_basic",
     "instagram_manage_comments",
-    "pages_show_list",
-    "pages_manage_posts",
-    "pages_read_engagement",
+    "instagram_business_manage_messages",
 ])
 
 
@@ -105,29 +97,17 @@ def get_user_info(user_token: str) -> dict:
     })
 
 
-def get_user_pages(user_token: str) -> list[dict]:
+def get_instagram_accounts(user_token: str) -> list[dict]:
     """
-    List Facebook Pages the user manages.
+    Return Instagram Business Accounts the authenticated user manages.
 
-    Each page dict contains:
-        id, name, access_token (page-scoped, non-expiring), tasks, picture
+    Uses the Instagram Business Login endpoint — no Facebook Pages required.
+    Requires instagram_business_basic scope.
+
+    Each dict contains: id, name, username, profile_picture_url, followers_count
     """
-    data = _graph_get("me/accounts", {
+    data = _graph_get("me/instagram_accounts", {
         "access_token": user_token,
-        "fields":       "id,name,access_token,tasks,picture",
+        "fields":       "id,name,username,profile_picture_url,followers_count",
     })
     return data.get("data", [])
-
-
-def get_instagram_account_for_page(page_id: str, page_token: str) -> dict | None:
-    """
-    Return the Instagram Professional Account linked to a Facebook Page.
-
-    Returns None if no IG account is linked.
-    Response dict contains: id, name, username, profile_picture_url, followers_count
-    """
-    data = _graph_get(page_id, {
-        "access_token": page_token,
-        "fields":       "instagram_business_account{id,name,username,profile_picture_url,followers_count}",
-    })
-    return data.get("instagram_business_account")
