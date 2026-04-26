@@ -29,7 +29,12 @@ export type ProxyResult<T>  = ProxySuccess<T> | ProxyError
  */
 export function resolveApiUrl(): string | null {
   const raw = process.env.NEXT_PUBLIC_API_URL?.trim()
-  if (raw) return raw.replace(/\/+$/, '')
+  if (raw) {
+    const base = raw.replace(/\/+$/, '')
+    // Guarantee the /api/v1 prefix is present — guards against Vercel dashboard
+    // env vars set without the suffix (e.g. https://host.com instead of https://host.com/api/v1)
+    return base.endsWith('/api/v1') ? base : `${base}/api/v1`
+  }
 
   if (process.env.NODE_ENV === 'production') {
     console.error('[api-proxy] NEXT_PUBLIC_API_URL is not set. Configure it in Vercel → Settings → Environment Variables.')
