@@ -16,16 +16,19 @@ services:
     runtime: python
     plan: free                        # mude para "starter" em produção real
 
-    buildCommand: pip install -r requirements.txt && alembic upgrade head
-    startCommand: >
-      gunicorn app.main:app
+    buildCommand: pip install -r requirements.txt
+    # alembic upgrade head runs at start (not build) so DATABASE_URL from
+    # the managed PostgreSQL is already injected by the Render runtime.
+    # Build-time env vars from `fromDatabase` are not available during build.
+    startCommand: >-
+      bash -c "alembic upgrade head && exec gunicorn app.main:app
       --worker-class uvicorn.workers.UvicornWorker
       --workers 3
       --bind 0.0.0.0:$PORT
       --timeout 120
       --keep-alive 5
       --access-logfile -
-      --error-logfile -
+      --error-logfile -"
 
     healthCheckPath: /health
 

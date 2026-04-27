@@ -130,6 +130,10 @@ async def lifespan(app: FastAPI):
     """
     _scheduler_task: asyncio.Task | None = None
 
+    # ── Migrations (safety net — primary path is startCommand in render.yaml) ──
+    from app.core.bootstrap import run_migrations as _run_migrations
+    _run_migrations()
+
     # ── Superuser bootstrap ────────────────────────────────────────────────────
     from app.core.bootstrap import run as _bootstrap
     from app.core.database import SessionLocal as _SessionLocal

@@ -8,8 +8,33 @@ Safe to run on every startup — all operations are upserts or no-ops.
 from __future__ import annotations
 
 import logging
+import os
 
 logger = logging.getLogger(__name__)
+
+
+def run_migrations() -> None:
+    """
+    Run Alembic migrations programmatically at startup.
+
+    Safety net for environments where the shell startCommand cannot guarantee
+    that `alembic upgrade head` ran with the correct DATABASE_URL (e.g. Render
+    build-phase vs runtime env var injection). Idempotent — if all revisions
+    are already applied this returns in milliseconds.
+    """
+    try:
+        from alembic.config import Config
+        from alembic import command as alembic_command
+
+        # Resolve path relative to the project root regardless of cwd
+        ini_path = os.path.join(os.path.dirname(__file__), "..", "..", "alembic.ini")
+        ini_path = os.path.normpath(ini_path)
+
+        cfg = Config(ini_path)
+        alembic_command.upgrade(cfg, "head")
+        logger.info("[bootstrap] Alembic migrations applied (head)")
+    except Exception:
+        logger.exception("[bootstrap] Alembic migration failed — startup continues but DB may be incomplete")
 
 SUPER_ADMIN_EMAIL = "prompt.admia@gmail.com"
 DEMOTE_EMAIL      = "angelo.msk8+1@example.com"
