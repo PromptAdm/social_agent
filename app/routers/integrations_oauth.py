@@ -111,6 +111,31 @@ def _frontend_redirect(path: str) -> str:
     return base + path
 
 
+# ── GET /integrations/healthz ─────────────────────────────────────────────────
+# Endpoint público (sem autenticação) — confirma que o router está registrado.
+# Acesse GET /api/v1/integrations/healthz para verificar em produção.
+
+@router.get(
+    "/integrations/healthz",
+    include_in_schema=False,
+)
+def integrations_healthz() -> dict:
+    """Confirma que o router integrations_oauth está registrado e respondendo."""
+    return {
+        "status": "ok",
+        "router": "integrations_oauth",
+        "routes": [
+            "GET  /api/v1/integrations/healthz",
+            "GET  /api/v1/integrations/status",
+            "GET  /api/v1/integrations/accounts",
+            "GET  /api/v1/integrations/connect/{provider}",
+            "GET  /api/v1/integrations/meta/callback",
+            "GET  /api/v1/integrations/twitter/callback",
+            "DELETE /api/v1/integrations/accounts/{account_id}",
+        ],
+    }
+
+
 # ── GET /integrations/status ──────────────────────────────────────────────────
 
 @router.get(

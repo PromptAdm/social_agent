@@ -59,6 +59,11 @@ services:
       - key: ALLOWED_ORIGINS
         value: '["https://usenezora.vercel.app","https://social-agent-wzdl.vercel.app","https://social-agent.vercel.app"]'
 
+      # ── Frontend URL — usado para redirect pós-OAuth ──────────────────────────
+      # OBRIGATÓRIO: sem isso, callbacks OAuth redirecionam para http://localhost:3000
+      - key: FRONTEND_URL
+        value: https://usenezora.vercel.app
+
       # ── IA ────────────────────────────────────────────────────────────────────
       - key: AI_PROVIDER
         value: anthropic              # ou "mock" para desabilitar
@@ -74,6 +79,8 @@ services:
       # ── Meta (Instagram / Facebook) ───────────────────────────────────────────
       - key: META_WEBHOOK_VERIFY_TOKEN
         sync: false                   # preencher manualmente
+      - key: META_APP_ID
+        sync: false                   # ID do App no Meta Developers (ex: 123456789)
       - key: META_APP_SECRET
         sync: false
       - key: META_ACCESS_TOKEN
@@ -84,6 +91,18 @@ services:
         sync: false
       - key: META_API_VERSION
         value: v21.0
+      # URI de callback registrado em Meta Developers → Produtos → Login do Facebook → OAuth
+      - key: META_REDIRECT_URI
+        value: https://social-agent-api.onrender.com/api/v1/integrations/meta/callback
+
+      # ── X (Twitter) OAuth 2.0 ─────────────────────────────────────────────────
+      - key: TWITTER_CLIENT_ID
+        sync: false                   # OAuth 2.0 Client ID do app no developer.twitter.com
+      - key: TWITTER_CLIENT_SECRET
+        sync: false
+      # URI de callback registrado no app Twitter (User authentication settings)
+      - key: TWITTER_REDIRECT_URI
+        value: https://social-agent-api.onrender.com/api/v1/integrations/twitter/callback
 
       # ── n8n ───────────────────────────────────────────────────────────────────
       - key: N8N_WEBHOOK_BASE_URL

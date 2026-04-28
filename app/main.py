@@ -308,6 +308,34 @@ app.include_router(upload.router,         prefix=API_PREFIX)
 app.include_router(video_subtitle.router, prefix=API_PREFIX)
 app.include_router(image_tree.router,     prefix=API_PREFIX)
 
+# ── Startup: audit log de rotas registradas ────────────────────────────────────
+def _log_registered_routes() -> None:
+    """
+    Imprime no log (visível no Render → Logs) todas as rotas de integração
+    registradas. Permite confirmar remotamente se integrations_oauth está ativo.
+    """
+    found = []
+    for route in app.routes:
+        path    = getattr(route, "path", "")
+        methods = ",".join(sorted(getattr(route, "methods", None) or []))
+        if "integration" in path.lower() or "webhook" in path.lower():
+            found.append(f"  [{methods}] {path}")
+
+    if found:
+        logger.info(
+            "[startup] Integration routes registered (%d):\n%s",
+            len(found),
+            "\n".join(found),
+        )
+    else:
+        logger.error(
+            "[startup] NENHUMA rota de integração registrada! "
+            "Verifique a importação de integrations_oauth em main.py."
+        )
+
+
+_log_registered_routes()
+
 # --- Static files: serve uploads and generated files ---
 from fastapi.staticfiles import StaticFiles
 from pathlib import Path as _Path
