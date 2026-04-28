@@ -45,6 +45,14 @@ from app.routers import (
 logger = logging.getLogger("main")
 settings = get_settings()
 
+# ── BUILD MARKER — visível nos logs do Render imediatamente após startup ───────
+# Se esta linha NÃO aparecer nos logs do Render, o serviço está rodando código
+# antigo (deploy não aplicado). Acesse Render → Events → force redeploy.
+logging.basicConfig(level=logging.INFO)
+logging.getLogger("main").info(
+    "BUILD_MARKER_INTEGRATIONS_OAUTH_2026_04_26 | "
+    "app/routers/integrations_oauth.py: healthz + connect/{provider} registrados"
+)
 
 # ── Logging seguro ─────────────────────────────────────────────────────────────
 

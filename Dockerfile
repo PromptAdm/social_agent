@@ -53,13 +53,13 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:${PORT}/health')" || exit 1
 
-# Entrypoint: gunicorn com workers uvicorn para produção
-# --workers: recomendado (2 × CPU cores) + 1. Render free tier = 1 vCPU → 3 workers.
-CMD gunicorn app.main:app \
+# Entrypoint: migração + gunicorn (alinhado com render.yaml startCommand)
+# alembic upgrade head: aplica migrações pendentes antes de subir os workers.
+CMD bash -c "alembic upgrade head && exec gunicorn app.main:app \
     --worker-class uvicorn.workers.UvicornWorker \
     --workers 3 \
     --bind 0.0.0.0:${PORT} \
     --timeout 120 \
     --keep-alive 5 \
     --access-logfile - \
-    --error-logfile -
+    --error-logfile -"
