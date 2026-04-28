@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { AlertCircle, CheckCircle2, Loader2, Webhook, Zap } from 'lucide-react'
 import { PageHeader }     from '@/components/shared/PageHeader'
@@ -55,6 +55,12 @@ export default function IntegrationsPage() {
     return () => clearTimeout(t)
   }, [toast])
 
+  const providersRef = useRef<HTMLDivElement>(null)
+
+  function scrollToProviders() {
+    providersRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+
   const { data: statusData, isLoading: statusLoading } = useIntegrationStatus()
   const connectMutation    = useConnectProvider()
   const disconnectMutation = useDisconnectAccount()
@@ -100,7 +106,7 @@ export default function IntegrationsPage() {
       />
 
       {/* Visual honeycomb hub */}
-      <IntegrationHub connectedIds={connectedHubIds} />
+      <IntegrationHub connectedIds={connectedHubIds} onViewProviders={scrollToProviders} />
 
       {/* Summary stats */}
       <div className="grid grid-cols-3 gap-4">
@@ -138,7 +144,7 @@ export default function IntegrationsPage() {
       </div>
 
       {/* Provider list */}
-      <div>
+      <div ref={providersRef}>
         <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-3">
           Providers
         </h2>

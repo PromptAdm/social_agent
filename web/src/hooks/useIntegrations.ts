@@ -30,7 +30,7 @@ export function useConnectedAccounts(brandId?: number) {
 export function useConnectProvider(brandId?: number) {
   return useMutation({
     mutationFn: async (provider: Provider) => {
-      console.log('[useConnectProvider] provider clicked:', provider)
+      console.log('[useConnectProvider] provider clicked:', provider, '| brandId:', brandId)
 
       const data = await integrationService.getConnectUrl(provider, brandId)
       console.log('[useConnectProvider] API response:', data)
@@ -39,8 +39,16 @@ export function useConnectProvider(brandId?: number) {
       window.location.href = data.redirect_url
     },
     onError: (error: unknown) => {
-      const message = error instanceof Error ? error.message : String(error)
-      console.error('[useConnectProvider] failed:', message)
+      const raw = error instanceof Error ? error.message : String(error)
+      console.error('[useConnectProvider] failed — raw error:', raw)
+
+      // FastAPI retorna {"detail":"Not Found"} quando a rota não existe no servidor.
+      // Isso indica problema de deploy: o backend não tem o endpoint /integrations/connect/{provider}.
+      const message =
+        raw === 'Not Found'
+          ? 'Endpoint não encontrado no servidor. Verifique se o backend está atualizado e redeploy se necessário.'
+          : raw
+
       alert(`Erro ao iniciar conexão: ${message}`)
     },
   })

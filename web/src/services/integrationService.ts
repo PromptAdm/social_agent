@@ -20,8 +20,10 @@ export const integrationService = {
 
   getConnectUrl(provider: Provider, brandId?: number): Promise<OAuthRedirectResponse> {
     const params = brandId ? `?brand_id=${brandId}` : ''
+    const path   = API.integrations.connect(provider) + params
+    console.log('[integrationService] getConnectUrl →', (apiClient.defaults.baseURL ?? '') + path)
     return apiClient
-      .get<OAuthRedirectResponse>(API.integrations.connect(provider) + params)
+      .get<OAuthRedirectResponse>(path)
       .then((r: { data: OAuthRedirectResponse }) => r.data)
   },
 

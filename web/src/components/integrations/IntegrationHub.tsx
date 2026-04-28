@@ -415,11 +415,12 @@ function HexRow({
 // ── ConnectModal ──────────────────────────────────────────────────────────────
 
 interface ModalProps {
-  platform: HubPlatform
-  onClose:  () => void
+  platform:        HubPlatform
+  onClose:         () => void
+  onViewProviders?: () => void
 }
 
-function ConnectModal({ platform, onClose }: ModalProps) {
+function ConnectModal({ platform, onClose, onViewProviders }: ModalProps) {
   const ok = platform.status === 'connected'
 
   return (
@@ -503,9 +504,15 @@ function ConnectModal({ platform, onClose }: ModalProps) {
             <div className="space-y-4">
               <p className="text-sm text-slate-500 leading-relaxed">
                 Conecte {platform.name} para publicar e automatizar sua operação de marketing.
-                Use o botão abaixo na seção de Providers para iniciar o fluxo OAuth.
+                Clique em Ver Providers para ir à seção de conexão e iniciar o fluxo OAuth.
               </p>
-              <button onClick={onClose} className="w-full btn-primary h-9 text-sm">
+              <button
+                onClick={() => {
+                  onClose()
+                  setTimeout(() => onViewProviders?.(), 200)
+                }}
+                className="w-full btn-primary h-9 text-sm"
+              >
                 Ver Providers
               </button>
             </div>
@@ -519,10 +526,11 @@ function ConnectModal({ platform, onClose }: ModalProps) {
 // ── IntegrationHub ─────────────────────────────────────────────────────────────
 
 interface IntegrationHubProps {
-  connectedIds?: string[]
+  connectedIds?:    string[]
+  onViewProviders?: () => void
 }
 
-export function IntegrationHub({ connectedIds = [] }: IntegrationHubProps) {
+export function IntegrationHub({ connectedIds = [], onViewProviders }: IntegrationHubProps) {
   const [selected,  setSelected]  = useState<HubPlatform | null>(null)
   const [activeRow, setActiveRow] = useState<number | null>(null)
 
@@ -642,6 +650,7 @@ export function IntegrationHub({ connectedIds = [] }: IntegrationHubProps) {
           <ConnectModal
             platform={selected}
             onClose={() => setSelected(null)}
+            onViewProviders={onViewProviders}
           />
         )}
       </AnimatePresence>
