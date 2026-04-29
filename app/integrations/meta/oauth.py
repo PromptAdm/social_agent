@@ -1,16 +1,14 @@
 """
-Meta OAuth 2.0 — Instagram Business Login flow.
+Meta OAuth 2.0 — Facebook Login + Instagram Basic.
 
-Permissions requested:
-    instagram_business_basic            — read IG Business profile and media
-    instagram_manage_comments           — read/reply to IG comments
-    instagram_business_manage_messages  — manage IG DMs
+Permissões (modo desenvolvimento — sem review obrigatório):
+    public_profile, email, pages_show_list, pages_read_engagement, instagram_basic
 
-Token lifecycle:
-    1. User authorises → short-lived user token (~1 h)
-    2. Exchange for long-lived user token (60 days, Graph API)
-    3. GET /me/instagram_accounts → list of Instagram Business Accounts
-    4. Store long-lived token per IG account (used directly for all API calls)
+Fluxo:
+    1. Usuário autoriza → code
+    2. GET /oauth/access_token → access_token (user token)
+    3. GET /me/accounts → lista de Pages (com instagram_business_account se vinculado)
+    4. Salvar na tabela social_connections
 """
 
 import json
@@ -18,20 +16,18 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-_GRAPH = "https://graph.facebook.com"
+_GRAPH       = "https://graph.facebook.com"
 _API_VERSION = "v21.0"
-_BASE = f"{_GRAPH}/{_API_VERSION}"
+_BASE        = f"{_GRAPH}/{_API_VERSION}"
 
-SCOPES = ",".join([
-    "instagram_business_basic",
-    "instagram_manage_comments",
-    "instagram_business_manage_messages",
-])
+# Permissões básicas — compatíveis com app em modo desenvolvimento
+SCOPES = "public_profile,email,pages_show_list,pages_read_engagement,instagram_basic"
 
 
 # ── Auth URL ──────────────────────────────────────────────────────────────────
 
 def build_auth_url(app_id: str, redirect_uri: str, state: str) -> str:
+    """Retorna a URL do diálogo OAuth do Facebook."""
     params = {
         "client_id":     app_id,
         "redirect_uri":  redirect_uri,
@@ -39,12 +35,16 @@ def build_auth_url(app_id: str, redirect_uri: str, state: str) -> str:
         "response_type": "code",
         "state":         state,
     }
-    return f"https://www.facebook.com/{_API_VERSION}/dialog/oauth?" + urllib.parse.urlencode(params)
+    return (
+        f"https://www.facebook.com/{_API_VERSION}/dialog/oauth?"
+        + urllib.parse.urlencode(params)
+    )
 
 
-# ── Token exchange helpers ────────────────────────────────────────────────────
+# ── HTTP helpers ──────────────────────────────────────────────────────────────
 
 def _graph_get(path: str, params: dict) -> dict:
+    """GET para Graph API — lança RuntimeError em caso de erro HTTP."""
     url = f"{_BASE}/{path}?" + urllib.parse.urlencode(params)
     try:
         with urllib.request.urlopen(url, timeout=15) as resp:
@@ -58,13 +58,37 @@ def _graph_get(path: str, params: dict) -> dict:
         raise RuntimeError(f"Meta API error ({exc.code}): {detail}") from exc
 
 
-def exchange_code_for_short_lived_token(
+def _graph_post(path: str, params: dict) -> dict:
+    """POST para Graph API — lança RuntimeError em caso de erro HTTP."""
+    url   = f"{_BASE}/{path}"
+    data  = urllib.parse.urlencode(params).encode()
+    req   = urllib.request.Request(url, data=data, method="POST")
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return json.loads(resp.read())
+    except urllib.error.HTTPError as exc:
+        body = exc.read()
+        try:
+            detail = json.loads(body).get("error", {}).get("message", body.decode())
+        except Exception:
+            detail = body.decode()
+        raise RuntimeError(f"Meta API error ({exc.code}): {detail}") from exc
+
+
+# ── Token exchange ────────────────────────────────────────────────────────────
+
+def exchange_code_for_token(
     code: str,
     app_id: str,
     app_secret: str,
     redirect_uri: str,
 ) -> dict:
-    """Exchange authorization code for a short-lived user access token."""
+    """
+    Troca o authorization code por um user access token.
+
+    Retorna dict com: access_token, token_type, (opcionalmente expires_in)
+    """
     return _graph_get("oauth/access_token", {
         "client_id":     app_id,
         "client_secret": app_secret,
@@ -73,41 +97,53 @@ def exchange_code_for_short_lived_token(
     })
 
 
+# ── Account discovery ─────────────────────────────────────────────────────────
+
+def get_user_pages(user_token: str) -> list[dict]:
+    """
+    Lista as Facebook Pages que o usuário administra.
+
+    Inclui o campo instagram_business_account quando a Page tiver
+    uma conta Instagram Business/Creator vinculada.
+
+    Cada item retornado: { id, name, instagram_business_account?: { id } }
+    """
+    data = _graph_get("me/accounts", {
+        "access_token": user_token,
+        "fields":       "id,name,instagram_business_account",
+    })
+    return data.get("data", [])
+
+
+def get_user_info(user_token: str) -> dict:
+    """Perfil básico do usuário autenticado (id, name)."""
+    return _graph_get("me", {
+        "access_token": user_token,
+        "fields":       "id,name",
+    })
+
+
+# ── Kept for backward compat (twitter router imports nothing from here) ────────
+
+def exchange_code_for_short_lived_token(
+    code: str,
+    app_id: str,
+    app_secret: str,
+    redirect_uri: str,
+) -> dict:
+    """Alias para exchange_code_for_token — mantido para compat com código legado."""
+    return exchange_code_for_token(code, app_id, app_secret, redirect_uri)
+
+
 def exchange_for_long_lived_token(
     short_lived_token: str,
     app_id: str,
     app_secret: str,
 ) -> dict:
-    """Exchange a short-lived user token for a long-lived user token (60 days)."""
+    """Troca token de curta duração por token de longa duração (~60 dias)."""
     return _graph_get("oauth/access_token", {
         "grant_type":        "fb_exchange_token",
         "client_id":         app_id,
         "client_secret":     app_secret,
         "fb_exchange_token": short_lived_token,
     })
-
-
-# ── Account discovery ─────────────────────────────────────────────────────────
-
-def get_user_info(user_token: str) -> dict:
-    """Fetch the authenticated user's profile (id, name, picture)."""
-    return _graph_get("me", {
-        "access_token": user_token,
-        "fields":       "id,name,picture",
-    })
-
-
-def get_instagram_accounts(user_token: str) -> list[dict]:
-    """
-    Return Instagram Business Accounts the authenticated user manages.
-
-    Uses the Instagram Business Login endpoint — no Facebook Pages required.
-    Requires instagram_business_basic scope.
-
-    Each dict contains: id, name, username, profile_picture_url, followers_count
-    """
-    data = _graph_get("me/instagram_accounts", {
-        "access_token": user_token,
-        "fields":       "id,name,username,profile_picture_url,followers_count",
-    })
-    return data.get("data", [])

@@ -93,7 +93,7 @@ services:
         value: v21.0
       # URI de callback registrado em Meta Developers → Produtos → Login do Facebook → OAuth
       - key: META_REDIRECT_URI
-        value: https://social-agent-api.onrender.com/api/v1/integrations/meta/callback
+        value: https://social-agent-5h70.onrender.com/api/v1/integrations/meta/callback
 
       # ── X (Twitter) OAuth 2.0 ─────────────────────────────────────────────────
       - key: TWITTER_CLIENT_ID

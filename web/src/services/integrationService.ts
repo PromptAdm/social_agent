@@ -3,6 +3,7 @@ import { API } from '@/lib/api/endpoints'
 import type {
   ConnectedAccount,
   IntegrationStatusResponse,
+  MetaStatus,
   OAuthRedirectResponse,
   Provider,
 } from '@/types/integrations'
@@ -29,5 +30,13 @@ export const integrationService = {
 
   disconnect(accountId: number): Promise<void> {
     return apiClient.delete(API.integrations.disconnect(accountId)).then(() => undefined)
+  },
+
+  getMetaStatus(): Promise<MetaStatus> {
+    return apiClient.get<MetaStatus>(API.integrations.metaStatus).then((r: { data: MetaStatus }) => r.data)
+  },
+
+  getMetaConnectUrl(): Promise<OAuthRedirectResponse> {
+    return apiClient.get<OAuthRedirectResponse>(API.integrations.metaConnect).then((r: { data: OAuthRedirectResponse }) => r.data)
   },
 }

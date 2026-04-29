@@ -36,6 +36,14 @@ export interface OAuthRedirectResponse {
   redirect_url: string
 }
 
+export interface MetaStatus {
+  connected:            boolean
+  facebook_page_id?:    string | null
+  facebook_page_name?:  string | null
+  instagram_account_id?: string | null
+  connected_at?:        string | null
+}
+
 // Static metadata for each supported provider
 export interface ProviderMeta {
   id:          Provider

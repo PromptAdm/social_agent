@@ -97,9 +97,11 @@ export const API = {
   },
 
   integrations: {
-    status:     '/integrations/status',
-    accounts:   '/integrations/accounts',
-    connect:    (provider: string) => `/integrations/connect/${provider}`,
-    disconnect: (accountId: number) => `/integrations/accounts/${accountId}`,
+    status:      '/integrations/status',
+    accounts:    '/integrations/accounts',
+    connect:     (provider: string) => `/integrations/connect/${provider}`,
+    disconnect:  (accountId: number) => `/integrations/accounts/${accountId}`,
+    metaConnect: '/integrations/meta/connect',
+    metaStatus:  '/integrations/meta/status',
   },
 } as const

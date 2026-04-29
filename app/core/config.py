@@ -62,7 +62,7 @@ class Settings(BaseSettings):
 
     # --- Meta OAuth (Instagram + Facebook) ---
     # META_APP_ID and META_APP_SECRET already declared above
-    META_REDIRECT_URI: str = ""  # e.g. http://localhost:8000/api/v1/integrations/meta/callback
+    META_REDIRECT_URI: str = "https://social-agent-5h70.onrender.com/api/v1/integrations/meta/callback"
 
     # --- X (Twitter) OAuth 2.0 PKCE ---
     TWITTER_CLIENT_ID: str = ""

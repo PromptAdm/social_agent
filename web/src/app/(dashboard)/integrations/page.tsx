@@ -9,7 +9,9 @@ import { ProviderCard }   from '@/components/integrations/ProviderCard'
 import {
   useIntegrationStatus,
   useConnectProvider,
+  useConnectMeta,
   useDisconnectAccount,
+  useMetaStatus,
 } from '@/hooks/useIntegrations'
 import { PROVIDER_META } from '@/types/integrations'
 import type { Provider } from '@/types/integrations'
@@ -62,7 +64,9 @@ export default function IntegrationsPage() {
   }
 
   const { data: statusData, isLoading: statusLoading } = useIntegrationStatus()
+  const { data: metaStatus, isLoading: metaStatusLoading } = useMetaStatus()
   const connectMutation    = useConnectProvider()
+  const connectMetaMutation = useConnectMeta()
   const disconnectMutation = useDisconnectAccount()
 
   // Map provider → status object from API
@@ -141,6 +145,54 @@ export default function IntegrationsPage() {
             <p className="text-xs text-slate-500">Webhooks ativos</p>
           </div>
         </div>
+      </div>
+
+      {/* Meta (Facebook + Instagram) connection card */}
+      <div className="card p-5 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#1877F2] to-[#C13584] flex items-center justify-center text-white font-bold text-sm">
+              M
+            </div>
+            <div>
+              <p className="font-semibold text-slate-900 text-sm">Meta (Facebook + Instagram)</p>
+              <p className="text-xs text-slate-500">
+                {metaStatusLoading
+                  ? 'Verificando…'
+                  : metaStatus?.connected
+                    ? `Conectado${metaStatus.facebook_page_name ? ` · ${metaStatus.facebook_page_name}` : ''}`
+                    : 'Não conectado'}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => connectMetaMutation.mutate()}
+            disabled={connectMetaMutation.isPending}
+            className="btn-primary h-8 px-4 text-xs disabled:opacity-60 flex items-center gap-1.5"
+          >
+            {connectMetaMutation.isPending && <Loader2 className="w-3 h-3 animate-spin" />}
+            {metaStatus?.connected ? 'Reconectar Meta' : 'Conectar Meta'}
+          </button>
+        </div>
+
+        {metaStatus?.connected && (
+          <div className="grid grid-cols-2 gap-3 pt-1">
+            <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+              <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400 mb-0.5">Página do Facebook</p>
+              <p className="text-sm text-slate-700 font-medium truncate">
+                {metaStatus.facebook_page_name ?? '—'}
+              </p>
+            </div>
+            <div className="rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+              <p className="text-[10px] font-medium uppercase tracking-widest text-slate-400 mb-0.5">Conta Instagram</p>
+              <p className="text-sm text-slate-700 font-medium truncate">
+                {metaStatus.instagram_account_id
+                  ? `ID: ${metaStatus.instagram_account_id}`
+                  : <span className="text-slate-400 italic text-xs">Não vinculada</span>}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Provider list */}

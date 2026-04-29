@@ -19,6 +19,7 @@ from app.models.subscription import UserSubscription
 from app.models.credits import UserCredit, CreditLog
 from app.models.projects import ImageProject, VideoProject, GenerationResult
 from app.models.connected_account import ConnectedAccount
+from app.models.social_connection import SocialConnection
 from app.models.stripe_event import StripeWebhookEvent
 from app.models.admin_audit_log import AdminAuditLog
 from app.models.feature_override import FeatureOverride
@@ -45,6 +46,7 @@ __all__ = [
     "VideoProject",
     "GenerationResult",
     "ConnectedAccount",
+    "SocialConnection",
     "StripeWebhookEvent",
     "AdminAuditLog",
     "FeatureOverride",

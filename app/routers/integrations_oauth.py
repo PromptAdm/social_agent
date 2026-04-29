@@ -35,6 +35,7 @@ from app.integrations.meta import oauth as meta_oauth
 from app.integrations.twitter import oauth as twitter_oauth
 from app.models.user import User
 from app.services import connected_account_service as svc
+from app.services import social_connection_service as sc_svc
 
 logger = logging.getLogger(__name__)
 router = APIRouter(tags=["Integrations OAuth"])
@@ -78,6 +79,14 @@ class ProviderStatusOut(BaseModel):
 
 class IntegrationStatusOut(BaseModel):
     providers: list[ProviderStatusOut]
+
+
+class MetaStatusOut(BaseModel):
+    connected:            bool
+    facebook_page_id:     str | None = None
+    facebook_page_name:   str | None = None
+    instagram_account_id: str | None = None
+    connected_at:         str | None = None
 
 
 # ── State JWT helpers ─────────────────────────────────────────────────────────
@@ -198,15 +207,11 @@ def connect_provider(
                 detail="Meta App ID / Secret não configurados. Contate o administrador.",
             )
         state = _create_state(current_user.id, brand_id, provider)
-        redirect_uri = getattr(settings, "META_REDIRECT_URI", "") or (
-            f"http://localhost:8000/api/v1/integrations/meta/callback"
-        )
+        redirect_uri = settings.META_REDIRECT_URI
         url = meta_oauth.build_auth_url(settings.META_APP_ID, redirect_uri, state)
         logger.info(
-            "[meta_connect] app_id=%s redirect_uri=%s scopes=%s",
-            settings.META_APP_ID,
-            redirect_uri,
-            meta_oauth.SCOPES,
+            "[connect_provider/meta] app_id=%s redirect_uri=%s scopes=%s oauth_url=%s",
+            settings.META_APP_ID, redirect_uri, meta_oauth.SCOPES, url,
         )
         return OAuthRedirectOut(redirect_url=url)
 
@@ -237,6 +242,57 @@ def connect_provider(
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
         detail=f"Provider '{provider}' não reconhecido. Use: instagram, facebook, twitter, whatsapp.",
+    )
+
+
+# ── GET /integrations/meta/connect ───────────────────────────────────────────
+
+@router.get(
+    "/integrations/meta/connect",
+    response_model=OAuthRedirectOut,
+    summary="Iniciar OAuth Meta (Facebook + Instagram básico)",
+)
+def meta_connect(
+    brand_id:     int | None = Query(default=None),
+    db:           Session    = Depends(get_db),
+    current_user: User       = Depends(get_current_active_user),
+) -> OAuthRedirectOut:
+    settings = get_settings()
+    if not settings.META_APP_ID or not settings.META_APP_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Meta App ID / Secret não configurados. Contate o administrador.",
+        )
+    state = _create_state(current_user.id, brand_id, "meta")
+    redirect_uri = settings.META_REDIRECT_URI
+    url = meta_oauth.build_auth_url(settings.META_APP_ID, redirect_uri, state)
+    logger.info(
+        "[meta_connect] user_id=%s META_REDIRECT_URI=%s scopes=%s oauth_url=%s",
+        current_user.id, redirect_uri, meta_oauth.SCOPES, url,
+    )
+    return OAuthRedirectOut(redirect_url=url)
+
+
+# ── GET /integrations/meta/status ────────────────────────────────────────────
+
+@router.get(
+    "/integrations/meta/status",
+    response_model=MetaStatusOut,
+    summary="Status da conexão Meta do usuário atual",
+)
+def meta_status(
+    db:           Session = Depends(get_db),
+    current_user: User    = Depends(get_current_active_user),
+) -> MetaStatusOut:
+    conn = sc_svc.get_meta_connection(db, current_user.id)
+    if not conn:
+        return MetaStatusOut(connected=False)
+    return MetaStatusOut(
+        connected            = True,
+        facebook_page_id     = conn.facebook_page_id,
+        facebook_page_name   = conn.facebook_page_name,
+        instagram_account_id = conn.instagram_account_id,
+        connected_at         = conn.created_at.isoformat() if conn.created_at else None,
     )
 
 
@@ -285,105 +341,67 @@ def meta_callback(
 
     user_id  = int(state_data["sub"])
     brand_id = state_data.get("brand_id")
-    provider = state_data.get("provider", "instagram")  # instagram | facebook
 
-    redirect_uri = getattr(settings, "META_REDIRECT_URI", "") or (
-        "http://localhost:8000/api/v1/integrations/meta/callback"
-    )
+    redirect_uri = settings.META_REDIRECT_URI
 
     try:
-        logger.info("[meta_callback] user_id=%s provider=%s redirect_uri=%s", user_id, provider, redirect_uri)
+        logger.info("[meta_callback] user_id=%s META_REDIRECT_URI=%s", user_id, redirect_uri)
 
-        # 1. Exchange code for short-lived token
-        short = meta_oauth.exchange_code_for_short_lived_token(
+        # 1. Exchange code for user access token
+        token_data = meta_oauth.exchange_code_for_token(
             code, settings.META_APP_ID, settings.META_APP_SECRET, redirect_uri
         )
-        logger.info("[meta_callback] short-lived token OK, keys=%s", list(short.keys()))
+        user_token = token_data["access_token"]
+        logger.info("[meta_callback] token exchange OK")
 
-        # 2. Exchange for long-lived user token (60 days)
-        long = meta_oauth.exchange_for_long_lived_token(
-            short["access_token"], settings.META_APP_ID, settings.META_APP_SECRET
+        # 2. Fetch Facebook Pages (includes instagram_business_account when linked)
+        pages = meta_oauth.get_user_pages(user_token)
+        logger.info("[meta_callback] pages found=%d ids=%s", len(pages), [p.get("id") for p in pages])
+
+        # 3. Pick first page; prefer one with instagram_business_account
+        page_with_ig = next(
+            (p for p in pages if p.get("instagram_business_account")), None
         )
-        logger.info("[meta_callback] long-lived token OK, expires_in=%s", long.get("expires_in"))
+        chosen_page = page_with_ig or (pages[0] if pages else None)
 
-        user_token = long["access_token"]
-        token_expires_seconds = long.get("expires_in")
-        expires_at = (
-            datetime.now(timezone.utc) + timedelta(seconds=token_expires_seconds)
-            if token_expires_seconds else None
+        facebook_page_id     = chosen_page["id"]   if chosen_page else None
+        facebook_page_name   = chosen_page.get("name") if chosen_page else None
+        instagram_account_id = (
+            chosen_page["instagram_business_account"]["id"]
+            if chosen_page and chosen_page.get("instagram_business_account")
+            else None
         )
 
-        # 3. Fetch Instagram Business Accounts (Instagram Business Login — no Facebook Pages)
-        logger.info("[meta_callback] fetching /me/instagram_accounts for user_id=%s", user_id)
-        ig_accounts = meta_oauth.get_instagram_accounts(user_token)
         logger.info(
-            "[meta_callback] instagram_accounts found=%d ids=%s usernames=%s",
-            len(ig_accounts),
-            [a.get("id") for a in ig_accounts],
-            [a.get("username") for a in ig_accounts],
+            "[meta_callback] page_id=%s page_name=%s ig_account_id=%s",
+            facebook_page_id, facebook_page_name, instagram_account_id,
         )
 
-        if not ig_accounts:
-            logger.warning(
-                "[meta_callback] no Instagram Business accounts found for user_id=%s — "
-                "ensure the account is a Business/Creator account and instagram_business_basic is granted",
-                user_id,
-            )
-            return RedirectResponse(
-                _frontend_redirect("/integrations?oauth_error=no_instagram_accounts_found"),
-                status_code=302,
-            )
+        # 4. Persist to social_connections (upsert — one row per user/provider)
+        sc_svc.upsert_meta_connection(
+            db,
+            user_id              = user_id,
+            facebook_page_id     = facebook_page_id,
+            facebook_page_name   = facebook_page_name,
+            instagram_account_id = instagram_account_id,
+            access_token         = user_token,
+        )
+        logger.info("[meta_callback] social_connections upserted for user_id=%s", user_id)
 
-        connected_providers: list[str] = []
-
-        for ig in ig_accounts:
-            ig_id       = ig["id"]
-            ig_username = ig.get("username") or ""
-            ig_name     = ig.get("name") or ig_username or "conta"
-            ig_pic      = ig.get("profile_picture_url")
-
-            svc.upsert_account(
-                db,
-                user_id             = user_id,
-                provider            = "instagram",
-                external_account_id = ig_id,
-                account_name        = ig_username or ig_name,
-                access_token        = user_token,
-                brand_id            = brand_id,
-                account_picture_url = ig_pic,
-                expires_at          = expires_at,
-                scopes              = meta_oauth.SCOPES,
-                metadata            = {
-                    "ig_user_id":            ig_id,
-                    "ig_name":               ig_name,
-                    "ig_username":           ig_username,
-                    "followers_count":       ig.get("followers_count"),
-                    "user_token_expires_at": expires_at.isoformat() if expires_at else None,
-                },
-            )
-            logger.info(
-                "[meta_callback] instagram persisted ig_id=%s username=%s followers=%s",
-                ig_id, ig_username, ig.get("followers_count"),
-            )
-            if "instagram" not in connected_providers:
-                connected_providers.append("instagram")
-
-        connected_str = ",".join(connected_providers) or "instagram"
-        first_name    = ig_accounts[0].get("username") or ig_accounts[0].get("name", "conta")
-        logger.info("[meta_callback] SUCCESS connected_providers=%s redirecting to frontend", connected_providers)
         try:
             from app.core import analytics
-            for provider_name in connected_providers:
-                event = "instagram_connected" if provider_name == "instagram" else "social_account_connected"
-                analytics.track(event, distinct_id=str(user_id), properties={
-                    "provider": provider_name,
-                    "brand_id": brand_id,
-                })
+            analytics.track("meta_connected", distinct_id=str(user_id), properties={
+                "facebook_page_id":     facebook_page_id,
+                "instagram_account_id": instagram_account_id,
+                "brand_id":             brand_id,
+            })
         except Exception:
             pass
+
+        account_label = facebook_page_name or "Meta"
         return RedirectResponse(
             _frontend_redirect(
-                f"/integrations?connected={connected_str}&account={first_name}"
+                f"/integrations?connected=meta&account={account_label}"
             ),
             status_code=302,
         )

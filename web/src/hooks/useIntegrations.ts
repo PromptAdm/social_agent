@@ -54,6 +54,28 @@ export function useConnectProvider(brandId?: number) {
   })
 }
 
+export function useMetaStatus() {
+  return useQuery({
+    queryKey:  ['integrations', 'meta', 'status'],
+    queryFn:   () => integrationService.getMetaStatus(),
+    staleTime: 30_000,
+    retry:     1,
+  })
+}
+
+export function useConnectMeta() {
+  return useMutation({
+    mutationFn: async () => {
+      const data = await integrationService.getMetaConnectUrl()
+      window.location.href = data.redirect_url
+    },
+    onError: (error: unknown) => {
+      const msg = error instanceof Error ? error.message : String(error)
+      alert(`Erro ao iniciar conexão Meta: ${msg}`)
+    },
+  })
+}
+
 export function useDisconnectAccount(brandId?: number) {
   const qc = useQueryClient()
   return useMutation({
